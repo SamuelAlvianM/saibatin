@@ -43,6 +43,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# --- Skrip bantu lokal (berisi kredensial dev, jangan commit) ----------------
+mysql-reset.*
+
 # --- Editor / OS -------------------------------------------------------------
 .DS_Store
 Thumbs.db
