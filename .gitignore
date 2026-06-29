@@ -1,0 +1,51 @@
+# =============================================================================
+# Root .gitignore — saibatin monorepo
+# Tujuan: keluarkan dependency berat & file rahasia dari Git
+# =============================================================================
+
+# --- Rahasia / Environment (JANGAN PERNAH di-commit) -------------------------
+.env
+.env.*
+!.env.example
+*.env
+
+# --- Dependency PHP / Laravel ------------------------------------------------
+vendor/
+composer.phar
+
+# --- Dependency Node / Next.js -----------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+
+# --- Build output ------------------------------------------------------------
+.next/
+out/
+/build
+dist/
+public/hot
+public/storage
+bootstrap/cache/*.php
+
+# --- Laravel storage (runtime, log, cache) -----------------------------------
+storage/*.key
+**/storage/framework/cache/data/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/storage/logs/*
+!**/storage/**/.gitignore
+
+# --- Log & cache umum --------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Editor / OS -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.pem

@@ -1,0 +1,210 @@
+// Prisma schema — saibatin-platform
+// DB: MySQL (cocok untuk cPanel/shared hosting)
+// Tabel `users` direkonstruksi PERSIS dari kolom yang dipakai controller Laravel
+// (RegisterController/LoginController data-2). Tabel lain didesain ulang rapi
+// untuk data yang dikelola aplikasi; tabel master dapduk (kependudukan) bersifat
+// legacy/eksternal dan didekati lewat tabel ringkas di sini.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Pengguna portal (warga & operator/admin). Mirror tabel `users` legacy.
+model User {
+  id                Int       @id @default(autoincrement())
+  userId            String    @map("user_id") // = NIK saat warga daftar
+  password          String                     // hash bcrypt (TIDAK simpan plaintext)
+  userlevelId       Int       @default(3) @map("userlevel_id") // 1=superadmin,2=operator,3=warga
+  userFullname      String?   @map("user_fullname")
+  userNik           String?   @map("user_nik")
+  userNokk          String?   @map("user_nokk")
+  userHp            String?   @map("user_hp")
+  userEmail         String?   @map("user_email")
+  activationCode    String?   @map("activation_code")
+  activationCodeUrl String?   @db.Text @map("activation_code_url")
+  activationTime    DateTime? @map("activation_time")
+  forgottenCode     String?   @map("forgotten_code")
+  forgottenTime     DateTime? @map("forgotten_time")
+  loginLast         DateTime? @map("login_last")
+  ipAddress         String?   @map("ip_address")
+  status            Int       @default(0) // 0=belum aktif, 1=aktif
+  ket               String?   @db.Text
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  rememberToken     String?   @map("remember_token")
+  createdBy         Int?      @map("created_by")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedBy         Int?      @map("updated_by")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  level        UserLevel?    @relation(fields: [userlevelId], references: [id])
+  permohonans  Permohonan[]
+
+  @@index([userId])
+  @@index([userNik])
+  @@index([status])
+  @@map("users")
+}
+
+/// Level/role pengguna.
+model UserLevel {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  createdAt DateTime @default(now()) @map("created_at")
+  users     User[]
+
+  @@map("m_userlevels")
+}
+
+/// Master jenis layanan/permohonan (Akta Kelahiran, KK, KTP-el, dst).
+model JenisPermohonan {
+  id          Int          @id @default(autoincrement())
+  kode        String       @unique // mis. AKTA_KELAHIRAN_NIK_ADA
+  nama        String
+  kategori    String       // CAPIL | DAFDUK
+  aktif       Boolean      @default(true)
+  urutan      Int          @default(0)
+  permohonans Permohonan[]
+
+  @@map("m_jenis_permohonan")
+}
+
+/// Pengajuan permohonan layanan oleh warga (menyatukan 17 jenis form).
+model Permohonan {
+  id          Int       @id @default(autoincrement())
+  noregister  String    @unique @map("no_register")
+  userId      Int       @map("user_id")
+  jenisId     Int       @map("jenis_id")
+  status      String    @default("DALAM_PROSES") // DALAM_PROSES | SELESAI | DITOLAK
+  payload     Json?     // field dinamis per jenis permohonan
+  catatan     String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user    User            @relation(fields: [userId], references: [id])
+  jenis   JenisPermohonan @relation(fields: [jenisId], references: [id])
+  berkas  Berkas[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("t_permohonan")
+}
+
+/// Berkas/lampiran bukti yang diunggah pada permohonan.
+model Berkas {
+  id           Int        @id @default(autoincrement())
+  permohonanId Int        @map("permohonan_id")
+  namaFile     String     @map("nama_file")
+  path         String
+  mimeType     String?    @map("mime_type")
+  ukuran       Int?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  permohonan Permohonan @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+
+  @@map("t_berkas")
+}
+
+/// Pengaduan masyarakat (mirror t_pengaduanmasyarakat).
+model Pengaduan {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  nik       String?
+  email     String?
+  hp        String?
+  subjek    String?
+  isi       String   @db.Text
+  status    String   @default("BARU") // BARU | DIPROSES | SELESAI
+  balasan   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("t_pengaduanmasyarakat")
+}
+
+/// Kritik & saran / kontak.
+model KritikSaran {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String?
+  hp        String?
+  pesan     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("t_kritiksaran")
+}
+
+/// Berita / artikel (mirror m_news_posts).
+model News {
+  id        Int      @id @default(autoincrement())
+  judul     String
+  slug      String   @unique
+  kategori  String?
+  ringkasan String?  @db.Text
+  konten    String   @db.LongText
+  gambar    String?
+  penulis   String?
+  publish   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([publish])
+  @@map("m_news_posts")
+}
+
+/// Galeri (bupati / pelayanan).
+model Gallery {
+  id        Int      @id @default(autoincrement())
+  judul     String
+  kategori  String   @default("PELAYANAN") // BUPATI | PELAYANAN
+  gambar    String
+  deskripsi String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("t_galleries")
+}
+
+/// Produk informasi (Hukum, Persyaratan, SOP, Standar Pelayanan, Dafduk).
+model Produk {
+  id        Int      @id @default(autoincrement())
+  jenis     String   // HUKUM | PERSYARATAN | SOP | STANDAR_PELAYANAN | DAFDUK
+  judul     String
+  konten    String?  @db.LongText
+  file      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([jenis])
+  @@map("t_produk")
+}
+
+/// Survei Kepuasan Masyarakat — pengajuan.
+model SkmJawaban {
+  id        Int      @id @default(autoincrement())
+  nama      String?
+  umur      Int?
+  jenisKel  String?  @map("jenis_kelamin")
+  pekerjaan String?
+  jawaban   Json     // {pertanyaanId: nilai}
+  saran     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("t_skm_jawaban")
+}
+
+/// Master wilayah (kecamatan & kelurahan) untuk dropdown opt/optx.
+model Wilayah {
+  id       Int       @id @default(autoincrement())
+  kode     String    @unique
+  nama     String
+  jenis    String    // KECAMATAN | KELURAHAN
+  parentId Int?      @map("parent_id")
+  parent   Wilayah?  @relation("WilayahHierarki", fields: [parentId], references: [id])
+  children Wilayah[] @relation("WilayahHierarki")
+
+  @@index([jenis])
+  @@map("m_wilayah")
+}
