@@ -64,12 +64,12 @@ function DropdownMenu({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "relative px-3 py-2 text-sm font-medium flex items-center gap-2 rounded-md",
+          "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md whitespace-nowrap",
           "transition-all duration-300 ease-out",
           "hover:text-primary hover:bg-accent/50",
           "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-primary",
           "before:transition-all before:duration-300 before:ease-out",
-          "hover:before:w-[calc(100%-1.5rem)]",
+          "hover:before:w-[calc(100%-1.25rem)]",
           isOpen && "text-primary bg-accent/30"
         )}
       >
@@ -793,12 +793,24 @@ function AuthArea({
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [loggingOut, setLoggingOut] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  // Tutup dropdown saat klik di luar.
+  React.useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await dispatch(logoutUser()).unwrap();
       toast.success("Berhasil keluar");
+      setOpen(false);
       onNavigate?.();
       router.push("/login");
       router.refresh();
@@ -827,40 +839,72 @@ function AuthArea({
 
   const displayName = user?.name || user?.user_id || "Pengguna";
 
+  // ── Mobile: tersusun vertikal di dalam sheet ──
+  if (mobile) {
+    return (
+      <div className="w-full space-y-1">
+        <div className="flex items-center gap-2 px-1 py-2 text-sm font-medium">
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
+            <UserIcon className="h-4 w-4" />
+          </span>
+          <span className="truncate">{displayName}</span>
+        </div>
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
+        >
+          <LayoutDashboard className="h-4 w-4" /> Dashboard
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+        >
+          {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          Keluar
+        </button>
+      </div>
+    );
+  }
+
+  // ── Desktop: dropdown saat klik nama ──
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2",
-        mobile ? "flex-col w-full" : "flex-row"
-      )}
-    >
-      <Link
-        href="/dashboard"
-        onClick={onNavigate}
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((p) => !p)}
         className={cn(
-          "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50",
-          mobile && "w-full justify-start"
+          "inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-black/10",
+          open && "bg-black/10"
         )}
       >
         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
           <UserIcon className="h-4 w-4" />
         </span>
         <span className="max-w-[10rem] truncate">{displayName}</span>
-      </Link>
-      <Button
-        variant="outline"
-        size={mobile ? "default" : "sm"}
-        onClick={handleLogout}
-        disabled={loggingOut}
-        className={cn(mobile && "w-full")}
-      >
-        {loggingOut ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <LogOut className="h-4 w-4" />
-        )}
-        <span className="ml-1">Keluar</span>
-      </Button>
+        <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 min-w-52 rounded-lg border bg-background py-1 shadow-lg z-50">
+          <Link
+            href="/dashboard"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
+          >
+            <LayoutDashboard className="h-4 w-4" /> Dashboard
+          </Link>
+          <div className="my-1 border-t" />
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+          >
+            {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            Keluar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -923,16 +967,16 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center flex-wrap gap-1 flex-1 justify-start pl-3">
+          <div className="hidden lg:flex items-center flex-nowrap gap-0.5 flex-1 justify-center px-2">
             <Link
               href="/"
               className={cn(
-                "relative px-3 py-2 text-sm font-medium flex items-center gap-2 rounded-md group ",
+                "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md group whitespace-nowrap",
                 "transition-all duration-300 ease-out",
                 "hover:text-primary hover:bg-accent/50",
                 "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-primary",
                 "before:transition-all before:duration-300 before:ease-out",
-                "hover:before:w-[calc(100%-1.5rem)]"
+                "hover:before:w-[calc(100%-1.25rem)]"
               )}
             >
               <Home className="h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={2} />
@@ -947,21 +991,6 @@ export function Navbar() {
                 icon={navigationIcons[item.title]}
               />
             ))}
-
-            <Link
-              href="/kebijakan-privasi"
-              className={cn(
-                "relative px-3 py-2 text-sm font-medium flex items-center gap-2 rounded-md group ",
-                "transition-all duration-300 ease-out",
-                "hover:text-primary hover:bg-accent/50",
-                "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-primary",
-                "before:transition-all before:duration-300 before:ease-out",
-                "hover:before:w-[calc(100%-1.5rem)]"
-              )}
-            >
-              <FileText className="h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={2} />
-              <span>Kebijakan & Privasi</span>
-            </Link>
           </div>
 
           {/* Desktop Auth Buttons */}

@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { AdminUsers } from './AdminUsers';
-import { LogoutButton } from './LogoutButton';
 import { FileText, Users, UserCheck, Clock, ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +25,6 @@ export default async function DashboardPage() {
               </h1>
               <p className="text-sm text-slate-500">Selamat datang di portal SAIBATIN.</p>
             </div>
-            <LogoutButton />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -72,7 +70,6 @@ export default async function DashboardPage() {
               {session.nama ?? session.userId} &middot; {session.level === 1 ? 'Super Admin' : 'Operator'}
             </p>
           </div>
-          <LogoutButton />
         </div>
 
         {/* Stat cards */}
