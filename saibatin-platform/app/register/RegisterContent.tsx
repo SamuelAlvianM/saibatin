@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { registerUser, checkNikKk, clearError } from '@/store/slices/authSlice';
 import { Button } from '@/components/ui/button';
@@ -146,9 +147,12 @@ export default function RegisterPage() {
       
       setNikChecked(true);
       setValidationErrors([]);
+      toast.success('NIK & KK valid, silakan lanjutkan pendaftaran');
     } catch (err: any) {
       setNikChecked(false);
-      setValidationErrors(err?.error || ['Gagal memeriksa NIK. Silakan coba lagi.']);
+      const msg = err?.error?.[0] ?? 'Gagal memeriksa NIK. Silakan coba lagi.';
+      setValidationErrors(err?.error || [msg]);
+      toast.error(msg);
     }
   };
 
@@ -174,18 +178,20 @@ export default function RegisterPage() {
         ? await executeRecaptcha('register_action')
         : undefined;
 
-      const result = await dispatch(registerUser({
+      await dispatch(registerUser({
         ...formData,
         recaptchaToken,
       })).unwrap();
-      
-      // Success - show success message and redirect to login after 3 seconds
+
+      toast.success('Pendaftaran berhasil! Akun menunggu verifikasi/aktivasi oleh admin.');
+      // Success - redirect to login after 3 seconds
       setTimeout(() => {
         router.push('/');
       }, 3000);
     } catch (err: any) {
+      const msg = err?.error?.[0] ?? 'Pendaftaran gagal. Silakan coba lagi.';
+      toast.error(msg);
       console.error('Registration error:', err);
-      // Error is already handled by Redux
     }
   };
 

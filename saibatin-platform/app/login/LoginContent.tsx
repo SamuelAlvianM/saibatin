@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2, UserPlus, KeyRound, ArrowRight } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { toast } from 'sonner';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -108,8 +109,13 @@ export default function LoginPage() {
         password: formData.password,
         recaptchaToken,
       })).unwrap();
-      
-    } catch (err) {
+
+      toast.success('Login berhasil');
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err: any) {
+      const msg = err?.error?.[0] ?? 'Login gagal. Periksa NIK & password Anda.';
+      toast.error(msg);
       console.error('Login error:', err);
     }
   };

@@ -2,18 +2,28 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { LogOut, Loader2 } from 'lucide-react';
+import { useAppDispatch } from '@/store/hooks';
+import { logoutUser } from '@/store/slices/authSlice';
 
 export function LogoutButton() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
     setLoading(true);
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast.success('Berhasil keluar');
+      router.push('/login');
+      router.refresh();
+    } catch {
+      toast.error('Gagal keluar, coba lagi');
+      setLoading(false);
+    }
   };
 
   return (

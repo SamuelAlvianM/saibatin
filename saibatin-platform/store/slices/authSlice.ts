@@ -5,6 +5,7 @@ interface User {
   user_id: string;
   name?: string;
   email?: string;
+  level?: number;
 }
 
 interface AuthState {
@@ -411,9 +412,14 @@ const authSlice = createSlice({
       })
       .addCase(verifySession.fulfilled, (state, action) => {
         state.isLoading = false;
-        if (action.payload?.user) {
+        // Session API membungkus data: { data: { user } }
+        const user = action.payload?.data?.user ?? action.payload?.user ?? null;
+        if (user) {
           state.isAuthenticated = true;
-          state.user = action.payload.user;
+          state.user = user;
+        } else {
+          state.isAuthenticated = false;
+          state.user = null;
         }
       })
       .addCase(verifySession.rejected, (state) => {

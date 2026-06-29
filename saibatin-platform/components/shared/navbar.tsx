@@ -6,7 +6,11 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, ChevronDown, ChevronRight, Home, FileText, Info, Building2, Newspaper, Image as ImageIcon, Phone } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Home, FileText, Info, Building2, Newspaper, Image as ImageIcon, Phone, LogOut, LayoutDashboard, User as UserIcon, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { logoutUser } from "@/store/slices/authSlice";
 
 function DropdownMenu({
   title,
@@ -778,6 +782,89 @@ const navigationItems = [
   },
 ];
 
+function AuthArea({
+  mobile,
+  onNavigate,
+}: {
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const [loggingOut, setLoggingOut] = React.useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast.success("Berhasil keluar");
+      onNavigate?.();
+      router.push("/login");
+      router.refresh();
+    } catch {
+      toast.error("Gagal keluar, coba lagi");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <Button
+        asChild
+        className={cn(
+          mobile && "w-full",
+          "transition-all duration-300 ease-out hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
+        )}
+      >
+        <Link href="/login" onClick={onNavigate}>
+          Login/Daftar
+        </Link>
+      </Button>
+    );
+  }
+
+  const displayName = user?.name || user?.user_id || "Pengguna";
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        mobile ? "flex-col w-full" : "flex-row"
+      )}
+    >
+      <Link
+        href="/dashboard"
+        onClick={onNavigate}
+        className={cn(
+          "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50",
+          mobile && "w-full justify-start"
+        )}
+      >
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
+          <UserIcon className="h-4 w-4" />
+        </span>
+        <span className="max-w-[10rem] truncate">{displayName}</span>
+      </Link>
+      <Button
+        variant="outline"
+        size={mobile ? "default" : "sm"}
+        onClick={handleLogout}
+        disabled={loggingOut}
+        className={cn(mobile && "w-full")}
+      >
+        {loggingOut ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <LogOut className="h-4 w-4" />
+        )}
+        <span className="ml-1">Keluar</span>
+      </Button>
+    </div>
+  );
+}
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -824,13 +911,13 @@ export function Navbar() {
                 "font-bold text-base leading-tight transition-all duration-300 ease-out",
                 logoHovered && "text-primary translate-x-1"
               )}>
-                DISDUKCAPIL
+                SAIBATIN
               </span>
               <span className={cn(
                 "hidden sm:block text-xs text-muted-foreground leading-tight transition-all duration-300 ease-out",
                 logoHovered && "translate-x-1"
               )}>
-                Dinas Kependudukan
+                Disdukcapil Kab. Pesisir Barat
               </span>
             </div>
           </Link>
@@ -879,16 +966,7 @@ export function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center flex-shrink-0">
-            <Button 
-              asChild 
-              className={cn(
-                "transition-all duration-300 ease-out",
-                "hover:shadow-lg hover:scale-105 hover:-translate-y-0.5",
-                "active:scale-95 active:translate-y-0"
-              )}
-            >
-              <Link href="/login">Login/Daftar</Link>
-            </Button>
+            <AuthArea />
           </div>
 
           {/* Mobile Menu */}
@@ -950,18 +1028,7 @@ export function Navbar() {
                 </Link>
 
                 <div className="flex pt-4 border-t">
-                  <Button 
-                    asChild 
-                    className={cn(
-                      "w-full transition-all duration-300 ease-out",
-                      "hover:shadow-lg hover:scale-105",
-                      "active:scale-95"
-                    )}
-                  >
-                    <Link href="/login" onClick={() => setMobileOpen(false)}>
-                      Login/Daftar
-                    </Link>
-                  </Button>
+                  <AuthArea mobile onNavigate={() => setMobileOpen(false)} />
                 </div>
               </nav>
             </SheetContent>

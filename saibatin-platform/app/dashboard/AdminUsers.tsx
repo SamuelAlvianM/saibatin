@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Search, CheckCircle2, XCircle, Users } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AdminUser {
   id: number;
@@ -54,8 +55,11 @@ export function AdminUsers() {
     setBusyId(null);
     if (json.error?.length) {
       setMessage(json.error[0]);
+      toast.error(json.error[0]);
     } else {
-      setMessage(json.success?.[0] ?? 'Berhasil');
+      const msg = json.success?.[0] ?? (status === 1 ? 'Akun diaktifkan' : 'Akun dinonaktifkan');
+      setMessage(msg);
+      toast.success(msg);
       setItems((prev) => prev.map((u) => (u.id === id ? { ...u, status } : u)));
     }
   };
