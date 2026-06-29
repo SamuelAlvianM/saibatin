@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { Footer } from '@/components/shared/footer';
 import { demografiData } from '@/lib/demografi-data';
 
@@ -23,8 +24,8 @@ export default function LaporanDemografiPage() {
             >
               <h2 className="font-semibold text-slate-900">{dataset.title}</h2>
               <p className="text-sm text-slate-500 mt-1">{dataset.description}</p>
-              <span className="inline-block mt-3 text-xs font-medium text-blue-600">
-                Lihat detail &rarr;
+              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-blue-600">
+                Lihat detail <ArrowRight className="h-3 w-3" />
               </span>
             </Link>
           ))}
