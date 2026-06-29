@@ -12,32 +12,35 @@ export interface CarouselSlide {
   color: string
 }
 
+// TODO: ganti `image` dengan foto asli SAIBATIN/Disdukcapil Pesisir Barat —
+// masih placeholder karena akses jaringan ke situs live diblokir pada
+// sesi pengerjaan ini.
 const DEFAULT_SLIDES: CarouselSlide[] = [
   {
     id: 1,
-    title: "Ethereal Landscapes",
-    subtitle: "Where nature meets imagination",
+    title: "Pelayanan Adminduk Online",
+    subtitle: "Ajukan permohonan dokumen kependudukan kapan saja, di mana saja",
     image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=800&fit=crop",
     color: "#0d1b2a",
   },
   {
     id: 2,
-    title: "Urban Rhythms",
-    subtitle: "The pulse of modern life",
+    title: "Disdukcapil Pesisir Barat",
+    subtitle: "Melayani masyarakat Kabupaten Pesisir Barat dengan profesional",
     image: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=1200&h=800&fit=crop",
     color: "#0f1923",
   },
   {
     id: 3,
-    title: "Serene Horizons",
-    subtitle: "Tranquility in motion",
+    title: "Mudah, Cepat, Tanpa Biaya",
+    subtitle: "Seluruh layanan administrasi kependudukan gratis (tidak dipungut biaya)",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop",
     color: "#0a1628",
   },
   {
     id: 4,
-    title: "Vibrant Moments",
-    subtitle: "Capturing life's essence",
+    title: "SAIBATIN",
+    subtitle: "Sistem Administrasi Informasi Berbasis Aplikasi Terintegrasi",
     image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=800&fit=crop",
     color: "#111827",
   },
