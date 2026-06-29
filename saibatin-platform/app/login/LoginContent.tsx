@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2, UserPlus, KeyRound, ArrowRight } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { toast } from 'sonner';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -25,8 +26,12 @@ export default function LoginPage() {
     password: '',
   });
 
+  // reCAPTCHA hanya aktif jika site key diisi. Tanpa key (mis. saat dev),
+  // anggap langsung siap supaya tombol tidak "memuat" selamanya.
+  const recaptchaEnabled = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [recaptchaReady, setRecaptchaReady] = useState(!recaptchaEnabled);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -89,32 +94,39 @@ export default function LoginPage() {
       return;
     }
 
-    if (!executeRecaptcha) {
+    if (recaptchaEnabled && !executeRecaptcha) {
       setValidationErrors(['reCAPTCHA belum siap. Silakan refresh halaman.']);
       return;
     }
 
     try {
-      const recaptchaToken = await executeRecaptcha('login_action');
-      
+      const recaptchaToken = recaptchaEnabled && executeRecaptcha
+        ? await executeRecaptcha('login_action')
+        : undefined;
+
       await dispatch(loginUser({
         user_id: formData.user_id,
         password: formData.password,
         recaptchaToken,
       })).unwrap();
-      
-    } catch (err) {
+
+      toast.success('Login berhasil');
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err: any) {
+      const msg = err?.error?.[0] ?? 'Login gagal. Periksa NIK & password Anda.';
+      toast.error(msg);
       console.error('Login error:', err);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl animate-pulse delay-700" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-200/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl animate-pulse delay-700" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
       <Card 
@@ -123,13 +135,13 @@ export default function LoginPage() {
         }`}
       >
         {/* Decorative top accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-t-lg" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-400 rounded-t-lg" />
         
         <CardHeader className="space-y-2 pb-2">
           <div className="flex items-center justify-center gap-3 mb-2">
   {/* Logo */}
   <div className="relative">
-    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur-xl opacity-30 animate-pulse" />
+    <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl opacity-40" />
     <div className="relative p-1">
       <Image
         src="/LOGO-dinas_ktt.png"
@@ -143,7 +155,7 @@ export default function LoginPage() {
   </div>
 
   {/* Title */}
-  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+  <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100">
     Selamat Datang
   </CardTitle>
 </div>
@@ -227,7 +239,7 @@ export default function LoginPage() {
                 <div className={`absolute inset-0 rounded-md pointer-events-none transition-opacity duration-300 ${
                   focusedField === 'user_id' ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-blue-500/10 to-indigo-500/10" />
+                  <div className="absolute inset-0 rounded-md bg-yellow-400/10" />
                 </div>
               </div>
             </div>
@@ -275,7 +287,7 @@ export default function LoginPage() {
                 <div className={`absolute inset-0 rounded-md pointer-events-none transition-opacity duration-300 ${
                   focusedField === 'password' ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-blue-500/10 to-indigo-500/10" />
+                  <div className="absolute inset-0 rounded-md bg-yellow-400/10" />
                 </div>
               </div>
             </div>
@@ -306,7 +318,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-4 pt-2">
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
               disabled={isLoading || !recaptchaReady}
             >
               {isLoading ? (
@@ -322,9 +334,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   Login
-                  <div className="ml-2 inline-flex items-center justify-center">
-                    <span className="animate-pulse">→</span>
-                  </div>
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
@@ -335,15 +345,15 @@ export default function LoginPage() {
                 href="/register" 
                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
               >
-                <span className="text-xl">👤</span>
+                <UserPlus className="h-4 w-4" />
                 DAFTAR
               </a>
               <span className="text-slate-300 dark:text-slate-700">|</span>
-              <a 
-                href="/forgot-password" 
+              <a
+                href="/forgot-password"
                 className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
               >
-                <span className="text-xl">🔑</span>
+                <KeyRound className="h-4 w-4" />
                 LUPA PASSWORD
               </a>
             </div>
@@ -381,7 +391,7 @@ export default function LoginPage() {
                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group hidden"
               >
                 Daftar disini
-                <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </a>
             </div>
           </CardFooter>
