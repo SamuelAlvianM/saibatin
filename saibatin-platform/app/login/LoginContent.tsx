@@ -49,9 +49,10 @@ export default function LoginPage() {
     }
   }, [executeRecaptcha]);
 
+  // Redirect setelah Redux state terupdate (backup jika handleSubmit race)
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [isAuthenticated, router]);
 
@@ -110,9 +111,8 @@ export default function LoginPage() {
         recaptchaToken,
       })).unwrap();
 
+      // Biarkan useEffect di atas yang handle redirect setelah isAuthenticated = true
       toast.success('Login berhasil');
-      router.push('/dashboard');
-      router.refresh();
     } catch (err: any) {
       const msg = err?.error?.[0] ?? 'Login gagal. Periksa NIK & password Anda.';
       toast.error(msg);
@@ -121,52 +121,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #e8f0f9 0%, #dceaf7 40%, #c8dcf0 100%)' }}
+    >
+      {/* Subtle background accents */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-200/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl animate-pulse delay-700" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(33,118,189,0.12)' }} />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(33,118,189,0.08)' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'rgba(255,237,74,0.05)' }} />
       </div>
 
-      <Card 
-        className={`w-full max-w-md shadow-2xl border-slate-200/50 dark:border-slate-800/50 backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 relative z-10 transition-all duration-700 ${
+      <Card
+        className={`w-full max-w-[420px] relative z-10 transition-all duration-700 border-0 shadow-[0_8px_40px_rgba(33,118,189,0.18)] overflow-hidden ${
           mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
+        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)' }}
       >
-        {/* Decorative top accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-400 rounded-t-lg" />
+        {/* Top accent — biru dengan glow ke bawah */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: '#2176bd', boxShadow: '0 2px 12px 0 rgba(33,118,189,0.45)' }} />
         
-        <CardHeader className="space-y-2 pb-2">
-          <div className="flex items-center justify-center gap-3 mb-2">
-  {/* Logo */}
-  <div className="relative">
-    <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl opacity-40" />
-    <div className="relative p-1">
-      <Image
-        src="/LOGO-dinas_ktt.png"
-        alt="Logo Dinas KTT"
-        width={60}
-        height={60}
-        className="object-contain drop-shadow-lg"
-        priority
-      />
-    </div>
-  </div>
-
-  {/* Title */}
-  <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-    Selamat Datang
-  </CardTitle>
-</div>
-
-          <CardDescription className="text-center text-base">
-            Masukkan kredensial Anda untuk melanjutkan
-          </CardDescription>
+        <CardHeader className="pt-8 pb-5 px-8 text-center space-y-3">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <div className="relative w-16 h-16 drop-shadow-md">
+              <Image
+                src="/LOGO-dinas_ktt.png"
+                alt="Logo Disdukcapil Pesisir Barat"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold text-slate-800">
+              Selamat Datang
+            </CardTitle>
+            <CardDescription className="text-sm text-slate-500 mt-1">
+              Portal SAIBATIN — Disdukcapil Kab. Pesisir Barat
+            </CardDescription>
+          </div>
         </CardHeader>
         
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-4 px-8">
             {/* reCAPTCHA Not Ready Warning */}
             {!recaptchaReady && (
               <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -315,10 +313,11 @@ export default function LoginPage() {
             )}
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4 pt-2">
-            <Button 
-              type="submit" 
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
+          <CardFooter className="flex flex-col space-y-4 px-8 pb-8 pt-2">
+            <Button
+              type="submit"
+              className="w-full text-slate-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{ background: 'linear-gradient(90deg, #ffed4a, #e77817)' }}
               disabled={isLoading || !recaptchaReady}
             >
               {isLoading ? (
@@ -359,11 +358,11 @@ export default function LoginPage() {
             </div>
 
             {/* Notes Section */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 space-y-3 border border-slate-200 dark:border-slate-700">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 italic">
-                Catatan :
+            <div className="rounded-xl p-4 space-y-2.5 border" style={{ background: 'rgba(33,118,189,0.04)', borderColor: 'rgba(33,118,189,0.15)' }}>
+              <h3 className="font-semibold text-blue-800 text-xs uppercase tracking-wide">
+                Catatan
               </h3>
-              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400 italic">
+              <div className="space-y-1.5 text-xs text-slate-600 leading-relaxed">
                 <p>
                   - Kode Aktivasi (Password Sementara) dan notifikasi Pengajuan Online dikirim melalui WhatsApp dan E-Mail
                 </p>
@@ -399,8 +398,8 @@ export default function LoginPage() {
       </Card>
 
       {/* Footer */}
-      <div className="absolute bottom-4 left-0 right-0 text-center text-xs text-muted-foreground">
-        <p className="opacity-60">Protected by reCAPTCHA</p>
+      <div className="absolute bottom-4 left-0 right-0 text-center text-xs text-slate-400">
+        <p>SAIBATIN &mdash; Disdukcapil Kabupaten Pesisir Barat &copy; 2024</p>
       </div>
     </div>
   );

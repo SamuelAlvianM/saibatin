@@ -79,7 +79,7 @@ model Permohonan {
   noregister  String    @unique @map("no_register")
   userId      Int       @map("user_id")
   jenisId     Int       @map("jenis_id")
-  status      String    @default("DALAM_PROSES") // DALAM_PROSES | SELESAI | DITOLAK
+  status      String    @default("MENUNGGU") // MENUNGGU | DIPROSES | SELESAI | DITOLAK
   payload     Json?     // field dinamis per jenis permohonan
   catatan     String?   @db.Text
   createdAt   DateTime  @default(now()) @map("created_at")

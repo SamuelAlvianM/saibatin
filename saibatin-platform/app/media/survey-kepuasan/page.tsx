@@ -43,24 +43,16 @@ export default function SurveyKepuasanPage() {
 
     setIsLoading(true);
     try {
-      const isi = [
-        'Survey Kepuasan Masyarakat',
-        ...ASPEK.map((a) => `${a}: ${ratings[a]}/5`),
-        saran ? `Saran: ${saran}` : '',
-      ]
-        .filter(Boolean)
-        .join('\n');
+      // jawaban dipetakan ke indeks aspek { "0": nilai, ... }
+      const jawaban: Record<string, number> = {};
+      ASPEK.forEach((a, i) => {
+        jawaban[String(i)] = ratings[a];
+      });
 
-      const res = await fetch('/api/pengaduan', {
+      const res = await fetch('/api/skm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nama,
-          email,
-          hp,
-          subjek: 'Survey Kepuasan Masyarakat (SKM)',
-          isi,
-        }),
+        body: JSON.stringify({ nama, saran, jawaban }),
       });
       const json = await res.json();
       if (json.error?.length) {
