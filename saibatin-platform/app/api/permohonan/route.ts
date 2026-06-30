@@ -12,11 +12,15 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status"); // DALAM_PROSES | SELESAI | DITOLAK
 
-  const items = await prisma.permohonan.findMany({
+  const rawItems = await prisma.permohonan.findMany({
     where: { userId: session.uid, ...(status ? { status } : {}) },
     include: { jenis: true, berkas: true },
     orderBy: { createdAt: "desc" },
   });
+  const items = rawItems.map((i) => ({
+    ...i,
+    jenisNama: i.jenis?.nama ?? i.jenisId,
+  }));
   return ok({ items });
 }
 

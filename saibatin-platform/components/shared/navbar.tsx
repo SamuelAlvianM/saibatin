@@ -64,13 +64,13 @@ function DropdownMenu({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md whitespace-nowrap",
+          "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md whitespace-nowrap text-white/90",
           "transition-all duration-300 ease-out",
-          "hover:text-primary hover:bg-accent/50",
-          "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-primary",
+          "hover:text-yellow-300 hover:bg-white/10",
+          "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-yellow-300",
           "before:transition-all before:duration-300 before:ease-out",
           "hover:before:w-[calc(100%-1.25rem)]",
-          isOpen && "text-primary bg-accent/30"
+          isOpen && "text-yellow-300 bg-white/10"
         )}
       >
         {Icon && (
@@ -109,10 +109,11 @@ function DropdownMenu({
             <div
               ref={contentRef}
               className={cn(
-                "bg-background border rounded-lg shadow-lg py-2",
+                "rounded-xl py-2",
                 "transition-all duration-300 ease-out",
                 isOpen ? "shadow-xl scale-100" : "shadow-lg scale-95"
               )}
+              style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.12)' }}
               style={{
                 overflow: isOpen ? 'visible' : 'hidden',
               }}
@@ -238,7 +239,7 @@ function DropdownItem({
           )}
           onMouseEnter={handleSubmenuEnter}
         >
-          <div className="bg-background border rounded-lg shadow-xl py-2">
+          <div className="rounded-xl shadow-xl py-2" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.12)' }}>
             {item.subItems.map((subItem, subIndex) => (
               <SubDropdownItem
                 key={subItem.title}
@@ -583,6 +584,11 @@ const navigationItems = [
         description: "Berita dan informasi terkini",
       },
       {
+        title: "Galeri",
+        href: "/galeri",
+        description: "Dokumentasi kegiatan Disdukcapil",
+      },
+      {
         title: "Data Demografi",
         href: "#",
         description: "Data statistik kependudukan",
@@ -643,6 +649,26 @@ const navigationItems = [
         title: "Laporan Data Demografi",
         href: "/media/laporan-demografi",
         description: "Laporan lengkap data demografi",
+      },
+    ],
+  },
+  {
+    title: "Pengaduan",
+    items: [
+      {
+        title: "Pengaduan Masyarakat",
+        href: "/pengaduan",
+        description: "Sampaikan pengaduan terkait layanan Disdukcapil",
+      },
+      {
+        title: "Kritik & Saran",
+        href: "/hubungi-kami/kritik-saran",
+        description: "Kritik dan saran untuk peningkatan layanan",
+      },
+      {
+        title: "Hubungi Kami",
+        href: "/hubungi-kami/kontak",
+        description: "Informasi kontak dan lokasi kantor",
       },
     ],
   },
@@ -886,7 +912,7 @@ function AuthArea({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 min-w-52 rounded-lg border bg-background py-1 shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.15)' }}>
           <Link
             href="/dashboard"
             onClick={() => setOpen(false)}
@@ -923,10 +949,10 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-500 ease-out",
+        "sticky top-0 z-50 w-full transition-all duration-500 ease-out glass-nav",
         isScrolled
-          ? "bg-yellow-500 backdrop-blur-md border-b shadow-md"
-          : "bg-yellow-400 backdrop-blur-sm"
+          ? "shadow-lg shadow-blue-900/20"
+          : "shadow-md shadow-blue-900/10"
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -952,13 +978,13 @@ export function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className={cn(
-                "font-bold text-base leading-tight transition-all duration-300 ease-out",
-                logoHovered && "text-primary translate-x-1"
+                "font-bold text-base leading-tight transition-all duration-300 ease-out text-white",
+                logoHovered && "text-yellow-300 translate-x-1"
               )}>
                 SAIBATIN
               </span>
               <span className={cn(
-                "hidden sm:block text-xs text-muted-foreground leading-tight transition-all duration-300 ease-out",
+                "hidden sm:block text-xs leading-tight transition-all duration-300 ease-out text-blue-200",
                 logoHovered && "translate-x-1"
               )}>
                 Disdukcapil Kab. Pesisir Barat
@@ -971,10 +997,10 @@ export function Navbar() {
             <Link
               href="/"
               className={cn(
-                "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md group whitespace-nowrap",
+                "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md group whitespace-nowrap text-white/90",
                 "transition-all duration-300 ease-out",
-                "hover:text-primary hover:bg-accent/50",
-                "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-primary",
+                "hover:text-yellow-300 hover:bg-white/10",
+                "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-yellow-300",
                 "before:transition-all before:duration-300 before:ease-out",
                 "hover:before:w-[calc(100%-1.25rem)]"
               )}
