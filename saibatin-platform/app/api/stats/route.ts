@@ -8,7 +8,7 @@ export async function GET() {
   const [totalPermohonan, selesai, dalamProses, totalBerita] = await Promise.all([
     prisma.permohonan.count(),
     prisma.permohonan.count({ where: { status: "SELESAI" } }),
-    prisma.permohonan.count({ where: { status: "DALAM_PROSES" } }),
+    prisma.permohonan.count({ where: { status: { in: ["MENUNGGU", "DIPROSES"] } } }),
     prisma.news.count({ where: { publish: true } }),
   ]);
 

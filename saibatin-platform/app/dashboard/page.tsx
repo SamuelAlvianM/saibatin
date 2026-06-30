@@ -97,6 +97,20 @@ export default async function DashboardPage() {
           ))}
         </div>
 
+        {/* Menu manajemen */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Link href="/dashboard/permohonan" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
+            <ClipboardList className="w-5 h-5 text-blue-600 mb-2" />
+            <p className="font-semibold text-slate-900">Permohonan</p>
+            <p className="text-xs text-slate-500 mt-0.5">Proses pengajuan warga</p>
+          </Link>
+          <Link href="/dashboard/berita" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
+            <FileText className="w-5 h-5 text-yellow-600 mb-2" />
+            <p className="font-semibold text-slate-900">Berita</p>
+            <p className="text-xs text-slate-500 mt-0.5">Kelola konten berita</p>
+          </Link>
+        </div>
+
         <AdminUsers />
       </div>
     </div>

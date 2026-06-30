@@ -113,8 +113,11 @@ function DropdownMenu({
                 "transition-all duration-300 ease-out",
                 isOpen ? "shadow-xl scale-100" : "shadow-lg scale-95"
               )}
-              style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.12)' }}
               style={{
+                background: 'rgba(255,255,255,0.97)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(33,118,189,0.12)',
+                boxShadow: '0 8px 32px rgba(33,118,189,0.12)',
                 overflow: isOpen ? 'visible' : 'hidden',
               }}
             >
@@ -882,6 +885,13 @@ function AuthArea({
         >
           <LayoutDashboard className="h-4 w-4" /> Dashboard
         </Link>
+        <Link
+          href="/profil"
+          onClick={onNavigate}
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
+        >
+          <UserIcon className="h-4 w-4" /> Profil Saya
+        </Link>
         <button
           onClick={handleLogout}
           disabled={loggingOut}
@@ -919,6 +929,13 @@ function AuthArea({
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
           >
             <LayoutDashboard className="h-4 w-4" /> Dashboard
+          </Link>
+          <Link
+            href="/profil"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
+          >
+            <UserIcon className="h-4 w-4" /> Profil Saya
           </Link>
           <div className="my-1 border-t" />
           <button

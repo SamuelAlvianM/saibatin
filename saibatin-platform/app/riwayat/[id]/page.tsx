@@ -92,13 +92,13 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
               {item.berkas.map((b) => (
                 <a
                   key={b.id}
-                  href={b.fileUrl}
+                  href={b.path}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
                 >
                   <Paperclip className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                  <span className="text-sm text-slate-700 group-hover:text-blue-700 truncate">{b.namaFile ?? b.jenisFile}</span>
+                  <span className="text-sm text-slate-700 group-hover:text-blue-700 truncate">{b.namaFile}</span>
                 </a>
               ))}
             </div>

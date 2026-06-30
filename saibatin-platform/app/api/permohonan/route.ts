@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       noregister,
       userId: session.uid,
       jenisId: jenis.id,
-      status: "DALAM_PROSES",
+      status: "MENUNGGU",
       payload: (payload ?? {}) as object,
     },
   });
