@@ -269,7 +269,7 @@ export default function KonsolidasiUpdateDataModal({
   const fetchPermohonanData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/konsolidasi-update-data/fetch", {
+      const response = await fetch("/api/kedatangan/fetch", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -369,7 +369,7 @@ export default function KonsolidasiUpdateDataModal({
       formDataUpload.append("uid", Date.now().toString());
       formDataUpload.append("groupset", fileType);
 
-      const response = await fetch("/api/konsolidasi-update-data/upload", {
+      const response = await fetch("/api/kedatangan/upload", {
         method: "POST",
         body: formDataUpload,
       });
@@ -448,8 +448,8 @@ export default function KonsolidasiUpdateDataModal({
     try {
       const endpoint =
         mode === "edit"
-          ? "/api/konsolidasi-update-data/update"
-          : "/api/konsolidasi-update-data/create";
+          ? "/api/kedatangan/update"
+          : "/api/kedatangan/create";
 
       const payload =
         mode === "edit" ? { ...formData, prm2: permohonanId } : formData;
@@ -468,6 +468,7 @@ export default function KonsolidasiUpdateDataModal({
         setErrors(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         setSuccess(result.success.flat());
+        setTimeout(() => { window.location.href = "/riwayat"; }, 1200);
         setTimeout(() => {
           onOpenChange(false);
           setFormData({

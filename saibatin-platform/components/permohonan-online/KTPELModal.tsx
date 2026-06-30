@@ -533,6 +533,7 @@ export default function KTPELModal({
         setErrors(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         setSuccess(result.success.flat());
+        setTimeout(() => { window.location.href = "/riwayat"; }, 1200);
         setTimeout(() => {
           onOpenChange(false);
           // Reset form
