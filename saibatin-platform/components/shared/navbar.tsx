@@ -910,15 +910,15 @@ function AuthArea({
       <button
         onClick={() => setOpen((p) => !p)}
         className={cn(
-          "inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-black/10",
-          open && "bg-black/10"
+          "inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/15",
+          open && "bg-white/15"
         )}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/40">
           <UserIcon className="h-4 w-4" />
         </span>
-        <span className="max-w-[10rem] truncate">{displayName}</span>
-        <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+        <span className="max-w-[10rem] truncate text-white">{displayName}</span>
+        <ChevronDown className={cn("h-4 w-4 text-white transition-transform", open && "rotate-180")} />
       </button>
 
       {open && (
