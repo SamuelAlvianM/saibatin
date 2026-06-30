@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ProfilForm } from './ProfilForm';
+import { ChangePasswordForm } from './ChangePasswordForm';
 import { BackButton } from '@/components/shared/back-button';
 
 export const dynamic = 'force-dynamic';
@@ -45,6 +46,7 @@ export default async function ProfilPage() {
             levelNama: user.level?.nama ?? '',
           }}
         />
+        <ChangePasswordForm />
       </div>
     </div>
   );
