@@ -9,9 +9,9 @@ export const dynamic = 'force-dynamic';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   MENUNGGU: { label: 'Menunggu Verifikasi', color: 'text-amber-700 bg-amber-50 border-amber-300', icon: Clock },
-  DIPROSES: { label: 'Sedang Diproses',     color: 'text-blue-700 bg-blue-50 border-blue-300',   icon: Clock },
-  SELESAI:  { label: 'Selesai',             color: 'text-green-700 bg-green-50 border-green-300', icon: CheckCircle2 },
-  DITOLAK:  { label: 'Ditolak',             color: 'text-red-700 bg-red-50 border-red-300',       icon: XCircle },
+  DIPROSES: { label: 'Sedang Diproses',     color: 'text-primary bg-primary/10 border-primary/30',   icon: Clock },
+  SELESAI:  { label: 'Selesai',             color: 'text-success bg-success/10 border-success/30', icon: CheckCircle2 },
+  DITOLAK:  { label: 'Ditolak',             color: 'text-destructive bg-destructive/10 border-destructive/30',       icon: XCircle },
 };
 
 export default async function RiwayatDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,11 +47,11 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
       {/* Hero */}
       <div className="relative py-12 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1b4b72 0%, #2176bd 100%)' }}>
         <div className="container mx-auto px-4 relative z-10">
-          <Link href="/riwayat" className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
+          <Link href="/riwayat" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-white text-sm mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Kembali ke Riwayat
           </Link>
           <h1 className="text-2xl font-bold text-white">{item.jenis?.nama ?? 'Permohonan'}</h1>
-          <p className="text-blue-200 text-sm mt-1">No. Registrasi: <span className="font-mono font-semibold">{item.noregister}</span></p>
+          <p className="text-primary-foreground/80 text-sm mt-1">No. Registrasi: <span className="font-mono font-semibold">{item.noregister}</span></p>
         </div>
       </div>
 
@@ -107,10 +107,10 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
                   href={b.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
                 >
-                  <Paperclip className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                  <span className="text-sm text-slate-700 group-hover:text-blue-700 truncate">{b.namaFile}</span>
+                  <Paperclip className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-sm text-slate-700 group-hover:text-primary truncate">{b.namaFile}</span>
                 </a>
               ))}
             </div>

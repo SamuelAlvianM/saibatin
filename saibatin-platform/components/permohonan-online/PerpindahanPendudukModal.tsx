@@ -537,7 +537,7 @@ export default function PerpindahanPendudukModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-225! max-h-[95vh] overflow-hidden flex flex-col w-full">
         <DialogHeader className="space-y-1 pb-1 border-b">
-          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-primary">
             {mode === "edit"
               ? "Edit Permohonan Perpindahan Penduduk"
               : "Permohonan Perpindahan Penduduk"}
@@ -560,10 +560,10 @@ export default function PerpindahanPendudukModal({
                   className={cn(
                     "flex items-center gap-1.5 text-sm font-medium transition-all duration-300",
                     currentStep === step
-                      ? "text-blue-600 scale-110 font-bold"
+                      ? "text-primary scale-110 font-bold"
                       : currentStep > step
-                      ? "text-green-600"
-                      : "text-gray-400"
+                      ? "text-success"
+                      : "text-muted-foreground"
                   )}
                 >
                   {currentStep > step && (
@@ -575,11 +575,11 @@ export default function PerpindahanPendudukModal({
             </div>
 
             {/* Progress Bar */}
-            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out",
-                  "bg-linear-to-r from-blue-600 to-purple-600"
+                  "bg-primary"
                 )}
                 style={{
                   width: `${((currentStep - 1) / 2) * 100}%`,
@@ -610,8 +610,8 @@ export default function PerpindahanPendudukModal({
 
             {/* Success Alert */}
             {success.length > 0 && (
-              <Alert className="border-green-500 bg-green-50 text-green-800 animate-in slide-in-from-top-2 duration-300">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+              <Alert className="border-success bg-success/10 text-success animate-in slide-in-from-top-2 duration-300">
+                <CheckCircle className="h-4 w-4 text-success" />
                 <AlertDescription>
                   <ul className="list-disc list-inside space-y-1">
                     {success.map((msg, index) => (
@@ -642,7 +642,7 @@ export default function PerpindahanPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.pemohonnik.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground"
                       )}
                     >
@@ -658,20 +658,20 @@ export default function PerpindahanPendudukModal({
                     placeholder="Masukkan 16 digit NIK"
                     maxLength={16}
                     className={cn(
-                      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
+                      "transition-all duration-200 focus:ring-2 focus:ring-primary",
                       touchedFields.has("pemohonnik") &&
                         fieldErrors.pemohonnik &&
-                        "border-red-500 focus:ring-red-500"
+                        "border-destructive focus:ring-destructive"
                     )}
                   />
                   {touchedFields.has("pemohonnik") &&
                     fieldErrors.pemohonnik && (
-                      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200">
                         {fieldErrors.pemohonnik}
                       </p>
                     )}
                   {formData.pemohonnik && !fieldErrors.pemohonnik && (
-                    <p className="text-xs text-green-600 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-success flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
                       <CheckCircle className="h-3 w-3" /> Valid
                     </p>
                   )}
@@ -686,7 +686,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("pemohonnama", e.target.value)
                     }
                     placeholder="Masukkan nama lengkap"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -700,7 +700,7 @@ export default function PerpindahanPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.pemohonkk.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground"
                       )}
                     >
@@ -716,19 +716,19 @@ export default function PerpindahanPendudukModal({
                     placeholder="Masukkan 16 digit KK"
                     maxLength={16}
                     className={cn(
-                      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
+                      "transition-all duration-200 focus:ring-2 focus:ring-primary",
                       touchedFields.has("pemohonkk") &&
                         fieldErrors.pemohonkk &&
-                        "border-red-500 focus:ring-red-500"
+                        "border-destructive focus:ring-destructive"
                     )}
                   />
                   {touchedFields.has("pemohonkk") && fieldErrors.pemohonkk && (
-                    <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200">
                       {fieldErrors.pemohonkk}
                     </p>
                   )}
                   {formData.pemohonkk && !fieldErrors.pemohonkk && (
-                    <p className="text-xs text-green-600 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-success flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
                       <CheckCircle className="h-3 w-3" /> Valid
                     </p>
                   )}
@@ -745,7 +745,7 @@ export default function PerpindahanPendudukModal({
                         "text-xs font-normal",
                         formData.pemohonhp.length >= 10 &&
                           formData.pemohonhp.length <= 13
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground"
                       )}
                     >
@@ -762,19 +762,19 @@ export default function PerpindahanPendudukModal({
                     placeholder="Contoh: 081234567890"
                     maxLength={13}
                     className={cn(
-                      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
+                      "transition-all duration-200 focus:ring-2 focus:ring-primary",
                       touchedFields.has("pemohonhp") &&
                         fieldErrors.pemohonhp &&
-                        "border-red-500 focus:ring-red-500"
+                        "border-destructive focus:ring-destructive"
                     )}
                   />
                   {touchedFields.has("pemohonhp") && fieldErrors.pemohonhp && (
-                    <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200">
                       {fieldErrors.pemohonhp}
                     </p>
                   )}
                   {formData.pemohonhp && !fieldErrors.pemohonhp && (
-                    <p className="text-xs text-green-600 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-success flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
                       <CheckCircle className="h-3 w-3" /> Valid
                     </p>
                   )}
@@ -791,20 +791,20 @@ export default function PerpindahanPendudukModal({
                     }
                     placeholder="Contoh: email@domain.com"
                     className={cn(
-                      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
+                      "transition-all duration-200 focus:ring-2 focus:ring-primary",
                       touchedFields.has("pemohonemail") &&
                         fieldErrors.pemohonemail &&
-                        "border-red-500 focus:ring-red-500"
+                        "border-destructive focus:ring-destructive"
                     )}
                   />
                   {touchedFields.has("pemohonemail") &&
                     fieldErrors.pemohonemail && (
-                      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200">
                         {fieldErrors.pemohonemail}
                       </p>
                     )}
                   {formData.pemohonemail && !fieldErrors.pemohonemail && (
-                    <p className="text-xs text-green-600 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-success flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
                       <CheckCircle className="h-3 w-3" /> Valid
                     </p>
                   )}
@@ -813,9 +813,9 @@ export default function PerpindahanPendudukModal({
 
               <div className="flex justify-end pt-4 gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                      className="h-full bg-primary transition-all duration-500"
                       style={{ width: `${progress.step1}%` }}
                     />
                   </div>
@@ -857,7 +857,7 @@ export default function PerpindahanPendudukModal({
                       ]);
                     }
                   }}
-                  className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                  className="bg-primary hover:bg-primary/90 transition-all duration-300"
                 >
                   Selanjutnya
                 </Button>
@@ -885,7 +885,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("klasifikasikepindahan", value)
                     }
                   >
-                    <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-blue-500">
+                    <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary">
                       <SelectValue placeholder="Pilih klasifikasi kepindahan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -907,7 +907,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("jeniskepindahan", value)
                     }
                   >
-                    <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-blue-500">
+                    <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary">
                       <SelectValue placeholder="Pilih jenis kepindahan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -931,7 +931,7 @@ export default function PerpindahanPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.nikygpindah.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground"
                       )}
                     >
@@ -947,20 +947,20 @@ export default function PerpindahanPendudukModal({
                     placeholder="Masukkan 16 digit NIK yang pindah"
                     maxLength={16}
                     className={cn(
-                      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
+                      "transition-all duration-200 focus:ring-2 focus:ring-primary",
                       touchedFields.has("nikygpindah") &&
                         fieldErrors.nikygpindah &&
-                        "border-red-500 focus:ring-red-500"
+                        "border-destructive focus:ring-destructive"
                     )}
                   />
                   {touchedFields.has("nikygpindah") &&
                     fieldErrors.nikygpindah && (
-                      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200">
                         {fieldErrors.nikygpindah}
                       </p>
                     )}
                   {formData.nikygpindah && !fieldErrors.nikygpindah && (
-                    <p className="text-xs text-green-600 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                    <p className="text-xs text-success flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
                       <CheckCircle className="h-3 w-3" /> Valid
                     </p>
                   )}
@@ -976,7 +976,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("alasanpindah", e.target.value)
                     }
                     placeholder="Masukkan alasan pindah"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -991,7 +991,7 @@ export default function PerpindahanPendudukModal({
                     }
                     placeholder="Masukkan alamat lengkap tujuan"
                     rows={3}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary resize-none"
                   />
                 </div>
 
@@ -1005,7 +1005,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("provinsi", e.target.value)
                     }
                     placeholder="Masukkan nama provinsi"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1019,7 +1019,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("kabupaten", e.target.value)
                     }
                     placeholder="Masukkan nama kabupaten/kota"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1033,7 +1033,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("kecamatan", e.target.value)
                     }
                     placeholder="Masukkan nama kecamatan"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1047,7 +1047,7 @@ export default function PerpindahanPendudukModal({
                       handleInputChange("kelurahan", e.target.value)
                     }
                     placeholder="Masukkan nama kelurahan"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1059,7 +1059,7 @@ export default function PerpindahanPendudukModal({
                     value={formData.rt}
                     onChange={(e) => handleInputChange("rt", e.target.value)}
                     placeholder="Masukkan RT"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1071,7 +1071,7 @@ export default function PerpindahanPendudukModal({
                     value={formData.rw}
                     onChange={(e) => handleInputChange("rw", e.target.value)}
                     placeholder="Masukkan RW"
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
@@ -1086,7 +1086,7 @@ export default function PerpindahanPendudukModal({
                     }
                     placeholder="Masukkan catatan tambahan jika diperlukan"
                     rows={3}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary resize-none"
                   />
                 </div>
               </div>
@@ -1102,9 +1102,9 @@ export default function PerpindahanPendudukModal({
                 </Button>
                 <div className="flex justify-end pt-4 gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                        className="h-full bg-primary transition-all duration-500"
                         style={{ width: `${progress.step2}%` }}
                       />
                     </div>
@@ -1149,7 +1149,7 @@ export default function PerpindahanPendudukModal({
                         ]);
                       }
                     }}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1177,16 +1177,16 @@ export default function PerpindahanPendudukModal({
                 </Label>
                 {uploadedFiles.kk ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.kk.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1196,7 +1196,7 @@ export default function PerpindahanPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("kk")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1210,11 +1210,11 @@ export default function PerpindahanPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "kk")}
                       disabled={uploading === "kk"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "kk" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1235,16 +1235,16 @@ export default function PerpindahanPendudukModal({
                 </Label>
                 {uploadedFiles.pendukung1 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.pendukung1.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1254,7 +1254,7 @@ export default function PerpindahanPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("pendukung1")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1268,11 +1268,11 @@ export default function PerpindahanPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "pendukung1")}
                       disabled={uploading === "pendukung1"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "pendukung1" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1293,16 +1293,16 @@ export default function PerpindahanPendudukModal({
                 </Label>
                 {uploadedFiles.pendukung2 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.pendukung2.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1312,7 +1312,7 @@ export default function PerpindahanPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("pendukung2")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1326,11 +1326,11 @@ export default function PerpindahanPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "pendukung2")}
                       disabled={uploading === "pendukung2"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "pendukung2" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1348,9 +1348,9 @@ export default function PerpindahanPendudukModal({
                 </Button>
                 <div className="flex justify-end pt-4 gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                        className="h-full bg-primary transition-all duration-500"
                         style={{ width: `${progress.step3}%` }}
                       />
                     </div>
@@ -1362,7 +1362,7 @@ export default function PerpindahanPendudukModal({
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <>

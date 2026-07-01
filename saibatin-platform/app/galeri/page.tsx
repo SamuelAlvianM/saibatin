@@ -41,7 +41,7 @@ export default function GaleriPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Galeri</h1>
-              <p className="text-blue-200 mt-1">Dokumentasi kegiatan Disdukcapil Kabupaten Pesisir Barat</p>
+              <p className="text-primary-foreground/80 mt-1">Dokumentasi kegiatan Disdukcapil Kabupaten Pesisir Barat</p>
             </div>
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function GaleriPage() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   filter === cat
                     ? 'text-slate-900 shadow-md'
-                    : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-blue-300'
+                    : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-primary/40'
                 }`}
                 style={filter === cat ? { background: 'linear-gradient(90deg, #ffed4a, #e77817)' } : {}}
               >
@@ -134,7 +134,7 @@ export default function GaleriPage() {
             <div className="p-4 bg-white/80">
               <h3 className="font-semibold text-slate-900">{selected.judul}</h3>
               {selected.kategori && (
-                <span className="text-xs text-blue-600 font-medium">{selected.kategori}</span>
+                <span className="text-xs text-primary font-medium">{selected.kategori}</span>
               )}
               <p className="text-xs text-slate-400 mt-1">
                 {new Date(selected.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}

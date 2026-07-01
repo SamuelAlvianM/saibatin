@@ -83,7 +83,7 @@ export default function SitemapPage() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-slate-600 hover:text-blue-600 hover:underline"
+                      className="text-sm text-slate-600 hover:text-primary hover:underline"
                     >
                       {link.label}
                     </Link>

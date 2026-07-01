@@ -84,8 +84,8 @@ export function AdminUsers() {
               onClick={() => setStatusFilter(val)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                 statusFilter === val
-                  ? 'bg-yellow-500 text-slate-900 border-yellow-500'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-yellow-300'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40'
               }`}
             >
               {label}
@@ -111,14 +111,14 @@ export function AdminUsers() {
       </div>
 
       {message && (
-        <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+        <Alert className="mb-4 border-warning/20 bg-warning/10">
           <AlertDescription className="text-slate-800">{message}</AlertDescription>
         </Alert>
       )}
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-yellow-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">
@@ -150,11 +150,11 @@ export function AdminUsers() {
                   <td className="py-2.5 pr-4">{u.level?.nama ?? u.userlevelId}</td>
                   <td className="py-2.5 pr-4">
                     {u.status === 1 ? (
-                      <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 text-success text-xs font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-amber-600 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 text-warning text-xs font-medium">
                         <XCircle className="w-3.5 h-3.5" /> Belum Aktif
                       </span>
                     )}
@@ -176,7 +176,7 @@ export function AdminUsers() {
                     ) : (
                       <Button
                         size="sm"
-                        className="bg-yellow-500 hover:bg-yellow-600 text-slate-900"
+                        className="bg-success hover:bg-success/90 text-white"
                         disabled={busyId === u.id}
                         onClick={() => setStatus(u.id, 1)}
                       >

@@ -70,7 +70,7 @@ export default function PengaduanPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Pengaduan Masyarakat</h1>
-              <p className="text-blue-200 mt-1">Sampaikan pengaduan Anda terkait layanan Disdukcapil Pesisir Barat</p>
+              <p className="text-primary-foreground/80 mt-1">Sampaikan pengaduan Anda terkait layanan Disdukcapil Pesisir Barat</p>
             </div>
           </div>
         </div>
@@ -79,8 +79,8 @@ export default function PengaduanPage() {
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 max-w-3xl">
         {success ? (
           <div className="glass-card rounded-2xl p-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-success" />
             </div>
             <h2 className="text-xl font-semibold text-slate-900 mb-2">Pengaduan Terkirim</h2>
             <p className="text-slate-500 mb-6">
@@ -111,7 +111,7 @@ export default function PengaduanPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="nama">Nama Lengkap <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="nama">Nama Lengkap <span className="text-destructive">*</span></Label>
                   <Input id="nama" name="nama" value={form.nama} onChange={handleChange} placeholder="Nama Anda" required />
                 </div>
                 <div className="space-y-1.5">
@@ -140,7 +140,7 @@ export default function PengaduanPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="isi">Isi Pengaduan <span className="text-red-500">*</span></Label>
+                <Label htmlFor="isi">Isi Pengaduan <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="isi"
                   name="isi"
@@ -152,7 +152,7 @@ export default function PengaduanPage() {
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-xs text-blue-700">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-xs text-primary">
                 <strong>Catatan:</strong> Pengaduan yang disampaikan akan ditindaklanjuti dalam 3-5 hari kerja.
                 Untuk urusan mendesak, hubungi kami langsung di kantor Disdukcapil Kabupaten Pesisir Barat.
               </div>

@@ -126,7 +126,7 @@ function NumberedItem({ index, children }: { index: number; children: string }) 
       {...fadeUp(0.35 + index * 0.08)}
       className="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all duration-300"
     >
-      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-semibold group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-semibold group-hover:bg-primary group-hover:text-white transition-all duration-300">
         {index + 1}
       </span>
       <p className="text-slate-600 leading-relaxed text-sm pt-0.5">{children}</p>
@@ -140,7 +140,7 @@ function BulletItem({ index, children }: { index: number; children: string }) {
       {...fadeUp(0.3 + index * 0.07)}
       className="group flex items-start gap-3 text-slate-600 text-sm leading-relaxed"
     >
-      <ChevronRight className="w-4 h-4 text-slate-300 mt-0.5 flex-shrink-0 group-hover:text-blue-500 transition-colors" />
+      <ChevronRight className="w-4 h-4 text-slate-300 mt-0.5 flex-shrink-0 group-hover:text-primary transition-colors" />
       {children}
     </motion.div>
   );
@@ -152,7 +152,7 @@ function VisiMisiPanel({ data }: { data: typeof CONTENT['visi-misi'] }) {
   return (
     <div className="space-y-10">
       {/* Visi */}
-      <motion.div {...fadeUp(0.15)} className="relative pl-6 border-l-2 border-blue-200">
+      <motion.div {...fadeUp(0.15)} className="relative pl-6 border-l-2 border-primary/30">
         <SectionLabel>Visi</SectionLabel>
         <p className="text-xl md:text-2xl font-light text-slate-800 leading-relaxed">
           {data.visi}
@@ -182,7 +182,7 @@ function MottoPanel({ data }: { data: typeof CONTENT['motto'] }) {
         <h4 className="text-3xl md:text-4xl font-light text-slate-900 tracking-wide">
           {words.map((word: string, i: number) => (
             <span key={i}>
-              <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
                 {word}
               </span>
               {i < words.length - 1 && <span className="text-slate-300 mx-3">/</span>}
@@ -226,7 +226,7 @@ function MaklumatPanel({ data }: { data: typeof CONTENT['maklumat'] }) {
             whileHover={{ y: -4 }}
             className="group flex flex-col items-center text-center p-5 rounded-2xl bg-slate-50 hover:bg-white border border-slate-100 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300"
           >
-            <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 group-hover:border-blue-100 group-hover:shadow-blue-100/50 transition-all duration-300">
+            <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-primary mb-3 group-hover:scale-110 group-hover:border-primary/20 group-hover:shadow-primary/20 transition-all duration-300">
               <item.icon className="w-5 h-5" />
             </div>
             <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
@@ -240,8 +240,8 @@ function MaklumatPanel({ data }: { data: typeof CONTENT['maklumat'] }) {
         {...fadeUp(0.55)}
         className="relative p-7 rounded-2xl bg-slate-900 text-white overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <Quote className="w-7 h-7 text-blue-400/40 mb-3" />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <Quote className="w-7 h-7 text-primary/40 mb-3" />
         <p className="text-base font-light leading-relaxed relative z-10 text-slate-200">
           {data.standar}
         </p>
@@ -255,7 +255,7 @@ function TugasPanel({ data }: { data: typeof CONTENT['tugas'] }) {
     <div className="space-y-8">
       <motion.div
         {...fadeUp(0.15)}
-        className="p-5 rounded-2xl bg-blue-50/60 border border-blue-100"
+        className="p-5 rounded-2xl bg-primary/5 border border-primary/10"
       >
         <SectionLabel>Tugas Pokok</SectionLabel>
         <p className="text-base text-slate-800 font-light leading-relaxed">{data.utama}</p>
@@ -270,7 +270,7 @@ function TugasPanel({ data }: { data: typeof CONTENT['tugas'] }) {
               {...fadeUp(0.3 + i * 0.07)}
               className="group flex items-center gap-4 p-3.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all duration-300"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-500 flex-shrink-0 transition-colors" />
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-primary flex-shrink-0 transition-colors" />
               <span className="text-slate-700 text-sm">{item}</span>
             </motion.div>
           ))}
@@ -311,7 +311,7 @@ function StrukturPanel({ data }: { data: typeof CONTENT['struktur'] }) {
                 'w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0',
                 isPimpinan
                   ? 'bg-white/10 text-white'
-                  : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors duration-300',
+                  : 'bg-slate-100 text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300',
               )}
             >
               {initials}
@@ -368,7 +368,7 @@ export default function ProfileTabs() {
       {/* Subtle ambient */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-50/80 to-transparent" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-50/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10 max-w-5xl">
@@ -390,7 +390,7 @@ export default function ProfileTabs() {
             initial={{ scaleX: 0 }}
             animate={isInView ? { scaleX: 1 } : {}}
             transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-4 w-16 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full origin-left"
+            className="mt-4 w-16 h-0.5 bg-gradient-to-r from-primary to-primary/60 rounded-full origin-left"
           />
         </motion.div>
 
@@ -421,7 +421,7 @@ export default function ProfileTabs() {
                     />
                   )}
                   <span className="relative z-10 flex items-center gap-2">
-                    <span className={cn('transition-colors duration-200', isActive ? 'text-blue-600' : 'text-slate-400')}>
+                    <span className={cn('transition-colors duration-200', isActive ? 'text-primary' : 'text-slate-400')}>
                       {tab.icon}
                     </span>
                     <span className="hidden sm:inline">{tab.label}</span>
@@ -443,7 +443,7 @@ export default function ProfileTabs() {
               className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden"
             >
               {/* Top accent line */}
-              <div className="h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-400" />
+              <div className="h-0.5 bg-gradient-to-r from-primary via-primary/70 to-primary/40" />
 
               <div className="p-7 md:p-10">
                 {/* Card header */}

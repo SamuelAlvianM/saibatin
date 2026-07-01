@@ -20,11 +20,11 @@ export default function LaporanDemografiPage() {
             <Link
               key={slug}
               href={`/media/demografi/${slug}`}
-              className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 hover:shadow-md hover:border-blue-200 transition-all"
+              className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 hover:shadow-md hover:border-primary/30 transition-all"
             >
               <h2 className="font-semibold text-slate-900">{dataset.title}</h2>
               <p className="text-sm text-slate-500 mt-1">{dataset.description}</p>
-              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-blue-600">
+              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary">
                 Lihat detail <ArrowRight className="h-3 w-3" />
               </span>
             </Link>

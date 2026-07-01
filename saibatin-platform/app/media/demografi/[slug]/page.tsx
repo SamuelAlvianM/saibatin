@@ -47,7 +47,7 @@ export default function DemografiPage() {
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16">
         {loading || !dataset ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
           <DemografiChart dataset={dataset} />

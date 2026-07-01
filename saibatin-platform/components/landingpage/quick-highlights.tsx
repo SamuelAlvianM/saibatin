@@ -164,7 +164,7 @@ export default function QuickHighlights() {
                 onClick={() => setPage(i)}
                 aria-label={`Halaman ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === page ? 'w-6 bg-blue-600' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
+                  i === page ? 'w-6 bg-primary' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
                 }`}
               />
             ))}

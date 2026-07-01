@@ -110,14 +110,14 @@ export function AdminGaleri() {
           <ImageIcon className="h-5 w-5 text-slate-700" />
           <h2 className="font-semibold text-slate-900">Daftar Foto</h2>
         </div>
-        <Button onClick={openNew} className="text-white" style={{ background: '#2176bd' }}>
+        <Button onClick={openNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4" /> <span className="ml-1">Upload Foto</span>
         </Button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">Belum ada foto.</div>
@@ -135,7 +135,7 @@ export function AdminGaleri() {
               <button
                 onClick={() => remove(f)}
                 disabled={deletingId === f.id}
-                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-red-600 opacity-0 shadow transition-opacity group-hover:opacity-100"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-destructive opacity-0 shadow transition-opacity group-hover:opacity-100"
               >
                 {deletingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               </button>
@@ -169,9 +169,8 @@ export function AdminGaleri() {
                       type="button"
                       onClick={() => setKategori(k)}
                       className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        kategori === k ? 'text-white border-transparent' : 'bg-white text-slate-600 border-slate-200'
+                        kategori === k ? 'bg-primary text-primary-foreground border-transparent' : 'bg-white text-slate-600 border-slate-200'
                       }`}
-                      style={kategori === k ? { background: '#2176bd' } : undefined}
                     >
                       {k}
                     </button>
@@ -190,14 +189,14 @@ export function AdminGaleri() {
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
-                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 py-8 text-slate-400 hover:border-blue-300 hover:text-blue-500"
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 py-8 text-slate-400 hover:border-primary/40 hover:text-primary"
                   >
                     {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
                     <span className="text-sm">{uploading ? 'Mengunggah...' : 'Pilih foto (JPG/PNG, maks 5MB)'}</span>
                   </button>
                 )}
                 {gambar && (
-                  <button type="button" onClick={() => setGambar('')} className="text-xs text-red-500 hover:underline">
+                  <button type="button" onClick={() => setGambar('')} className="text-xs text-destructive hover:underline">
                     Ganti foto
                   </button>
                 )}
@@ -205,7 +204,7 @@ export function AdminGaleri() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-                <Button onClick={save} disabled={saving || uploading} className="text-white" style={{ background: '#2176bd' }}>
+                <Button onClick={save} disabled={saving || uploading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>

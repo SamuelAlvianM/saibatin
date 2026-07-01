@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const isAdmin = session.level <= 2;
 
-  // ── Tampilan WARGA ──
+  // â”€â”€ Tampilan WARGA â”€â”€
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background">
@@ -41,12 +41,12 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/riwayat"
-              className="glass-card rounded-2xl p-5 hover:shadow-lg hover:border-blue-300/50 transition-all"
+              className="glass-card rounded-2xl p-5 hover:shadow-lg hover:border-primary/30 transition-all"
             >
-              <Users className="w-6 h-6 text-blue-600 mb-2" />
+              <Users className="w-6 h-6 text-primary mb-2" />
               <h2 className="font-semibold text-slate-900">Riwayat Permohonan</h2>
               <p className="text-sm text-slate-500 mt-1">Pantau status pengajuan Anda.</p>
-              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-blue-700">
+              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary">
                 Lihat <ArrowRight className="w-3 h-3" />
               </span>
             </Link>
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     );
   }
 
-  // ── Tampilan ADMIN/OPERATOR ──
+  // â”€â”€ Tampilan ADMIN/OPERATOR â”€â”€
   const [totalUser, userAktif, userPending, totalPermohonan] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { status: 1 } }),
@@ -66,9 +66,9 @@ export default async function DashboardPage() {
 
   const cards = [
     { label: 'Total User', value: totalUser, icon: Users, color: 'text-slate-700' },
-    { label: 'User Aktif', value: userAktif, icon: UserCheck, color: 'text-green-600' },
-    { label: 'Menunggu Aktivasi', value: userPending, icon: Clock, color: 'text-amber-600' },
-    { label: 'Total Permohonan', value: totalPermohonan, icon: FileText, color: 'text-blue-600' },
+    { label: 'User Aktif', value: userAktif, icon: UserCheck, color: 'text-success' },
+    { label: 'Menunggu Aktivasi', value: userPending, icon: Clock, color: 'text-warning' },
+    { label: 'Total Permohonan', value: totalPermohonan, icon: FileText, color: 'text-primary' },
   ];
 
   return (
@@ -100,12 +100,12 @@ export default async function DashboardPage() {
         {/* Menu manajemen */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link href="/dashboard/permohonan" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
-            <ClipboardList className="w-5 h-5 text-blue-600 mb-2" />
+            <ClipboardList className="w-5 h-5 text-primary mb-2" />
             <p className="font-semibold text-slate-900">Permohonan</p>
             <p className="text-xs text-slate-500 mt-0.5">Proses pengajuan warga</p>
           </Link>
           <Link href="/dashboard/berita" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
-            <FileText className="w-5 h-5 text-yellow-600 mb-2" />
+            <FileText className="w-5 h-5 text-primary mb-2" />
             <p className="font-semibold text-slate-900">Berita</p>
             <p className="text-xs text-slate-500 mt-0.5">Kelola konten berita</p>
           </Link>

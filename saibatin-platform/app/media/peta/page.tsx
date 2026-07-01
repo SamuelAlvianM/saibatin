@@ -9,7 +9,7 @@ export default function PetaPage() {
     <div className="relative bg-slate-50/30 min-h-screen">
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16">
         <div className="mb-6 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 flex-shrink-0">
             <MapPin className="w-6 h-6" />
           </div>
           <div>

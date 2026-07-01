@@ -26,7 +26,7 @@ export function DemografiChart({ dataset }: { dataset: DemografiDataset }) {
                 initial={{ width: 0 }}
                 animate={{ width: `${(item.value / max) * 100}%` }}
                 transition={{ duration: 0.6, delay: i * 0.05 }}
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                className="h-full rounded-full bg-primary"
               />
             </div>
           </div>

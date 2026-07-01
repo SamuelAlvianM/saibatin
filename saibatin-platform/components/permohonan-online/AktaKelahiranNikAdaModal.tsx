@@ -836,7 +836,7 @@ export default function AktaKelahiranNikAdaModal({
   // Helper to show field error
   const showFieldError = (field: keyof FormData) => {
     return touchedFields.has(field) && fieldErrors[field] ? (
-      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200 mt-1">
+      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200 mt-1">
         {fieldErrors[field]}
       </p>
     ) : null;
@@ -845,16 +845,16 @@ export default function AktaKelahiranNikAdaModal({
   // Helper for input class with error state
   const getInputClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-primary",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
   // Helper for select class with error state
   const getSelectClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-primary",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
@@ -862,7 +862,7 @@ export default function AktaKelahiranNikAdaModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col w-full">
         <DialogHeader className="space-y-1 pb-1 border-b">
-          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-primary">
             {mode === "edit"
               ? "Edit Permohonan"
               : "Permohonan Akta Kelahiran (Ada NIK)"}
@@ -881,10 +881,10 @@ export default function AktaKelahiranNikAdaModal({
                   className={cn(
                     "flex items-center gap-1.5 text-sm font-medium transition-all duration-300 cursor-pointer",
                     currentStep === step
-                      ? "text-blue-600 scale-110 font-bold"
+                      ? "text-primary scale-110 font-bold"
                       : currentStep > step
-                        ? "text-green-600"
-                        : "text-gray-400",
+                        ? "text-success"
+                        : "text-muted-foreground",
                   )}
                   onClick={() => {
                     // Allow clicking on completed steps to go back
@@ -904,11 +904,11 @@ export default function AktaKelahiranNikAdaModal({
             </div>
 
             {/* Progress Bar */}
-            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out",
-                  "bg-linear-to-r from-blue-600 to-purple-600",
+                  "bg-primary",
                 )}
                 style={{
                   width: `${((currentStep - 1) / 5) * 100}%`,
@@ -939,8 +939,8 @@ export default function AktaKelahiranNikAdaModal({
 
             {/* Success Alert */}
             {success.length > 0 && (
-              <Alert className="border-green-500 bg-green-50 text-green-800 animate-in slide-in-from-top-2 duration-300">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+              <Alert className="border-success bg-success/10 text-success animate-in slide-in-from-top-2 duration-300">
+                <CheckCircle className="h-4 w-4 text-success" />
                 <AlertDescription>
                   <ul className="list-disc list-inside space-y-1">
                     {success.map((msg, index) => (
@@ -964,7 +964,7 @@ export default function AktaKelahiranNikAdaModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="pemohonnik" className="flex items-center justify-between">
                     <span>NIK Pemohon *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonnik.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonnik.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonnik.length}/16
                     </span>
                   </Label>
@@ -994,7 +994,7 @@ export default function AktaKelahiranNikAdaModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-150">
                   <Label htmlFor="pemohonkk" className="flex items-center justify-between">
                     <span>Nomor KK *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonkk.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonkk.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonkk.length}/16
                     </span>
                   </Label>
@@ -1012,7 +1012,7 @@ export default function AktaKelahiranNikAdaModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-200">
                   <Label htmlFor="pemohonhp" className="flex items-center justify-between">
                     <span>Nomor HP *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonhp.length >= 10 && formData.pemohonhp.length <= 13 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonhp.length >= 10 && formData.pemohonhp.length <= 13 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonhp.length}/13
                     </span>
                   </Label>
@@ -1044,15 +1044,15 @@ export default function AktaKelahiranNikAdaModal({
 
               <div className="flex justify-end pt-4 gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step1}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step1}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step1)}%</span>
                 </div>
                 <Button
                   type="button"
                   onClick={handleNextStep}
-                  className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                  className="bg-primary hover:bg-primary/90 transition-all duration-300"
                 >
                   Selanjutnya
                 </Button>
@@ -1070,7 +1070,7 @@ export default function AktaKelahiranNikAdaModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="nikbayi" className="flex items-center justify-between">
                     <span>NIK Bayi *</span>
-                    <span className={cn("text-xs font-normal", formData.nikbayi.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.nikbayi.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.nikbayi.length}/16
                     </span>
                   </Label>
@@ -1133,14 +1133,14 @@ export default function AktaKelahiranNikAdaModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step2}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step2}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step2)}%</span>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1155,12 +1155,12 @@ export default function AktaKelahiranNikAdaModal({
                 currentStep === 3 ? "animate-in slide-in-from-top-4 fade-in" : "hidden",
               )}
             >
-              <h3 className="text-lg font-semibold text-gray-700">Data Ayah</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground">Data Ayah</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="nikayah" className="flex items-center justify-between">
                     <span>NIK Ayah *</span>
-                    <span className={cn("text-xs font-normal", formData.nikayah.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.nikayah.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.nikayah.length}/16
                     </span>
                   </Label>
@@ -1200,12 +1200,12 @@ export default function AktaKelahiranNikAdaModal({
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-700 pt-4">Data Ibu</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground pt-4">Data Ibu</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="nikibu" className="flex items-center justify-between">
                     <span>NIK Ibu *</span>
-                    <span className={cn("text-xs font-normal", formData.nikibu.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.nikibu.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.nikibu.length}/16
                     </span>
                   </Label>
@@ -1238,14 +1238,14 @@ export default function AktaKelahiranNikAdaModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step3}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step3}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step3)}%</span>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1387,14 +1387,14 @@ export default function AktaKelahiranNikAdaModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step4}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step4}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step4)}%</span>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1409,12 +1409,12 @@ export default function AktaKelahiranNikAdaModal({
                 currentStep === 5 ? "animate-in slide-in-from-top-4 fade-in" : "hidden",
               )}
             >
-              <h3 className="text-lg font-semibold text-gray-700">Saksi 1</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground">Saksi 1</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="niksaksi1" className="flex items-center justify-between">
                     <span>NIK Saksi 1 *</span>
-                    <span className={cn("text-xs font-normal", formData.niksaksi1.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.niksaksi1.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.niksaksi1.length}/16
                     </span>
                   </Label>
@@ -1442,12 +1442,12 @@ export default function AktaKelahiranNikAdaModal({
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-700 pt-4">Saksi 2</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground pt-4">Saksi 2</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="niksaksi2" className="flex items-center justify-between">
                     <span>NIK Saksi 2 *</span>
-                    <span className={cn("text-xs font-normal", formData.niksaksi2.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.niksaksi2.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.niksaksi2.length}/16
                     </span>
                   </Label>
@@ -1480,14 +1480,14 @@ export default function AktaKelahiranNikAdaModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step5}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step5}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step5)}%</span>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1511,14 +1511,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.bukunikah ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.bukunikah.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.bukunikah.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1526,7 +1526,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("bukunikah")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1541,18 +1541,18 @@ export default function AktaKelahiranNikAdaModal({
                       onChange={(e) => handleFileUpload(e, "bukunikah")}
                       disabled={uploading === "bukunikah"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("filebukunikahx") && !formData.filebukunikahx && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("filebukunikahx") && !formData.filebukunikahx && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("filebukunikahx") && !formData.filebukunikahx && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload Buku Nikah wajib dilakukan
                       </p>
                     )}
                     {uploading === "bukunikah" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1568,14 +1568,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.kk ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.kk.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.kk.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1583,7 +1583,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("kk")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1598,18 +1598,18 @@ export default function AktaKelahiranNikAdaModal({
                       onChange={(e) => handleFileUpload(e, "kk")}
                       disabled={uploading === "kk"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("filekkx") && !formData.filekkx && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("filekkx") && !formData.filekkx && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("filekkx") && !formData.filekkx && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload KK wajib dilakukan
                       </p>
                     )}
                     {uploading === "kk" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1625,14 +1625,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.keteranganlahir ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.keteranganlahir.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.keteranganlahir.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1640,7 +1640,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("keteranganlahir")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1655,18 +1655,18 @@ export default function AktaKelahiranNikAdaModal({
                       onChange={(e) => handleFileUpload(e, "keteranganlahir")}
                       disabled={uploading === "keteranganlahir"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("fileketeranganlahirx") && !formData.fileketeranganlahirx && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("fileketeranganlahirx") && !formData.fileketeranganlahirx && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("fileketeranganlahirx") && !formData.fileketeranganlahirx && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload Keterangan Lahir wajib dilakukan
                       </p>
                     )}
                     {uploading === "keteranganlahir" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1682,14 +1682,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.ktpsaksi1 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.ktpsaksi1.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.ktpsaksi1.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1697,7 +1697,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("ktpsaksi1")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1712,18 +1712,18 @@ export default function AktaKelahiranNikAdaModal({
                       onChange={(e) => handleFileUpload(e, "ktpsaksi1")}
                       disabled={uploading === "ktpsaksi1"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("filektpsaksi1x") && !formData.filektpsaksi1x && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("filektpsaksi1x") && !formData.filektpsaksi1x && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("filektpsaksi1x") && !formData.filektpsaksi1x && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload KTP Saksi 1 wajib dilakukan
                       </p>
                     )}
                     {uploading === "ktpsaksi1" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1739,14 +1739,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.ktpsaksi2 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.ktpsaksi2.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.ktpsaksi2.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1754,7 +1754,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("ktpsaksi2")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1769,18 +1769,18 @@ export default function AktaKelahiranNikAdaModal({
                       onChange={(e) => handleFileUpload(e, "ktpsaksi2")}
                       disabled={uploading === "ktpsaksi2"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("filektpsaksi2x") && !formData.filektpsaksi2x && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("filektpsaksi2x") && !formData.filektpsaksi2x && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("filektpsaksi2x") && !formData.filektpsaksi2x && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload KTP Saksi 2 wajib dilakukan
                       </p>
                     )}
                     {uploading === "ktpsaksi2" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1796,14 +1796,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.ktpayah ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.ktpayah.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.ktpayah.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1811,7 +1811,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("ktpayah")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1825,11 +1825,11 @@ export default function AktaKelahiranNikAdaModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "ktpayah")}
                       disabled={uploading === "ktpayah"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "ktpayah" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1845,14 +1845,14 @@ export default function AktaKelahiranNikAdaModal({
                 </Label>
                 {uploadedFiles.ktpibu ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">{uploadedFiles.ktpibu.name}</p>
-                          <p className="text-xs text-green-600">Berhasil diupload</p>
+                          <p className="text-sm font-medium text-success">{uploadedFiles.ktpibu.name}</p>
+                          <p className="text-xs text-success">Berhasil diupload</p>
                         </div>
                       </div>
                       <Button
@@ -1860,7 +1860,7 @@ export default function AktaKelahiranNikAdaModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("ktpibu")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1874,11 +1874,11 @@ export default function AktaKelahiranNikAdaModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "ktpibu")}
                       disabled={uploading === "ktpibu"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "ktpibu" && (
                       <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1898,16 +1898,16 @@ export default function AktaKelahiranNikAdaModal({
                   </Label>
                   {uploadedFiles[`pendukung${num}` as keyof typeof uploadedFiles] ? (
                     <div className="relative group">
-                      <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-green-100 rounded-lg">
-                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          <div className="p-2 bg-success/10 rounded-lg">
+                            <CheckCircle className="h-5 w-5 text-success" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-green-900">
+                            <p className="text-sm font-medium text-success">
                               {uploadedFiles[`pendukung${num}` as keyof typeof uploadedFiles]?.name}
                             </p>
-                            <p className="text-xs text-green-600">Berhasil diupload</p>
+                            <p className="text-xs text-success">Berhasil diupload</p>
                           </div>
                         </div>
                         <Button
@@ -1915,7 +1915,7 @@ export default function AktaKelahiranNikAdaModal({
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFile(`pendukung${num}` as keyof typeof uploadedFiles)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -1929,11 +1929,11 @@ export default function AktaKelahiranNikAdaModal({
                         accept="image/png,image/jpg,image/jpeg"
                         onChange={(e) => handleFileUpload(e, `pendukung${num}` as keyof typeof uploadedFiles)}
                         disabled={uploading === `pendukung${num}`}
-                        className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                        className="cursor-pointer transition-all duration-200 hover:border-primary"
                       />
                       {uploading === `pendukung${num}` && (
                         <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                          <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
                         </div>
                       )}
                     </div>
@@ -1950,7 +1950,7 @@ export default function AktaKelahiranNikAdaModal({
                   onChange={(e) => handleInputChange("catatan", e.target.value)}
                   placeholder="Masukkan catatan tambahan jika diperlukan"
                   rows={3}
-                  className="transition-all duration-200 focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary resize-none"
                 />
               </div>
 
@@ -1959,14 +1959,14 @@ export default function AktaKelahiranNikAdaModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500" style={{ width: `${progress.step6}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress.step6}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step6)}%</span>
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <>
