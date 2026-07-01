@@ -81,10 +81,11 @@ const CONTENT: Record<string, any> = {
   },
   'struktur': {
     organisasi: [
-      { jabatan: 'Kepala Dinas',    nama: 'Drs. H. Ahmad Sudirman, M.Si', status: 'Pimpinan' },
-      { jabatan: 'Sekretaris',      nama: 'Dra. Siti Aminah, M.Pd',       status: 'Pengawas' },
-      { jabatan: 'Kabid. Pelayanan',nama: 'H. Budi Santoso, S.Sos',       status: 'Pelaksana' },
-      { jabatan: 'Kabid. Data',     nama: 'Ir. Dewi Kusuma, M.T',         status: 'Pelaksana' },
+      { jabatan: 'Kepala Dinas', nama: '-', status: 'Pimpinan' },
+      { jabatan: 'Sekretaris', nama: '-', status: 'Pengawas' },
+      { jabatan: 'Kabid Pelayanan Pendaftaran Penduduk', nama: '-', status: 'Pelaksana' },
+      { jabatan: 'Kabid Pelayanan Pencatatan Sipil', nama: '-', status: 'Pelaksana' },
+      { jabatan: 'Kabid Pengelolaan Informasi Administrasi Kependudukan', nama: '-', status: 'Pelaksana' },
     ],
   },
 };
@@ -284,11 +285,14 @@ function StrukturPanel({ data }: { data: typeof CONTENT['struktur'] }) {
     <div className="max-w-2xl mx-auto space-y-3">
       {data.organisasi.map((item: any, i: number) => {
         const isPimpinan = item.status === 'Pimpinan';
-        const initials = item.nama
+        const hasNama = item.nama && item.nama !== '-';
+        // Tanpa nama pejabat: avatar & judul utama pakai jabatan.
+        const initials = (hasNama ? item.nama : item.jabatan)
           .split(' ')
-          .slice(-2)
+          .slice(0, 2)
           .map((w: string) => w[0])
-          .join('');
+          .join('')
+          .toUpperCase();
 
         return (
           <motion.div
@@ -315,12 +319,20 @@ function StrukturPanel({ data }: { data: typeof CONTENT['struktur'] }) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className={cn('font-semibold text-sm truncate', isPimpinan ? 'text-white' : 'text-slate-900')}>
-                {item.nama}
-              </p>
-              <p className={cn('text-xs mt-0.5', isPimpinan ? 'text-slate-400' : 'text-slate-500')}>
-                {item.jabatan}
-              </p>
+              {hasNama ? (
+                <>
+                  <p className={cn('font-semibold text-sm truncate', isPimpinan ? 'text-white' : 'text-slate-900')}>
+                    {item.nama}
+                  </p>
+                  <p className={cn('text-xs mt-0.5', isPimpinan ? 'text-slate-400' : 'text-slate-500')}>
+                    {item.jabatan}
+                  </p>
+                </>
+              ) : (
+                <p className={cn('font-semibold text-sm', isPimpinan ? 'text-white' : 'text-slate-900')}>
+                  {item.jabatan}
+                </p>
+              )}
             </div>
 
             {/* Badge */}
