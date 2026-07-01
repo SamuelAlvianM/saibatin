@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Footer } from '@/components/shared/footer';
-import { ArrowLeft, Clock, CheckCircle2, XCircle, FileText, Paperclip } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, XCircle, FileText, Paperclip, Download } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,19 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
 
   const cfg = STATUS_CONFIG[item.status] ?? STATUS_CONFIG['MENUNGGU'];
   const Icon = cfg.icon;
-  const payload = item.payload ? JSON.parse(item.payload as string) : {};
+  // payload bertipe Json di Prisma — sudah berupa objek (bukan string).
+  const payload: Record<string, unknown> =
+    item.payload && typeof item.payload === 'object'
+      ? (item.payload as Record<string, unknown>)
+      : typeof item.payload === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(item.payload as string);
+          } catch {
+            return {};
+          }
+        })()
+      : {};
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +117,14 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
           </div>
         )}
 
-        <div className="text-center pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <a
+            href={`/api/permohonan/${item.id}/pdf`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 px-5 py-2.5 rounded-xl border border-slate-300 bg-white shadow-sm hover:bg-slate-50"
+          >
+            <Download className="w-4 h-4" />
+            Download Bukti
+          </a>
           <Link
             href="/permohonan-online"
             className="inline-flex items-center gap-2 text-sm font-medium text-white px-5 py-2.5 rounded-xl shadow-md"

@@ -286,7 +286,7 @@ export default function KedatanganPendudukModal({
   const fetchPermohonanData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/kedatangan/fetch", {
+      const response = await fetch("/api/kia/fetch", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -394,7 +394,7 @@ export default function KedatanganPendudukModal({
       formDataUpload.append("uid", Date.now().toString());
       formDataUpload.append("groupset", fileType);
 
-      const response = await fetch("/api/kedatangan/upload", {
+      const response = await fetch("/api/kia/upload", {
         method: "POST",
         body: formDataUpload,
       });
@@ -475,8 +475,8 @@ export default function KedatanganPendudukModal({
     try {
       const endpoint =
         mode === "edit"
-          ? "/api/kedatangan/update"
-          : "/api/kedatangan/create";
+          ? "/api/kia/update"
+          : "/api/kia/create";
 
       const payload =
         mode === "edit" ? { ...formData, prm2: permohonanId } : formData;
@@ -495,6 +495,7 @@ export default function KedatanganPendudukModal({
         setErrors(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         setSuccess(result.success.flat());
+        setTimeout(() => { window.location.href = "/riwayat"; }, 1200);
         setTimeout(() => {
           onOpenChange(false);
           setFormData({
