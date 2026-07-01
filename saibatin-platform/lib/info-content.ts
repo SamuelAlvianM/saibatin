@@ -153,6 +153,22 @@ export const hubungiKamiContent: Record<string, InfoPageContent> = {
       'Jl. Pelayanan Publik, Kabupaten Pesisir Barat, Provinsi Lampung',
     ],
   },
+  kontak: {
+    title: 'Kontak Kami',
+    description: 'Hubungi Disdukcapil Pesisir Barat melalui kanal berikut.',
+    list: [
+      'Telepon: (0728) 21XXX',
+      'Email: disdukcapil@pesisirbaratkab.go.id',
+      'Jam Layanan: Senin–Jumat, 08.00–16.00 WIB',
+    ],
+  },
+  'kritik-saran': {
+    title: 'Kritik & Saran',
+    description: 'Sampaikan kritik dan saran Anda untuk peningkatan pelayanan Disdukcapil Pesisir Barat.',
+    body: [
+      'Gunakan halaman Pengaduan Masyarakat untuk menyampaikan kritik, saran, atau keluhan terkait pelayanan. Setiap masukan akan menjadi bahan evaluasi peningkatan mutu layanan.',
+    ],
+  },
   'pengaduan-masyarakat': {
     title: 'Pengaduan Masyarakat',
     description: 'Sampaikan keluhan atau saran terkait pelayanan Disdukcapil.',
