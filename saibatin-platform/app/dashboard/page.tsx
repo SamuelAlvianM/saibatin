@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { AdminUsers } from './AdminUsers';
-import { FileText, Users, UserCheck, Clock, ArrowRight, ClipboardList } from 'lucide-react';
+import { FileText, Users, UserCheck, Clock, ArrowRight, ClipboardList, FilePlus2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +99,11 @@ export default async function DashboardPage() {
 
         {/* Menu manajemen */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Link href="/dashboard/pengajuan-baru" className="rounded-2xl p-5 text-white shadow-lg transition-all hover:shadow-xl" style={{ background: 'linear-gradient(135deg, #2176bd, #1b4b72)' }}>
+            <FilePlus2 className="w-5 h-5 mb-2" />
+            <p className="font-semibold">Pengajuan Baru</p>
+            <p className="text-xs text-white/80 mt-0.5">Bantu warga ajukan dokumen</p>
+          </Link>
           <Link href="/dashboard/permohonan" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
             <ClipboardList className="w-5 h-5 text-primary mb-2" />
             <p className="font-semibold text-slate-900">Permohonan</p>

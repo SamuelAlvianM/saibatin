@@ -12,10 +12,12 @@ import {
   FolderOpen,
   Gauge,
   Users,
+  FilePlus2,
 } from 'lucide-react';
 
 const MENU = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/pengajuan-baru', label: 'Pengajuan Baru', icon: FilePlus2 },
   { href: '/dashboard/permohonan', label: 'Permohonan', icon: ClipboardList },
   { href: '/dashboard/berita', label: 'Berita', icon: Newspaper },
   { href: '/dashboard/galeri', label: 'Galeri', icon: ImageIcon },
