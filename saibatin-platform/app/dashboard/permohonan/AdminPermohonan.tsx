@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText, Eye } from 'lucide-react';
 
 interface Item {
   id: number;
@@ -96,6 +97,11 @@ export function AdminPermohonan() {
       <div className="flex items-center gap-2 mb-4">
         <ClipboardList className="h-5 w-5 text-slate-700" />
         <h2 className="font-semibold text-slate-900">Daftar Permohonan</h2>
+        {!loading && (
+          <span className="ml-auto rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+            {items.length} data
+          </span>
+        )}
       </div>
 
       {/* Filter & search */}
@@ -165,9 +171,16 @@ export function AdminPermohonan() {
                   </td>
                   <td className="py-2.5 pr-4"><StatusBadge status={it.status} /></td>
                   <td className="py-2.5 pr-4">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(it)}>
-                      Proses
-                    </Button>
+                    <div className="flex gap-2">
+                      <Link href={`/riwayat/${it.id}`} target="_blank">
+                        <Button size="sm" variant="outline" title="Lihat detail & berkas">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(it)}>
+                        Proses
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

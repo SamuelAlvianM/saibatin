@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Trash2, X, FileText, Upload, ExternalLink } from 'lucide-react';
+import { Loader2, Plus, Trash2, X, FileText, Upload, ExternalLink, Search } from 'lucide-react';
 
 interface Produk {
   id: number;
@@ -33,7 +33,12 @@ export function AdminProduk() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [q, setQ] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const filtered = q.trim()
+    ? items.filter((p) => p.judul.toLowerCase().includes(q.trim().toLowerCase()))
+    : items;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,7 +116,7 @@ export function AdminProduk() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => { setTab(t.key); setQ(''); }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               tab === t.key ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100'
             }`}
@@ -121,8 +126,12 @@ export function AdminProduk() {
         ))}
       </div>
 
-      <div className="flex justify-end mb-4">
-        <Button onClick={openNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input placeholder="Cari nama dokumen..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+        </div>
+        <Button onClick={openNew} className="bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto">
           <Plus className="h-4 w-4" /> <span className="ml-1">Tambah Dokumen</span>
         </Button>
       </div>
@@ -131,8 +140,10 @@ export function AdminProduk() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-12 text-sm text-slate-500">Belum ada dokumen pada kategori ini.</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-sm text-slate-500">
+          {q.trim() ? `Tidak ada dokumen cocok "${q}".` : 'Belum ada dokumen pada kategori ini.'}
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -145,7 +156,7 @@ export function AdminProduk() {
               </tr>
             </thead>
             <tbody>
-              {items.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.id} className="border-b border-slate-100">
                   <td className="py-2.5 pr-4 font-medium text-slate-800">
                     <span className="inline-flex items-center gap-2">
