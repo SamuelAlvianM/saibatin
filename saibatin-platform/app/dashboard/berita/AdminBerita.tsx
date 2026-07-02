@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus, Pencil, Trash2, X, Newspaper, Eye, EyeOff } from 'lucide-react';
 import { slugify } from '@/lib/slug';
+import { RichEditor } from '@/components/shared/rich-editor';
 
 interface News {
   id: number;
@@ -73,7 +74,8 @@ export function AdminBerita() {
   };
 
   const save = async () => {
-    if (!form.judul.trim() || !form.konten.trim()) {
+    const kontenText = form.konten.replace(/<[^>]*>/g, '').trim();
+    if (!form.judul.trim() || !kontenText) {
       toast.error('Judul dan isi berita wajib diisi');
       return;
     }
@@ -188,7 +190,7 @@ export function AdminBerita() {
       {/* Modal form */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4" onClick={() => setOpen(false)}>
-          <div className="my-8 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="my-8 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-slate-900">{editId ? 'Ubah Berita' : 'Tambah Berita'}</h3>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -196,29 +198,37 @@ export function AdminBerita() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+              {/* Rich editor di atas agar penulisan konten lebih nyaman */}
               <div className="space-y-1.5">
-                <Label htmlFor="judul">Judul</Label>
-                <Input id="judul" value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} />
-                {form.judul && (
-                  <p className="text-xs text-slate-400 font-mono">slug: /{slugify(form.judul) || '...'}</p>
-                )}
+                <Label htmlFor="konten">Isi Berita</Label>
+                <RichEditor
+                  value={form.konten}
+                  onChange={(html) => setForm((f) => ({ ...f, konten: html }))}
+                  placeholder="Tulis isi berita di sini..."
+                />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="kategori">Kategori</Label>
-                <Input id="kategori" value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value })} placeholder="mis. Pengumuman" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="gambar">URL Gambar</Label>
-                <Input id="gambar" value={form.gambar} onChange={(e) => setForm({ ...form, gambar: e.target.value })} placeholder="/uploads/... atau https://..." />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="judul">Judul</Label>
+                  <Input id="judul" value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} />
+                  {form.judul && (
+                    <p className="text-xs text-slate-400 font-mono">slug: /{slugify(form.judul) || '...'}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="kategori">Kategori</Label>
+                  <Input id="kategori" value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value })} placeholder="mis. Pengumuman" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="gambar">URL Gambar</Label>
+                  <Input id="gambar" value={form.gambar} onChange={(e) => setForm({ ...form, gambar: e.target.value })} placeholder="/uploads/... atau https://..." />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="ringkasan">Ringkasan</Label>
-                <Textarea id="ringkasan" rows={2} value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="konten">Isi Berita</Label>
-                <Textarea id="konten" rows={6} value={form.konten} onChange={(e) => setForm({ ...form, konten: e.target.value })} placeholder="Boleh HTML sederhana..." />
+                <Textarea id="ringkasan" rows={2} value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })} placeholder="Ringkasan singkat yang tampil di daftar berita" />
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input

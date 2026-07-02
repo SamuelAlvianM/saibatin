@@ -125,8 +125,8 @@ export function AdminGaleri() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map((f) => (
             <div key={f.id} className="group relative overflow-hidden rounded-xl border border-slate-200">
-              <div className="relative aspect-square bg-slate-100">
-                <Image src={f.gambar} alt={f.judul} fill className="object-cover" />
+              <div className="relative aspect-square bg-slate-50">
+                <Image src={f.gambar} alt={f.judul} fill className="object-contain p-1" />
               </div>
               <div className="p-2">
                 <p className="truncate text-sm font-medium text-slate-800">{f.judul}</p>
@@ -181,8 +181,8 @@ export function AdminGaleri() {
                 <Label>Foto</Label>
                 <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleFile} />
                 {gambar ? (
-                  <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200">
-                    <Image src={gambar} alt="preview" fill className="object-cover" />
+                  <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                    <Image src={gambar} alt="preview" fill className="object-contain p-1" />
                   </div>
                 ) : (
                   <button
