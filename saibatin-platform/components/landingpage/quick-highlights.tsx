@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { animate, stagger } from 'animejs';
 import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
 
 interface News {
@@ -59,7 +59,9 @@ const AUTO_ROTATE_MS = 6000;
 export default function QuickHighlights() {
   const [news, setNews] = useState<News[] | null>(null);
   const [page, setPage] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
 
+  // Integrasi database berita
   useEffect(() => {
     fetch('/api/berita?page=1&limit=12')
       .then((r) => r.json())
@@ -84,6 +86,21 @@ export default function QuickHighlights() {
   const next = () => setPage((p) => (p + 1) % totalPages);
   const prev = () => setPage((p) => (p - 1 + totalPages) % totalPages);
 
+  // Animasi masuk anime.js setiap kali halaman berita berubah
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const items = gridRef.current.querySelectorAll('.js-hl-card');
+    if (!items.length) return;
+    animate(items, {
+      opacity: [0, 1],
+      translateY: [20, 0],
+      scale: [0.96, 1],
+      delay: stagger(70),
+      duration: 550,
+      ease: 'out(3)',
+    });
+  }, [page, news]);
+
   // Auto-rotate halaman kalau data lebih dari 1 halaman
   useEffect(() => {
     if (totalPages <= 1) return;
@@ -94,51 +111,37 @@ export default function QuickHighlights() {
 
   return (
     <div className="relative flex-1 min-h-[220px]">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page}
-          initial={{ opacity: 0, x: 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-          className="grid grid-cols-2 auto-rows-fr gap-3 h-full"
-        >
-          {currentCards.map((item, i) => (
-            <motion.div
-              key={item.key}
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }}
-              className="h-full w-full"
+      <div ref={gridRef} className="grid grid-cols-2 auto-rows-fr gap-3 h-full">
+        {currentCards.map((item) => (
+          <div key={item.key} className="js-hl-card h-full w-full" style={{ opacity: 0 }}>
+            <Link
+              href={item.href}
+              className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-slate-200 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
-              <Link
-                href={item.href}
-                className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-slate-200 shadow-sm ring-1 ring-slate-200/70 transition-shadow hover:shadow-lg"
-              >
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-300 text-slate-400">
-                    <Newspaper className="h-6 w-6" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/0" />
-                <div className="relative mt-auto p-3.5">
-                  <h3 className="text-sm font-semibold text-white leading-snug line-clamp-1">{item.title}</h3>
-                  {item.desc && (
-                    <p className="mt-1 text-xs text-white/75 line-clamp-2 leading-relaxed">{item.desc}</p>
-                  )}
+              {item.image ? (
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-300 text-slate-400">
+                  <Newspaper className="h-6 w-6" />
                 </div>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/0" />
+              <div className="relative mt-auto p-3.5">
+                <h3 className="text-sm font-semibold text-white leading-snug line-clamp-1">{item.title}</h3>
+                {item.desc && (
+                  <p className="mt-1 text-xs text-white/75 line-clamp-2 leading-relaxed">{item.desc}</p>
+                )}
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
 
       {/* Kontrol navigasi — hanya tampil bila lebih dari 1 halaman */}
       {totalPages > 1 && (
