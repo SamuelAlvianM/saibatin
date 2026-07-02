@@ -250,15 +250,15 @@ function ServiceCard({
       label: 'Pelayanan Baru',
       value: pelayananBaru,
       pct: newPct,
-      bar: 'bg-blue-500',
-      icon: <Activity className="w-3.5 h-3.5 text-blue-500" />,
+      bar: 'bg-primary',
+      icon: <Activity className="w-3.5 h-3.5 text-primary" />,
     },
     {
       label: 'Selesai Diproses',
       value: pelayananSelesai,
       pct: donePct,
-      bar: 'bg-emerald-500',
-      icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />,
+      bar: 'bg-success',
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-success" />,
     },
   ];
 
@@ -286,7 +286,7 @@ function ServiceCard({
             <p className="text-sm font-semibold text-slate-800">Statistik Bulan Ini</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">
+        <div className="flex items-center gap-1 text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-lg">
           <TrendingUp className="w-3.5 h-3.5" />
           <span className="text-xs font-bold">+12%</span>
         </div>
@@ -343,9 +343,9 @@ const STAT_CARDS: Omit<StatCardConfig, 'value' | 'index'>[] = [
   {
     title: 'Jumlah Penduduk',
     icon: <Users className="w-5 h-5" />,
-    accent: 'text-blue-600',
-    accentBg: 'bg-blue-50',
-    accentBar: 'bg-blue-500',
+    accent: 'text-primary',
+    accentBg: 'bg-primary/10',
+    accentBar: 'bg-primary',
   },
   {
     title: 'Kepala Keluarga',
@@ -397,8 +397,8 @@ export default function StatsGrid({ data }: StatsGridProps) {
           </p>
           <h2 className="text-lg font-bold text-slate-900">Statistik Demografi</h2>
         </div>
-        <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
           Realtime
         </span>
       </motion.div>

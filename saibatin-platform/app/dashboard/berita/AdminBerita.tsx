@@ -117,14 +117,14 @@ export function AdminBerita() {
           <Newspaper className="h-5 w-5 text-slate-700" />
           <h2 className="font-semibold text-slate-900">Daftar Berita</h2>
         </div>
-        <Button onClick={openNew} className="text-white" style={{ background: '#2176bd' }}>
+        <Button onClick={openNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4" /> <span className="ml-1">Tambah</span>
         </Button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">Belum ada berita.</div>
@@ -150,7 +150,7 @@ export function AdminBerita() {
                   <td className="py-2.5 pr-4">{n.kategori ?? '-'}</td>
                   <td className="py-2.5 pr-4">
                     {n.publish ? (
-                      <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 text-success text-xs font-medium">
                         <Eye className="h-3.5 w-3.5" /> Publish
                       </span>
                     ) : (
@@ -170,7 +170,7 @@ export function AdminBerita() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:bg-red-50"
+                        className="text-destructive hover:bg-destructive/10"
                         disabled={deletingId === n.id}
                         onClick={() => remove(n)}
                       >
@@ -232,7 +232,7 @@ export function AdminBerita() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-                <Button onClick={save} disabled={saving} className="text-white" style={{ background: '#2176bd' }}>
+                <Button onClick={save} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>

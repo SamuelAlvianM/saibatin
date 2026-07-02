@@ -558,7 +558,7 @@ export default function KedatanganPendudukModal({
   // Helper to show field error
   const showFieldError = (field: keyof FormData) => {
     return touchedFields.has(field) && fieldErrors[field] ? (
-      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200 mt-1">
+      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200 mt-1">
         {fieldErrors[field]}
       </p>
     ) : null;
@@ -567,16 +567,16 @@ export default function KedatanganPendudukModal({
   // Helper for input class with error state
   const getInputClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-primary",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
   // Helper for select class with error state
   const getSelectClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-blue-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-primary",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
@@ -584,7 +584,7 @@ export default function KedatanganPendudukModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden flex flex-col w-full">
         <DialogHeader className="space-y-1 pb-1 border-b">
-          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-primary">
             {mode === "edit"
               ? "Edit Permohonan"
               : "Permohonan Kedatangan Penduduk"}
@@ -603,10 +603,10 @@ export default function KedatanganPendudukModal({
                   className={cn(
                     "flex items-center gap-1.5 text-sm font-medium transition-all duration-300 cursor-pointer",
                     currentStep === step
-                      ? "text-blue-600 scale-110 font-bold"
+                      ? "text-primary scale-110 font-bold"
                       : currentStep > step
-                        ? "text-green-600"
-                        : "text-gray-400",
+                        ? "text-success"
+                        : "text-muted-foreground",
                   )}
                   onClick={() => {
                     // Allow clicking on completed steps to go back
@@ -626,11 +626,11 @@ export default function KedatanganPendudukModal({
             </div>
 
             {/* Progress Bar */}
-            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out",
-                  "bg-linear-to-r from-blue-600 to-purple-600",
+                  "bg-primary",
                 )}
                 style={{
                   width: `${((currentStep - 1) / 2) * 100}%`,
@@ -661,8 +661,8 @@ export default function KedatanganPendudukModal({
 
             {/* Success Alert */}
             {success.length > 0 && (
-              <Alert className="border-green-500 bg-green-50 text-green-800 animate-in slide-in-from-top-2 duration-300">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+              <Alert className="border-success bg-success/10 text-success animate-in slide-in-from-top-2 duration-300">
+                <CheckCircle className="h-4 w-4 text-success" />
                 <AlertDescription>
                   <ul className="list-disc list-inside space-y-1">
                     {success.map((msg, index) => (
@@ -693,7 +693,7 @@ export default function KedatanganPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.pemohonnik.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground",
                       )}
                     >
@@ -737,7 +737,7 @@ export default function KedatanganPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.pemohonkk.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground",
                       )}
                     >
@@ -768,7 +768,7 @@ export default function KedatanganPendudukModal({
                         "text-xs font-normal",
                         formData.pemohonhp.length >= 10 &&
                           formData.pemohonhp.length <= 13
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground",
                       )}
                     >
@@ -807,9 +807,9 @@ export default function KedatanganPendudukModal({
 
               <div className="flex justify-end pt-4 gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                      className="h-full bg-primary transition-all duration-500"
                       style={{ width: `${progress.step1}%` }}
                     />
                   </div>
@@ -820,7 +820,7 @@ export default function KedatanganPendudukModal({
                 <Button
                   type="button"
                   onClick={handleNextStep}
-                  className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                  className="bg-primary hover:bg-primary/90 transition-all duration-300"
                 >
                   Selanjutnya
                 </Button>
@@ -873,7 +873,7 @@ export default function KedatanganPendudukModal({
                       className={cn(
                         "text-xs font-normal",
                         formData.nikpemohon.length === 16
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground",
                       )}
                     >
@@ -904,7 +904,7 @@ export default function KedatanganPendudukModal({
                         "text-xs font-normal",
                         formData.nohp.length >= 10 &&
                           formData.nohp.length <= 13
-                          ? "text-green-600"
+                          ? "text-success"
                           : "text-muted-foreground",
                       )}
                     >
@@ -986,7 +986,7 @@ export default function KedatanganPendudukModal({
                     onChange={(e) => handleInputChange("catatan", e.target.value)}
                     placeholder="Masukkan catatan tambahan jika diperlukan"
                     rows={3}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary resize-none"
                   />
                 </div>
               </div>
@@ -1001,9 +1001,9 @@ export default function KedatanganPendudukModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                      className="h-full bg-primary transition-all duration-500"
                       style={{ width: `${progress.step2}%` }}
                     />
                   </div>
@@ -1013,7 +1013,7 @@ export default function KedatanganPendudukModal({
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1041,16 +1041,16 @@ export default function KedatanganPendudukModal({
                 </Label>
                 {uploadedFiles.suratpindah ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.suratpindah.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1060,7 +1060,7 @@ export default function KedatanganPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("suratpindah")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1075,18 +1075,18 @@ export default function KedatanganPendudukModal({
                       onChange={(e) => handleFileUpload(e, "suratpindah")}
                       disabled={uploading === "suratpindah"}
                       className={cn(
-                        "cursor-pointer transition-all duration-200 hover:border-blue-500",
-                        touchedFields.has("filesuratpindahx") && !formData.filesuratpindahx && "border-red-500 focus:border-red-500"
+                        "cursor-pointer transition-all duration-200 hover:border-primary",
+                        touchedFields.has("filesuratpindahx") && !formData.filesuratpindahx && "border-destructive focus:border-destructive"
                       )}
                     />
                     {touchedFields.has("filesuratpindahx") && !formData.filesuratpindahx && (
-                      <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+                      <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                         Upload Surat Pindah wajib dilakukan
                       </p>
                     )}
                     {uploading === "suratpindah" && (
-                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1104,16 +1104,16 @@ export default function KedatanganPendudukModal({
                 </Label>
                 {uploadedFiles.bukunikah ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.bukunikah.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1123,7 +1123,7 @@ export default function KedatanganPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("bukunikah")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1137,11 +1137,11 @@ export default function KedatanganPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "bukunikah")}
                       disabled={uploading === "bukunikah"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "bukunikah" && (
-                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1162,16 +1162,16 @@ export default function KedatanganPendudukModal({
                 </Label>
                 {uploadedFiles.pendukung1 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.pendukung1.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1181,7 +1181,7 @@ export default function KedatanganPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("pendukung1")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1195,11 +1195,11 @@ export default function KedatanganPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "pendukung1")}
                       disabled={uploading === "pendukung1"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "pendukung1" && (
-                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1220,16 +1220,16 @@ export default function KedatanganPendudukModal({
                 </Label>
                 {uploadedFiles.pendukung2 ? (
                   <div className="relative group">
-                    <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+                    <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="p-2 bg-success/10 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-success" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-green-900">
+                          <p className="text-sm font-medium text-success">
                             {uploadedFiles.pendukung2.name}
                           </p>
-                          <p className="text-xs text-green-600">
+                          <p className="text-xs text-success">
                             Berhasil diupload
                           </p>
                         </div>
@@ -1239,7 +1239,7 @@ export default function KedatanganPendudukModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile("pendukung2")}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1253,11 +1253,11 @@ export default function KedatanganPendudukModal({
                       accept="image/png,image/jpg,image/jpeg"
                       onChange={(e) => handleFileUpload(e, "pendukung2")}
                       disabled={uploading === "pendukung2"}
-                      className="cursor-pointer transition-all duration-200 hover:border-blue-500"
+                      className="cursor-pointer transition-all duration-200 hover:border-primary"
                     />
                     {uploading === "pendukung2" && (
-                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
@@ -1274,9 +1274,9 @@ export default function KedatanganPendudukModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                      className="h-full bg-primary transition-all duration-500"
                       style={{ width: `${progress.step3}%` }}
                     />
                   </div>
@@ -1286,7 +1286,7 @@ export default function KedatanganPendudukModal({
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <>

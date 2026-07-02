@@ -189,18 +189,18 @@ export default function ResetPasswordPage() {
           <CardContent className="space-y-5">
             {/* reCAPTCHA Status */}
             {!recaptchaReady && (
-              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                <AlertDescription className="text-blue-800 dark:text-blue-300">
+              <Alert className="border-primary/30 bg-primary/10 dark:bg-primary/20 dark:border-primary/40 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <AlertDescription className="text-primary">
                   Memuat reCAPTCHA...
                 </AlertDescription>
               </Alert>
             )}
 
             {recaptchaReady && !validationErrors.length && !error && !success && resetKey && (
-              <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900 animate-in fade-in slide-in-from-top-2 duration-300">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800 dark:text-green-300">
+              <Alert className="border-success/30 bg-success/10 dark:bg-success/20 dark:border-success/40 animate-in fade-in slide-in-from-top-2 duration-300">
+                <ShieldCheck className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   Link reset password valid. Silakan buat password baru.
                 </AlertDescription>
               </Alert>
@@ -236,9 +236,9 @@ export default function ResetPasswordPage() {
 
             {/* Success Message */}
             {success && !error && !validationErrors.length && (
-              <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900 animate-in fade-in slide-in-from-top-2 duration-300">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800 dark:text-green-300">
+              <Alert className="border-success/30 bg-success/10 dark:bg-success/20 dark:border-success/40 animate-in fade-in slide-in-from-top-2 duration-300">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   <ul className="list-disc list-inside space-y-1">
                     {success.map((msg, index) => (
                       <li key={index}>{msg}</li>
@@ -254,7 +254,7 @@ export default function ResetPasswordPage() {
               <Label 
                 htmlFor="pass1" 
                 className={`transition-colors duration-200 ${
-                  focusedField === 'pass1' ? 'text-blue-600 dark:text-blue-400' : ''
+                  focusedField === 'pass1' ? 'text-primary' : ''
                 }`}
               >
                 Password Baru
@@ -272,9 +272,9 @@ export default function ResetPasswordPage() {
                   disabled={isLoading || !recaptchaReady || !resetKey}
                   className={`w-full pr-10 transition-all duration-300 ${
                     focusedField === 'pass1' 
-                      ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/20' 
+                      ? 'ring-2 ring-primary border-primary shadow-lg shadow-primary/20' 
                       : ''
-                  } ${formData.pass1 ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
+                  } ${formData.pass1 ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                 />
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export default function ResetPasswordPage() {
               <Label 
                 htmlFor="pass2" 
                 className={`transition-colors duration-200 ${
-                  focusedField === 'pass2' ? 'text-blue-600 dark:text-blue-400' : ''
+                  focusedField === 'pass2' ? 'text-primary' : ''
                 }`}
               >
                 Konfirmasi Password Baru
@@ -310,9 +310,9 @@ export default function ResetPasswordPage() {
                   disabled={isLoading || !recaptchaReady || !resetKey}
                   className={`w-full pr-10 transition-all duration-300 ${
                     focusedField === 'pass2' 
-                      ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/20' 
+                      ? 'ring-2 ring-primary border-primary shadow-lg shadow-primary/20' 
                       : ''
-                  } ${formData.pass2 ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
+                  } ${formData.pass2 ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                 />
                 <button
                   type="button"
@@ -326,12 +326,12 @@ export default function ResetPasswordPage() {
             </div>
 
             {/* Info Section */}
-            <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 space-y-3 border border-amber-200 dark:border-amber-900">
-              <h3 className="font-semibold text-amber-900 dark:text-amber-100 italic flex items-center gap-2">
+            <div className="bg-warning/10 rounded-lg p-4 space-y-3 border border-warning/30">
+              <h3 className="font-semibold text-warning italic flex items-center gap-2">
                 <KeyRound className="h-4 w-4" />
                 Ketentuan Password
               </h3>
-              <div className="space-y-2 text-xs text-amber-800 dark:text-amber-200 italic">
+              <div className="space-y-2 text-xs text-warning italic">
                 <p>
                   - Password minimal 6 karakter
                 </p>

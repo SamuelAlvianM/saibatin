@@ -54,7 +54,7 @@ const services = [
     icon: FileText,
     category: "data",
     path: "/services/konsolidasi-data",
-    color: "from-blue-500 to-cyan-600",
+    color: "from-primary to-primary/70",
     useModal: true,
     modalType: "konsolidasi",
   },
@@ -142,7 +142,7 @@ const services = [
     icon: ScrollText,
     category: "akta",
     path: "/services/akta-perceraian",
-    color: "from-amber-500 to-orange-600",
+    color: "from-warning to-warning/70",
     useModal: true,
     modalType: "aktaPerceraian",
   },
@@ -164,7 +164,7 @@ const services = [
     icon: Book,
     category: "akta",
     path: "/services/akta-perkawinan",
-    color: "from-red-500 to-pink-600",
+    color: "from-destructive to-destructive/70",
     useModal: true,
     modalType: "aktaPerkawinan",
   },
@@ -175,7 +175,7 @@ const services = [
     icon: IdCard,
     category: "identitas",
     path: "/services/kia",
-    color: "from-emerald-500 to-teal-600",
+    color: "from-success to-success/70",
     useModal: true,
     modalType: "kartuIdentitasAnak",
   },
@@ -186,7 +186,7 @@ const services = [
     icon: MapPin,
     category: "pindah",
     path: "/services/perpindahan-penduduk",
-    color: "from-indigo-500 to-blue-600",
+    color: "from-primary to-primary/70",
     useModal: true,
     modalType: "perpindahanPenduduk",
   },
@@ -197,7 +197,7 @@ const services = [
     icon: Home,
     category: "pindah",
     path: "/services/kedatangan-penduduk",
-    color: "from-sky-500 to-blue-600",
+    color: "from-primary to-primary/70",
     useModal: true,
     modalType: "kedatanganPenduduk",
   },
@@ -208,7 +208,7 @@ const services = [
     icon: Zap,
     category: "identitas",
     path: "/services/ktp-elektronik",
-    color: "from-yellow-500 to-amber-600",
+    color: "from-warning to-warning/70",
     useModal: true,
     modalType: "ktpElektronik",
   },
@@ -312,7 +312,7 @@ export default function PelayananOnlineDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-primary/5 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       {/* Animated background pattern */}
       <div className="fixed inset-0 opacity-[0.015] dark:opacity-[0.025] pointer-events-none">
         <div
@@ -327,12 +327,12 @@ export default function PelayananOnlineDemo() {
         <div className="container mx-auto max-w-7xl">
           {/* Header with staggered animation */}
           <Card className="mb-3 border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 via-indigo-500/5 to-violet-500/5" />
+            <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-indigo-500/5 to-violet-500/5" />
             <CardHeader className="relative p-4 px-8">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-8 duration-700 delay-100">
                   <div className="relative group">
-                    <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-25 group-hover:opacity-40 blur transition duration-500" />
+                    <div className="absolute -inset-1 bg-linear-to-r from-primary to-primary/80 rounded-2xl opacity-25 group-hover:opacity-40 blur transition duration-500" />
                     <div className="relative dark:bg-slate-900 p-1 rounded-xxl">
                       <Image
                         src="/LOGO-dinas_ktt.png"
@@ -344,7 +344,7 @@ export default function PelayananOnlineDemo() {
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-xl md:text-2xl font-bold bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                    <CardTitle className="text-xl md:text-2xl font-bold bg-linear-to-r text-primary">
                       Pelayanan Online
                     </CardTitle>
                     <CardDescription className="text-base md:text-md mt-1 font-medium">
@@ -356,15 +356,15 @@ export default function PelayananOnlineDemo() {
                 {/* Right Section: Search Bar */}
                 <div className="relative w-full md:w-126 animate-in fade-in slide-in-from-right-8 duration-700 delay-200">
                   <div className="relative group">
-                    <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-300" />
+                    <div className="absolute -inset-1 bg-linear-to-r from-primary to-primary/80 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-300" />
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-black transition-colors group-hover:text-blue-700" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-black transition-colors group-hover:text-primary" />
                       <Input
                         type="text"
                         placeholder="Cari layanan..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 pr-4 h-14 text-base border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                        className="pl-12 pr-4 h-14 text-base border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300"
                       />
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export default function PelayananOnlineDemo() {
                   onClick={() => setSelectedCategory(category.id)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all shadow-lg ${
                     isActive
-                      ? "bg-linear-to-r from-blue-600 to-indigo-600 text-white scale-105 shadow-blue-500/50"
+                      ? "bg-linear-to-r from-primary to-primary/80 text-primary-foreground scale-105 shadow-primary/50"
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:scale-105 hover:shadow-xl"
                   }`}
                 >
@@ -413,7 +413,7 @@ export default function PelayananOnlineDemo() {
                         <Card
                           key={service.id}
                           onClick={() => handleServiceClick(service)}
-                          className="group relative hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4"
+                          className="group relative hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4"
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           {/* Gradient overlaop7y */}
@@ -435,13 +435,13 @@ export default function PelayananOnlineDemo() {
                                 <div className="absolute inset-0 rounded-lg bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <CardTitle className="text-base font-semibold leading-none group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-1">
+                                <CardTitle className="text-base font-semibold leading-none group-hover:text-primary dark:group-hover:text-primary transition-colors duration-300 line-clamp-1">
                                   {service.title}
                                 </CardTitle>
                                 <CardDescription className="text-sm leading-none line-clamp-1 mt-1">
                                   {service.description}
                                 </CardDescription>
-                                <div className="flex items-center gap-1 mt-1 text-blue-600 dark:text-blue-400 font-medium text-xs opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-300">
+                                <div className="flex items-center gap-1 mt-1 text-primary font-medium text-xs opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-300">
                                   <span>Lihat Detail</span>
                                   <ArrowRight className="h-3 w-3" />
                                 </div>

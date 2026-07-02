@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { SectionHeading } from './section-heading';
-import { relasiTerkait } from '@/lib/relasi-content';
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { SectionHeading } from "./section-heading";
+import { relasiTerkait } from "@/lib/relasi-content";
 
 export default function RelasiTerkait() {
   return (
@@ -27,10 +27,21 @@ export default function RelasiTerkait() {
             >
               <motion.div
                 animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.25 }}
-                className="relative h-14 w-24 grayscale opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110"
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.25,
+                }}
+                className="relative h-14 w-24 opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110"
               >
-                <Image src={r.logo} alt={r.nama} fill className="object-contain" sizes="96px" />
+                <Image
+                  src={r.logo}
+                  alt={r.nama}
+                  fill
+                  className="object-contain"
+                  sizes="96px"
+                />
               </motion.div>
               <span className="max-w-[8rem] text-center text-xs text-slate-500 group-hover:text-slate-700">
                 {r.nama}

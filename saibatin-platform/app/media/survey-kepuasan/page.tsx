@@ -71,7 +71,7 @@ export default function SurveyKepuasanPage() {
     <div className="relative bg-slate-50/30 min-h-screen">
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16 max-w-2xl">
         <div className="mb-6 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 flex-shrink-0">
             <ClipboardCheck className="w-6 h-6" />
           </div>
           <div>
@@ -91,9 +91,9 @@ export default function SurveyKepuasanPage() {
           </CardHeader>
           <CardContent>
             {success ? (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
+              <Alert className="border-success/30 bg-success/10">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   Terima kasih, survey Anda berhasil dikirim.
                 </AlertDescription>
               </Alert>
@@ -134,8 +134,8 @@ export default function SurveyKepuasanPage() {
                             onClick={() => setRating(aspek, v)}
                             className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${
                               ratings[aspek] === v
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40'
                             }`}
                           >
                             {v}

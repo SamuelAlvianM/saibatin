@@ -23,7 +23,7 @@ export function InfoPage({ content }: { content: InfoPageContent }) {
           transition={{ duration: 0.5 }}
           className="mb-8 flex items-start gap-4"
         >
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 flex-shrink-0">
             <FileText className="w-6 h-6" />
           </div>
           <div>
@@ -53,7 +53,7 @@ export function InfoPage({ content }: { content: InfoPageContent }) {
                   key={i}
                   className="flex items-start gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-4 py-3 border border-slate-100"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                   {item}
                 </li>
               ))}
@@ -63,7 +63,7 @@ export function InfoPage({ content }: { content: InfoPageContent }) {
           <div className="pt-4 border-t border-slate-100 text-sm text-slate-500">
             Dokumen resmi belum tersedia secara digital di portal ini. Untuk informasi
             lengkap, silakan{' '}
-            <Link href="/hubungi-kami/alamat" className="text-blue-600 hover:underline">
+            <Link href="/hubungi-kami/alamat" className="text-primary hover:underline">
               hubungi Disdukcapil Pesisir Barat
             </Link>{' '}
             secara langsung.

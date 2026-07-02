@@ -684,7 +684,7 @@ export default function KKPisahKKModal({
   // Helper to show field error
   const showFieldError = (field: keyof FormData) => {
     return touchedFields.has(field) && fieldErrors[field] ? (
-      <p className="text-xs text-red-500 animate-in slide-in-from-top-1 duration-200 mt-1">
+      <p className="text-xs text-destructive animate-in slide-in-from-top-1 duration-200 mt-1">
         {fieldErrors[field]}
       </p>
     ) : null;
@@ -693,16 +693,16 @@ export default function KKPisahKKModal({
   // Helper for input class with error state
   const getInputClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-orange-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-warning",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
   // Helper for select class with error state
   const getSelectClass = (field: keyof FormData) => {
     return cn(
-      "transition-all duration-200 focus:ring-2 focus:ring-orange-500",
-      touchedFields.has(field) && fieldErrors[field] && "border-red-500 focus:border-red-500 focus:ring-red-500"
+      "transition-all duration-200 focus:ring-2 focus:ring-warning",
+      touchedFields.has(field) && fieldErrors[field] && "border-destructive focus:border-destructive focus:ring-destructive"
     );
   };
 
@@ -733,16 +733,16 @@ export default function KKPisahKKModal({
         </Label>
         {uploadedFiles[fileType] ? (
           <div className="relative group">
-            <div className="flex items-center justify-between p-4 border-2 border-green-500 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 transition-all duration-300 hover:shadow-md">
+            <div className="flex items-center justify-between p-4 border-2 border-success rounded-lg bg-success/10 transition-all duration-300 hover:shadow-md">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-green-900">
+                  <p className="text-sm font-medium text-success">
                     {uploadedFiles[fileType]?.name}
                   </p>
-                  <p className="text-xs text-green-600">Berhasil diupload</p>
+                  <p className="text-xs text-success">Berhasil diupload</p>
                 </div>
               </div>
               <Button
@@ -750,7 +750,7 @@ export default function KKPisahKKModal({
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFile(fileType)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-100 hover:text-red-600"
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive/10 hover:text-destructive"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -765,18 +765,18 @@ export default function KKPisahKKModal({
               onChange={(e) => handleFileUpload(e, fileType)}
               disabled={uploading === fileType}
               className={cn(
-                "cursor-pointer transition-all duration-200 hover:border-orange-500",
-                required && touchedFields.has(fieldName) && !formData[fieldName] && "border-red-500 focus:border-red-500"
+                "cursor-pointer transition-all duration-200 hover:border-warning",
+                required && touchedFields.has(fieldName) && !formData[fieldName] && "border-destructive focus:border-destructive"
               )}
             />
             {required && touchedFields.has(fieldName) && !formData[fieldName] && (
-              <p className="text-xs text-red-500 mt-1 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-xs text-destructive mt-1 animate-in slide-in-from-top-1 duration-200">
                 {fieldErrors[fieldName] || `Upload ${label} wajib dilakukan`}
               </p>
             )}
             {uploading === fileType && (
               <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
-                <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+                <Loader2 className="h-5 w-5 animate-spin text-warning" />
               </div>
             )}
           </div>
@@ -789,7 +789,7 @@ export default function KKPisahKKModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col w-full">
         <DialogHeader className="space-y-1 pb-1 border-b">
-          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-warning">
             {mode === "edit" ? "Edit Permohonan" : "Permohonan Pisah KK"}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -804,10 +804,10 @@ export default function KKPisahKKModal({
                   className={cn(
                     "flex items-center gap-1.5 text-sm font-medium transition-all duration-300 cursor-pointer",
                     currentStep === step
-                      ? "text-orange-600 scale-110 font-bold"
+                      ? "text-warning scale-110 font-bold"
                       : currentStep > step
-                        ? "text-green-600"
-                        : "text-gray-400",
+                        ? "text-success"
+                        : "text-muted-foreground",
                   )}
                   onClick={() => {
                     // Allow clicking on completed steps to go back
@@ -826,11 +826,11 @@ export default function KKPisahKKModal({
               ))}
             </div>
 
-            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out",
-                  "bg-linear-to-r from-orange-600 to-amber-600",
+                  "bg-warning",
                 )}
                 style={{
                   width: `${((currentStep - 1) / 3) * 100}%`,
@@ -859,8 +859,8 @@ export default function KKPisahKKModal({
             )}
 
             {success.length > 0 && (
-              <Alert className="border-green-500 bg-green-50 text-green-800 animate-in slide-in-from-top-2 duration-300">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+              <Alert className="border-success bg-success/10 text-success animate-in slide-in-from-top-2 duration-300">
+                <CheckCircle className="h-4 w-4 text-success" />
                 <AlertDescription>
                   <ul className="list-disc list-inside space-y-1">
                     {success.map((msg, index) => (
@@ -884,7 +884,7 @@ export default function KKPisahKKModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <Label htmlFor="pemohonnik" className="flex items-center justify-between">
                     <span>NIK Pemohon *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonnik.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonnik.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonnik.length}/16
                     </span>
                   </Label>
@@ -914,7 +914,7 @@ export default function KKPisahKKModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-150">
                   <Label htmlFor="pemohonkk" className="flex items-center justify-between">
                     <span>Nomor KK *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonkk.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonkk.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonkk.length}/16
                     </span>
                   </Label>
@@ -932,7 +932,7 @@ export default function KKPisahKKModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-200">
                   <Label htmlFor="pemohonhp" className="flex items-center justify-between">
                     <span>Nomor HP *</span>
-                    <span className={cn("text-xs font-normal", formData.pemohonhp.length >= 10 && formData.pemohonhp.length <= 13 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.pemohonhp.length >= 10 && formData.pemohonhp.length <= 13 ? "text-success" : "text-muted-foreground")}>
                       {formData.pemohonhp.length}/13
                     </span>
                   </Label>
@@ -964,15 +964,15 @@ export default function KKPisahKKModal({
 
               <div className="flex justify-end pt-4 gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500" style={{ width: `${progress.step1}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-warning transition-all duration-500" style={{ width: `${progress.step1}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step1)}%</span>
                 </div>
                 <Button
                   type="button"
                   onClick={handleNextStep}
-                  className="bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 transition-all duration-300"
+                  className="bg-warning hover:bg-warning/90 transition-all duration-300"
                 >
                   Selanjutnya
                 </Button>
@@ -1039,7 +1039,7 @@ export default function KKPisahKKModal({
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-100">
                   <Label htmlFor="nikygpisah" className="flex items-center justify-between">
                     <span>NIK yang Pisah *</span>
-                    <span className={cn("text-xs font-normal", formData.nikygpisah.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                    <span className={cn("text-xs font-normal", formData.nikygpisah.length === 16 ? "text-success" : "text-muted-foreground")}>
                       {formData.nikygpisah.length}/16
                     </span>
                   </Label>
@@ -1058,7 +1058,7 @@ export default function KKPisahKKModal({
                   <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-150">
                     <Label htmlFor="nikpasangan" className="flex items-center justify-between">
                       <span>NIK Pasangan *</span>
-                      <span className={cn("text-xs font-normal", formData.nikpasangan.length === 16 ? "text-green-600" : "text-muted-foreground")}>
+                      <span className={cn("text-xs font-normal", formData.nikpasangan.length === 16 ? "text-success" : "text-muted-foreground")}>
                         {formData.nikpasangan.length}/16
                       </span>
                     </Label>
@@ -1080,14 +1080,14 @@ export default function KKPisahKKModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500" style={{ width: `${progress.step2}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-warning transition-all duration-500" style={{ width: `${progress.step2}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step2)}%</span>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 transition-all duration-300"
+                    className="bg-warning hover:bg-warning/90 transition-all duration-300"
                   >
                     Selanjutnya
                   </Button>
@@ -1105,8 +1105,8 @@ export default function KKPisahKKModal({
                     : "hidden",
                 )}
               >
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <h3 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-warning/10 rounded-lg border border-warning/30">
+                  <h3 className="font-semibold text-warning mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4" /> Alamat Tujuan Baru
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1167,8 +1167,8 @@ export default function KKPisahKKModal({
                         placeholder="Alamat lengkap tujuan pemisahan KK"
                         rows={3}
                         className={cn(
-                          "transition-all duration-200 focus:ring-2 focus:ring-orange-500 resize-none",
-                          touchedFields.has("alamattujuan") && fieldErrors.alamattujuan && "border-red-500 focus:ring-red-500"
+                          "transition-all duration-200 focus:ring-2 focus:ring-warning resize-none",
+                          touchedFields.has("alamattujuan") && fieldErrors.alamattujuan && "border-destructive focus:ring-destructive"
                         )}
                       />
                       {showFieldError("alamattujuan")}
@@ -1181,14 +1181,14 @@ export default function KKPisahKKModal({
                     Kembali
                   </Button>
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500" style={{ width: `${progress.step3}%` }} />
+                    <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-warning transition-all duration-500" style={{ width: `${progress.step3}%` }} />
                     </div>
                     <span className="text-sm text-muted-foreground">{Math.round(progress.step3)}%</span>
                     <Button
                       type="button"
                       onClick={handleNextStep}
-                      className="bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 transition-all duration-300"
+                      className="bg-warning hover:bg-warning/90 transition-all duration-300"
                     >
                       Selanjutnya
                     </Button>
@@ -1225,7 +1225,7 @@ export default function KKPisahKKModal({
                     onChange={(e) => handleInputChange("catatan", e.target.value)}
                     placeholder="Masukkan catatan tambahan jika diperlukan"
                     rows={3}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-orange-500 resize-none"
+                    className="transition-all duration-200 focus:ring-2 focus:ring-warning resize-none"
                   />
                 </div>
               </div>
@@ -1235,14 +1235,14 @@ export default function KKPisahKKModal({
                   Kembali
                 </Button>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-500" style={{ width: `${progress.step4}%` }} />
+                  <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-warning transition-all duration-500" style={{ width: `${progress.step4}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{Math.round(progress.step4)}%</span>
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="bg-warning hover:bg-warning/90 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <>

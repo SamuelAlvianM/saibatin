@@ -31,9 +31,9 @@ const menuItems: MenuItem[] = [
     title: "Survei Kepuasan Masyarakat",
     description: "Bantu tingkatkan pelayanan publik",
     href: "/skm",
-    color: "text-blue-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-200"
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/20"
   },
   {
     icon: <FileText className="w-10 h-10" />,
@@ -49,9 +49,9 @@ const menuItems: MenuItem[] = [
     title: "Standar Operasional",
     description: "Panduan prosedur pelayanan",
     href: "/sop",
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-200"
+    color: "text-success",
+    bgColor: "bg-success/10",
+    borderColor: "border-success/20"
   },
   {
     icon: <BarChart3 className="w-10 h-10" />,

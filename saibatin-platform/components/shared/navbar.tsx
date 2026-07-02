@@ -895,7 +895,7 @@ function AuthArea({
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
         >
           {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
           Keluar
@@ -941,7 +941,7 @@ function AuthArea({
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+            className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
           >
             {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
             Keluar
@@ -1001,7 +1001,7 @@ export function Navbar() {
                 SAIBATIN
               </span>
               <span className={cn(
-                "hidden sm:block text-xs leading-tight transition-all duration-300 ease-out text-blue-200",
+                "hidden sm:block text-xs leading-tight transition-all duration-300 ease-out text-primary-foreground/80",
                 logoHovered && "translate-x-1"
               )}>
                 Disdukcapil Kab. Pesisir Barat

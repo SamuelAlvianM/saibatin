@@ -167,18 +167,18 @@ export default function LoginPage() {
           <CardContent className="space-y-4 px-8">
             {/* reCAPTCHA Not Ready Warning */}
             {!recaptchaReady && (
-              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                <AlertDescription className="text-blue-800 dark:text-blue-300">
+              <Alert className="border-primary/30 bg-primary/10 dark:bg-primary/20 dark:border-primary/40 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <AlertDescription className="text-primary">
                   Memuat reCAPTCHA...
                 </AlertDescription>
               </Alert>
             )}
 
             {/* {recaptchaReady && !validationErrors.length && !error && (
-              <Alert className="border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900 animate-in fade-in slide-in-from-top-2 duration-300">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800 dark:text-green-300">
+              <Alert className="border-success/30 bg-success/10 dark:bg-success/20 dark:border-success/40 animate-in fade-in slide-in-from-top-2 duration-300">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   Siap untuk login
                 </AlertDescription>
               </Alert>
@@ -211,7 +211,7 @@ export default function LoginPage() {
               <Label 
                 htmlFor="user_id" 
                 className={`transition-colors duration-200 ${
-                  focusedField === 'user_id' ? 'text-blue-600 dark:text-blue-400' : ''
+                  focusedField === 'user_id' ? 'text-primary' : ''
                 }`}
               >
                 NIK / User ID
@@ -229,9 +229,9 @@ export default function LoginPage() {
                   disabled={isLoading || !recaptchaReady}
                   className={`w-full transition-all duration-300 ${
                     focusedField === 'user_id' 
-                      ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/20' 
+                      ? 'ring-2 ring-primary border-primary shadow-lg shadow-primary/20' 
                       : ''
-                  } ${formData.user_id ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
+                  } ${formData.user_id ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                   autoComplete="username"
                 />
                 <div className={`absolute inset-0 rounded-md pointer-events-none transition-opacity duration-300 ${
@@ -247,7 +247,7 @@ export default function LoginPage() {
               <Label 
                 htmlFor="password"
                 className={`transition-colors duration-200 ${
-                  focusedField === 'password' ? 'text-blue-600 dark:text-blue-400' : ''
+                  focusedField === 'password' ? 'text-primary' : ''
                 }`}
               >
                 Password
@@ -265,9 +265,9 @@ export default function LoginPage() {
                   disabled={isLoading || !recaptchaReady}
                   className={`w-full pr-10 transition-all duration-300 ${
                     focusedField === 'password' 
-                      ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/20' 
+                      ? 'ring-2 ring-primary border-primary shadow-lg shadow-primary/20' 
                       : ''
-                  } ${formData.password ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
+                  } ${formData.password ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                   autoComplete="current-password"
                 />
                 <button
@@ -295,7 +295,7 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 id="remember"
-                className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
+                className="w-4 h-4 text-primary bg-background border-input rounded focus:ring-primary focus:ring-2 transition-all duration-200"
               />
               <Label 
                 htmlFor="remember" 
@@ -342,7 +342,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-center gap-4 text-sm">
               <a 
                 href="/register" 
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
+                className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
               >
                 <UserPlus className="h-4 w-4" />
                 DAFTAR
@@ -350,7 +350,7 @@ export default function LoginPage() {
               <span className="text-slate-300 dark:text-slate-700">|</span>
               <a
                 href="/forgot-password"
-                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
+                className="text-destructive hover:text-destructive/80 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
               >
                 <KeyRound className="h-4 w-4" />
                 LUPA PASSWORD
@@ -359,7 +359,7 @@ export default function LoginPage() {
 
             {/* Notes Section */}
             <div className="rounded-xl p-4 space-y-2.5 border" style={{ background: 'rgba(33,118,189,0.04)', borderColor: 'rgba(33,118,189,0.15)' }}>
-              <h3 className="font-semibold text-blue-800 text-xs uppercase tracking-wide">
+              <h3 className="font-semibold text-primary text-xs uppercase tracking-wide">
                 Catatan
               </h3>
               <div className="space-y-1.5 text-xs text-slate-600 leading-relaxed">
@@ -387,7 +387,7 @@ export default function LoginPage() {
               <span className="text-muted-foreground hidden">Belum punya akun?</span>{' '}
               <a 
                 href="/register" 
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group hidden"
+                className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group hidden"
               >
                 Daftar disini
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

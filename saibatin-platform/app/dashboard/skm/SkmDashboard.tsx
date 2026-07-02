@@ -24,10 +24,10 @@ interface Data {
 }
 
 function mutu(ikm: number): { label: string; color: string } {
-  if (ikm >= 88.31) return { label: 'A — Sangat Baik', color: 'text-green-600' };
-  if (ikm >= 76.61) return { label: 'B — Baik', color: 'text-blue-600' };
-  if (ikm >= 65.0) return { label: 'C — Kurang Baik', color: 'text-amber-600' };
-  return { label: 'D — Tidak Baik', color: 'text-red-600' };
+  if (ikm >= 88.31) return { label: 'A — Sangat Baik', color: 'text-success' };
+  if (ikm >= 76.61) return { label: 'B — Baik', color: 'text-primary' };
+  if (ikm >= 65.0) return { label: 'C — Kurang Baik', color: 'text-warning' };
+  return { label: 'D — Tidak Baik', color: 'text-destructive' };
 }
 
 export function SkmDashboard() {
@@ -44,7 +44,7 @@ export function SkmDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -52,9 +52,9 @@ export function SkmDashboard() {
 
   const m = mutu(data.nilaiIKM);
   const cards = [
-    { label: 'Total Responden', value: data.totalResponden, icon: Users, color: 'text-blue-600' },
-    { label: 'Rata-rata Skor', value: `${data.rataKeseluruhan} / ${data.skalaMax}`, icon: Star, color: 'text-yellow-600' },
-    { label: 'Nilai IKM', value: data.nilaiIKM, icon: Gauge, color: 'text-green-600' },
+    { label: 'Total Responden', value: data.totalResponden, icon: Users, color: 'text-primary' },
+    { label: 'Rata-rata Skor', value: `${data.rataKeseluruhan} / ${data.skalaMax}`, icon: Star, color: 'text-warning' },
+    { label: 'Nilai IKM', value: data.nilaiIKM, icon: Gauge, color: 'text-success' },
     { label: 'Mutu Pelayanan', value: m.label, icon: ClipboardCheck, color: m.color, small: true },
   ];
 

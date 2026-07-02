@@ -113,9 +113,8 @@ export function AdminProduk() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.key ? 'text-white' : 'text-slate-600 hover:bg-slate-100'
+              tab === t.key ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100'
             }`}
-            style={tab === t.key ? { background: '#2176bd' } : undefined}
           >
             {t.label}
           </button>
@@ -123,14 +122,14 @@ export function AdminProduk() {
       </div>
 
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} className="text-white" style={{ background: '#2176bd' }}>
+        <Button onClick={openNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4" /> <span className="ml-1">Tambah Dokumen</span>
         </Button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">Belum ada dokumen pada kategori ini.</div>
@@ -150,12 +149,12 @@ export function AdminProduk() {
                 <tr key={p.id} className="border-b border-slate-100">
                   <td className="py-2.5 pr-4 font-medium text-slate-800">
                     <span className="inline-flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-500" /> {p.judul}
+                      <FileText className="h-4 w-4 text-primary" /> {p.judul}
                     </span>
                   </td>
                   <td className="py-2.5 pr-4">
                     {p.file ? (
-                      <a href={p.file} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs">
+                      <a href={p.file} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-xs">
                         Lihat <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
@@ -167,7 +166,7 @@ export function AdminProduk() {
                   </td>
                   <td className="py-2.5 pr-4">
                     <div className="flex justify-end">
-                      <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50" disabled={deletingId === p.id} onClick={() => remove(p)}>
+                      <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10" disabled={deletingId === p.id} onClick={() => remove(p)}>
                         {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                       </Button>
                     </div>
@@ -200,17 +199,17 @@ export function AdminProduk() {
                 <input ref={fileRef} type="file" accept=".pdf,image/png,image/jpeg" className="hidden" onChange={handleFile} />
                 {file ? (
                   <div className="flex items-center justify-between rounded-lg border border-slate-200 p-3 text-sm">
-                    <a href={file} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline truncate">
+                    <a href={file} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline truncate">
                       <FileText className="h-4 w-4 flex-shrink-0" /> <span className="truncate">{file.split('/').pop()}</span>
                     </a>
-                    <button type="button" onClick={() => setFile('')} className="text-xs text-red-500 hover:underline">Ganti</button>
+                    <button type="button" onClick={() => setFile('')} className="text-xs text-destructive hover:underline">Ganti</button>
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
-                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 py-6 text-slate-400 hover:border-blue-300 hover:text-blue-500"
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 py-6 text-slate-400 hover:border-primary/40 hover:text-primary"
                   >
                     {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
                     <span className="text-sm">{uploading ? 'Mengunggah...' : 'Pilih file'}</span>
@@ -220,7 +219,7 @@ export function AdminProduk() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-                <Button onClick={save} disabled={saving || uploading} className="text-white" style={{ background: '#2176bd' }}>
+                <Button onClick={save} disabled={saving || uploading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>

@@ -22,13 +22,13 @@ interface Item {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'SELESAI') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+      <span className="inline-flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
         <CheckCircle2 className="h-3 w-3" /> Selesai
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+    <span className="inline-flex items-center gap-1 rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
       <Clock className="h-3 w-3" /> {status === 'DIPROSES' ? 'Diproses' : 'Belum ditangani'}
     </span>
   );
@@ -100,9 +100,8 @@ export function AdminPengaduan() {
             key={val}
             onClick={() => setFilter(val)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-              filter === val ? 'text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300'
+              filter === val ? 'bg-primary text-primary-foreground border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40'
             }`}
-            style={filter === val ? { background: '#2176bd' } : undefined}
           >
             {label}
           </button>
@@ -111,7 +110,7 @@ export function AdminPengaduan() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">Tidak ada pengaduan.</div>
@@ -186,7 +185,7 @@ export function AdminPengaduan() {
                 <Button variant="outline" onClick={() => update('DIPROSES')} disabled={saving}>
                   Tandai Diproses
                 </Button>
-                <Button onClick={() => update('SELESAI')} disabled={saving} className="text-white" style={{ background: '#16a34a' }}>
+                <Button onClick={() => update('SELESAI')} disabled={saving} className="bg-success text-white hover:bg-success/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                   <span className="ml-1.5">Tandai Selesai</span>
                 </Button>

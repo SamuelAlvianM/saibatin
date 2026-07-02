@@ -16,9 +16,9 @@ interface Permohonan {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   MENUNGGU:    { label: 'Menunggu',      color: 'text-amber-600 bg-amber-50 border-amber-200',   icon: Clock },
-  DIPROSES:    { label: 'Diproses',      color: 'text-blue-600 bg-blue-50 border-blue-200',      icon: Clock },
-  SELESAI:     { label: 'Selesai',       color: 'text-green-600 bg-green-50 border-green-200',   icon: CheckCircle2 },
-  DITOLAK:     { label: 'Ditolak',       color: 'text-red-600 bg-red-50 border-red-200',         icon: XCircle },
+  DIPROSES:    { label: 'Diproses',      color: 'text-primary bg-primary/10 border-primary/20',      icon: Clock },
+  SELESAI:     { label: 'Selesai',       color: 'text-success bg-success/10 border-success/20',   icon: CheckCircle2 },
+  DITOLAK:     { label: 'Ditolak',       color: 'text-destructive bg-destructive/10 border-destructive/20',         icon: XCircle },
 };
 
 const TABS = [
@@ -61,7 +61,7 @@ export default function RiwayatPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Riwayat Permohonan</h1>
-              <p className="text-blue-200 mt-1">Pantau status pengajuan dokumen Anda</p>
+              <p className="text-primary-foreground/80 mt-1">Pantau status pengajuan dokumen Anda</p>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function RiwayatPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 tab === t.key
                   ? 'text-white shadow-md'
-                  : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-blue-300'
+                  : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-primary/40'
               }`}
               style={tab === t.key ? { background: 'linear-gradient(90deg, #2176bd, #3490dc)' } : {}}
             >
@@ -94,12 +94,12 @@ export default function RiwayatPage() {
         {/* Content */}
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : error ? (
           <div className="glass-card rounded-2xl p-10 text-center">
             <p className="text-slate-500">{error}</p>
-            <Link href="/login" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+            <Link href="/login" className="mt-4 inline-block text-sm text-primary hover:underline">
               Login untuk melihat riwayat
             </Link>
           </div>
@@ -129,10 +129,10 @@ export default function RiwayatPage() {
                 <Link
                   key={item.id}
                   href={`/riwayat/${item.id}`}
-                  className="glass-card rounded-2xl p-5 flex items-center gap-4 hover:shadow-lg hover:border-blue-200/50 transition-all group"
+                  className="glass-card rounded-2xl p-5 flex items-center gap-4 hover:shadow-lg hover:border-primary/30 transition-all group"
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(33,118,189,0.08)' }}>
-                    <FileText className="w-5 h-5 text-blue-600" />
+                    <FileText className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -149,7 +149,7 @@ export default function RiwayatPage() {
                       Diajukan {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors flex-shrink-0" />
                 </Link>
               );
             })}

@@ -102,7 +102,7 @@ export function ChangePasswordForm() {
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary"
         >
           {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           {show ? 'Sembunyikan' : 'Tampilkan'} password

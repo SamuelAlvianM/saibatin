@@ -44,7 +44,7 @@ export default function BeritaDetailPage() {
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16 max-w-7xl">
         <Link
           href="/media/berita"
-          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline mb-8"
+          className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Kembali ke Berita
@@ -52,7 +52,7 @@ export default function BeritaDetailPage() {
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : berita ? (
           <article className="mx-auto max-w-3xl">
@@ -70,7 +70,7 @@ export default function BeritaDetailPage() {
             {/* Judul di bawah gambar */}
             <div className="text-center mt-8">
               {berita.kategori && (
-                <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                <span className="text-xs font-medium text-primary uppercase tracking-wide">
                   {berita.kategori}
                 </span>
               )}

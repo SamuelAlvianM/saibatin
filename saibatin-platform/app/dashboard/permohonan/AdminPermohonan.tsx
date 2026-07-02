@@ -22,10 +22,10 @@ interface Item {
 }
 
 const STATUS: Record<string, { label: string; cls: string; icon: React.ElementType }> = {
-  MENUNGGU: { label: 'Menunggu', cls: 'text-amber-700 bg-amber-50 border-amber-200', icon: Clock },
-  DIPROSES: { label: 'Diproses', cls: 'text-blue-700 bg-blue-50 border-blue-200', icon: Clock },
-  SELESAI: { label: 'Selesai', cls: 'text-green-700 bg-green-50 border-green-200', icon: CheckCircle2 },
-  DITOLAK: { label: 'Ditolak', cls: 'text-red-700 bg-red-50 border-red-200', icon: XCircle },
+  MENUNGGU: { label: 'Menunggu', cls: 'text-warning bg-warning/10 border-warning/20', icon: Clock },
+  DIPROSES: { label: 'Diproses', cls: 'text-primary bg-primary/10 border-primary/20', icon: Clock },
+  SELESAI: { label: 'Selesai', cls: 'text-success bg-success/10 border-success/20', icon: CheckCircle2 },
+  DITOLAK: { label: 'Ditolak', cls: 'text-destructive bg-destructive/10 border-destructive/20', icon: XCircle },
 };
 const STATUS_KEYS = ['MENUNGGU', 'DIPROSES', 'SELESAI', 'DITOLAK'];
 
@@ -107,10 +107,9 @@ export function AdminPermohonan() {
               onClick={() => setStatusFilter(val)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                 statusFilter === val
-                  ? 'text-white border-transparent'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300'
+                  ? 'bg-primary text-primary-foreground border-transparent'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40'
               }`}
-              style={statusFilter === val ? { background: '#2176bd' } : undefined}
             >
               {label}
             </button>
@@ -132,7 +131,7 @@ export function AdminPermohonan() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-slate-500">Tidak ada permohonan.</div>
@@ -234,7 +233,7 @@ export function AdminPermohonan() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
-                <Button onClick={save} disabled={saving} className="text-white" style={{ background: '#2176bd' }}>
+                <Button onClick={save} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>

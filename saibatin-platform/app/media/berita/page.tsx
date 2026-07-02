@@ -37,7 +37,7 @@ export default function BeritaListPage() {
     <div className="relative bg-slate-50/30 min-h-screen">
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16">
         <div className="mb-8 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 flex-shrink-0">
             <Newspaper className="w-6 h-6" />
           </div>
           <div>
@@ -52,7 +52,7 @@ export default function BeritaListPage() {
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-20 text-sm text-slate-500">
@@ -65,7 +65,7 @@ export default function BeritaListPage() {
                 <Link
                   key={item.id}
                   href={`/media/berita/${item.slug}`}
-                  className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-md hover:border-blue-200 transition-all group"
+                  className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group"
                 >
                   <div className="relative h-44 bg-slate-100">
                     {item.gambar ? (
@@ -83,7 +83,7 @@ export default function BeritaListPage() {
                   </div>
                   <div className="p-4">
                     {item.kategori && (
-                      <span className="text-xs font-medium text-blue-600">{item.kategori}</span>
+                      <span className="text-xs font-medium text-primary">{item.kategori}</span>
                     )}
                     <h2 className="font-semibold text-slate-900 mt-1 line-clamp-2">{item.judul}</h2>
                     {item.ringkasan && (
@@ -109,8 +109,8 @@ export default function BeritaListPage() {
                     onClick={() => setPage(p)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
                       p === page
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-primary/40'
                     }`}
                   >
                     {p}
