@@ -50,7 +50,8 @@ export function AdminDemografi() {
     <div className="space-y-4">
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700">
         Unggah file Excel agregat Dukcapil (format SIAK: kolom <b>IDEM, KODE, WILAYAH, …</b>) per kategori.
-        Setiap unggahan <b>mengganti</b> data lama kategori tersebut.
+        Setiap unggahan <b>mengganti</b> data lama kategori tersebut. Data yang sama juga bisa diedit
+        <b> langsung dari beranda</b> (klik kartu Statistik Demografi saat Mode Edit admin aktif).
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

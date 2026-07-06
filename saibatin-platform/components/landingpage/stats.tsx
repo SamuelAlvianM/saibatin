@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { animate, stagger } from 'animejs';
 import { useInView, animate as fmAnimate } from 'framer-motion';
@@ -23,6 +23,8 @@ import {
   Building2,
   Trees,
   MapPin,
+  Pencil,
+  MousePointerClick,
 } from 'lucide-react';
 
 // Ikon header kartu peta & pelayanan — lebih terlihat dari flat, tapi tetap
@@ -32,6 +34,15 @@ const HEADER_ICON =
   'bg-gradient-to-br from-primary/25 to-primary/10 ring-1 ring-primary/15';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useInlineEdit } from '@/components/konten/inline-edit';
+import { DemografiMetric } from '@/components/landingpage/demografi-metric';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Peta Leaflet dimuat hanya di klien (akses `window`) — tidak membebani SSR.
 const OfficeMap = dynamic(() => import('./office-map'), {
@@ -116,17 +127,26 @@ interface StatCardConfig {
   accent: string;
   accentBg: string;
   badge?: string;
+  kategori: string; // kategori demografi yang dibuka saat kartu diklik
+  kolom: string; // kolom nilai yang difokuskan (mis. 'JML', 'L', 'KK_JML')
 }
 
-function StatCard({ title, value, icon, accent, accentBg, badge }: StatCardConfig) {
+function StatCard({ title, value, icon, accent, accentBg, badge, onClick }: StatCardConfig & { onClick?: () => void }) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
       className={cn(
         GLASS,
-        'js-stat group relative flex flex-col justify-between gap-5 h-full p-5',
+        'js-stat group relative flex flex-col justify-between gap-5 h-full w-full p-5 text-left',
         'hover:border-primary/30 hover:shadow-md hover:shadow-primary/10 transition-[box-shadow,border-color] duration-300',
+        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
       )}
+      title={`Lihat rincian ${title} per kecamatan`}
     >
+      {/* Petunjuk klik — muncul halus saat hover */}
+      <MousePointerClick className="absolute top-3 right-3 h-4 w-4 text-primary/0 transition-colors duration-300 group-hover:text-primary/40" />
+
       <div className="flex items-start justify-between">
         <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105', accentBg)}>
           <span className="text-white">{icon}</span>
@@ -144,7 +164,7 @@ function StatCard({ title, value, icon, accent, accentBg, badge }: StatCardConfi
         </p>
         <p className="text-[0.66rem] font-semibold uppercase tracking-widest text-slate-500">{title}</p>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -351,6 +371,19 @@ const FALLBACK: StatsData = {
 export default function StatsGrid() {
   const [stats, setStats] = useState<StatsData>(FALLBACK);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { editMode } = useInlineEdit();
+
+  // Modal demografi terfokus (dibuka saat kartu diklik).
+  const [demoCard, setDemoCard] = useState<StatCardConfig | null>(null);
+
+  const refetchStats = useCallback(() => {
+    return fetch('/api/stats')
+      .then((r) => r.json())
+      .then((j) => {
+        if (j?.data) setStats((prev) => ({ ...prev, ...j.data }));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -386,12 +419,12 @@ export default function StatsGrid() {
   const ktpPct = stats.wajibKtp > 0 ? Math.round((stats.sudahKtpEl / stats.wajibKtp) * 100) : 0;
 
   const primaryCards: StatCardConfig[] = [
-    { title: 'Jumlah Penduduk', value: stats.jumlahPenduduk, icon: <Users className="w-6 h-6" />, accent: 'text-primary', accentBg: 'bg-gradient-to-br from-[#2176bd] to-[#1b4b72]' },
-    { title: 'Kepala Keluarga', value: stats.kepalaKeluarga, icon: <Home className="w-6 h-6" />, accent: 'text-amber-600', accentBg: 'bg-gradient-to-br from-amber-400 to-amber-600' },
-    { title: 'Laki-laki', value: stats.lakiLaki, icon: <User className="w-6 h-6" />, accent: 'text-sky-600', accentBg: 'bg-gradient-to-br from-sky-400 to-sky-600', badge: `${lakiPct}%` },
-    { title: 'Perempuan', value: stats.perempuan, icon: <UserCircle className="w-6 h-6" />, accent: 'text-rose-500', accentBg: 'bg-gradient-to-br from-rose-400 to-rose-600', badge: `${perempuanPct}%` },
-    { title: 'Wajib KTP', value: stats.wajibKtp, icon: <IdCard className="w-6 h-6" />, accent: 'text-teal-600', accentBg: 'bg-gradient-to-br from-teal-400 to-teal-600' },
-    { title: 'Sudah Rekam KTP-el', value: stats.sudahKtpEl, icon: <ScanLine className="w-6 h-6" />, accent: 'text-emerald-600', accentBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600', badge: `${ktpPct}%` },
+    { title: 'Jumlah Penduduk', value: stats.jumlahPenduduk, icon: <Users className="w-6 h-6" />, accent: 'text-primary', accentBg: 'bg-gradient-to-br from-[#2176bd] to-[#1b4b72]', kategori: 'jenis-kelamin', kolom: 'JML' },
+    { title: 'Kepala Keluarga', value: stats.kepalaKeluarga, icon: <Home className="w-6 h-6" />, accent: 'text-amber-600', accentBg: 'bg-gradient-to-br from-amber-400 to-amber-600', kategori: 'kk', kolom: 'KK_JML' },
+    { title: 'Laki-laki', value: stats.lakiLaki, icon: <User className="w-6 h-6" />, accent: 'text-sky-600', accentBg: 'bg-gradient-to-br from-sky-400 to-sky-600', badge: `${lakiPct}%`, kategori: 'jenis-kelamin', kolom: 'L' },
+    { title: 'Perempuan', value: stats.perempuan, icon: <UserCircle className="w-6 h-6" />, accent: 'text-rose-500', accentBg: 'bg-gradient-to-br from-rose-400 to-rose-600', badge: `${perempuanPct}%`, kategori: 'jenis-kelamin', kolom: 'P' },
+    { title: 'Wajib KTP', value: stats.wajibKtp, icon: <IdCard className="w-6 h-6" />, accent: 'text-teal-600', accentBg: 'bg-gradient-to-br from-teal-400 to-teal-600', kategori: 'wajib-ktp', kolom: 'JML' },
+    { title: 'Sudah Rekam KTP-el', value: stats.sudahKtpEl, icon: <ScanLine className="w-6 h-6" />, accent: 'text-emerald-600', accentBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600', badge: `${ktpPct}%`, kategori: 'wajib-ktp', kolom: 'JML_WKTP' },
   ];
 
   return (
@@ -409,11 +442,22 @@ export default function StatsGrid() {
         </span>
       </div>
 
+      {/* Info: kartu bisa diklik untuk rincian; admin bisa edit langsung. */}
+      <p className="flex items-center gap-1.5 text-xs text-slate-400">
+        <MousePointerClick className="h-3.5 w-3.5" />
+        Klik kartu untuk melihat rincian per kecamatan &amp; pekon.
+        {editMode && (
+          <span className="inline-flex items-center gap-1 font-semibold text-primary">
+            <Pencil className="h-3 w-3" /> Mode edit aktif — data dapat diubah langsung dari sini.
+          </span>
+        )}
+      </p>
+
       {/* Baris atas: kiri = 6 kartu demografi, kanan = pelayanan (tinggi sama) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-stretch">
         <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 lg:grid-rows-3 gap-3">
           {primaryCards.map((card) => (
-            <StatCard key={card.title} {...card} />
+            <StatCard key={card.title} {...card} onClick={() => setDemoCard(card)} />
           ))}
         </div>
 
@@ -424,6 +468,28 @@ export default function StatsGrid() {
 
       {/* Peta full width di bawah */}
       <MapCard />
+
+      {/* Modal rincian demografi terfokus (klik kartu). Admin (mode edit) bisa ubah data. */}
+      <Dialog open={!!demoCard} onOpenChange={(o) => !o && setDemoCard(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{demoCard?.title ?? 'Data Demografi'}</DialogTitle>
+            <DialogDescription>
+              Angka per kecamatan di Kabupaten Pesisir Barat — klik “Desa/Kelurahan” untuk rincian tiap desa.
+              {editMode && ' Gunakan tombol “Edit data” untuk mengubah langsung.'}
+            </DialogDescription>
+          </DialogHeader>
+          {demoCard && (
+            <DemografiMetric
+              kategori={demoCard.kategori}
+              kolom={demoCard.kolom}
+              title={demoCard.title}
+              editable={editMode}
+              onDataChanged={refetchStats}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
