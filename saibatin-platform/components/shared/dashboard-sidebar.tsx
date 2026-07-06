@@ -16,6 +16,7 @@ import {
   FileText,
   MessagesSquare,
   Images,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -51,6 +52,7 @@ const GROUPS: MenuGroup[] = [
       { href: '/dashboard/galeri', label: 'Galeri', icon: ImageIcon },
       { href: '/dashboard/media', label: 'Pustaka Media', icon: Images },
       { href: '/dashboard/produk', label: 'Produk & Dokumen', icon: FolderOpen },
+      { href: '/dashboard/demografi', label: 'Data Demografi', icon: BarChart3 },
     ],
   },
   {

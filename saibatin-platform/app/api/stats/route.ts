@@ -33,6 +33,7 @@ export async function GET() {
     totalBerita,
     grouped,
     recent,
+    demografiRows,
   ] = await Promise.all([
     prisma.permohonan.count(),
     prisma.permohonan.count({ where: { status: "SELESAI" } }),
@@ -48,6 +49,12 @@ export async function GET() {
     prisma.permohonan.findMany({
       where: { createdAt: { gte: start6Bulan } },
       select: { createdAt: true },
+    }),
+    // Rekap demografi hasil import Excel (level kecamatan). Dijumlahkan untuk
+    // kartu ringkasan beranda; fallback ke placeholder statis bila belum ada.
+    prisma.demografiWilayah.findMany({
+      where: { level: 4, kategori: { in: ["jenis-kelamin", "kk"] } },
+      select: { kategori: true, data: true },
     }),
   ]);
 
@@ -77,8 +84,23 @@ export async function GET() {
     if (idx !== undefined) trend6[idx].count += 1;
   }
 
-  const lakiLaki = find("jenis-kelamin", "Laki-laki");
-  const perempuan = find("jenis-kelamin", "Perempuan");
+  // Agregasi demografi per kecamatan (import Excel) → total kabupaten.
+  const hasKat = (kat: string) => demografiRows.some((d) => d.kategori === kat);
+  const sumCol = (kat: string, col: string) =>
+    demografiRows
+      .filter((d) => d.kategori === kat)
+      .reduce((a, d) => a + (Number((d.data as Record<string, unknown>)?.[col]) || 0), 0);
+
+  const lakiLaki = hasKat("jenis-kelamin")
+    ? sumCol("jenis-kelamin", "L")
+    : find("jenis-kelamin", "Laki-laki");
+  const perempuan = hasKat("jenis-kelamin")
+    ? sumCol("jenis-kelamin", "P")
+    : find("jenis-kelamin", "Perempuan");
+  const kepalaKeluarga = hasKat("kk")
+    ? sumCol("kk", "KK_JML")
+    : sum("kepala-keluarga");
+  // Wajib/rekam KTP tetap dari placeholder (pemetaan kolom file WKTP menyusul).
   const sudahKtpEl = find("wajib-ktp", "Sudah Memiliki KTP-el");
   const belumKtpEl = find("wajib-ktp", "Belum Memiliki KTP-el");
 
@@ -98,7 +120,7 @@ export async function GET() {
     jumlahPenduduk: lakiLaki + perempuan,
     lakiLaki,
     perempuan,
-    kepalaKeluarga: sum("kepala-keluarga"),
+    kepalaKeluarga,
     wajibKtp: sudahKtpEl + belumKtpEl,
     sudahKtpEl,
     belumKtpEl,

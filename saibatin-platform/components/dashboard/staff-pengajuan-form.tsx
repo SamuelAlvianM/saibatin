@@ -14,8 +14,10 @@ import {
   X,
   Send,
   FileText,
+  ScanLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { KtpScanDialog, type KtpScanResult } from '@/components/permohonan-online/ktp-scan-dialog';
 import type { LayananForm, FieldDef } from '@/lib/layanan-forms';
 
 interface Props {
@@ -52,6 +54,8 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  // Field NIK/KK yang sedang discan (dialog kamera OCR).
+  const [scanFor, setScanFor] = useState<{ name: string; type: 'nik' | 'kk' } | null>(null);
 
   const allFields = useMemo(
     () => layanan.sections.flatMap((s) => s.fields),
@@ -219,20 +223,34 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
             ))}
           </select>
         ) : (
-          <Input
-            id={fd.name}
-            type={fd.type === 'date' ? 'date' : fd.type === 'number' ? 'number' : 'text'}
-            inputMode={['nik', 'kk', 'phone'].includes(fd.type) ? 'numeric' : undefined}
-            maxLength={fd.type === 'nik' || fd.type === 'kk' ? 16 : fd.type === 'phone' ? 13 : undefined}
-            value={val}
-            placeholder={fd.placeholder}
-            className={errCls}
-            onChange={(e) => {
-              let v = e.target.value;
-              if (['nik', 'kk', 'phone'].includes(fd.type)) v = v.replace(/\D/g, '');
-              setVal(fd.name, v);
-            }}
-          />
+          <div className={cn(fd.type === 'nik' || fd.type === 'kk' ? 'flex gap-2' : undefined)}>
+            <Input
+              id={fd.name}
+              type={fd.type === 'date' ? 'date' : fd.type === 'number' ? 'number' : 'text'}
+              inputMode={['nik', 'kk', 'phone'].includes(fd.type) ? 'numeric' : undefined}
+              maxLength={fd.type === 'nik' || fd.type === 'kk' ? 16 : fd.type === 'phone' ? 13 : undefined}
+              value={val}
+              placeholder={fd.placeholder}
+              className={cn(errCls, (fd.type === 'nik' || fd.type === 'kk') && 'flex-1')}
+              onChange={(e) => {
+                let v = e.target.value;
+                if (['nik', 'kk', 'phone'].includes(fd.type)) v = v.replace(/\D/g, '');
+                setVal(fd.name, v);
+              }}
+            />
+            {(fd.type === 'nik' || fd.type === 'kk') && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setScanFor({ name: fd.name, type: fd.type as 'nik' | 'kk' })}
+                title={fd.type === 'kk' ? 'Scan Kartu Keluarga dengan kamera' : 'Scan KTP dengan kamera'}
+                className="shrink-0 px-3"
+              >
+                <ScanLine className="h-4 w-4" />
+                <span className="ml-1.5 hidden sm:inline">{fd.type === 'kk' ? 'Scan KK' : 'Scan KTP'}</span>
+              </Button>
+            )}
+          </div>
         )}
         {err && <p className="text-xs text-destructive">{err}</p>}
       </div>
@@ -280,6 +298,18 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
           {submitting ? 'Mengirim...' : 'Kirim Permohonan'}
         </Button>
       </div>
+
+      {scanFor && (
+        <KtpScanDialog
+          open
+          onOpenChange={(o) => !o && setScanFor(null)}
+          docLabel={scanFor.type === 'kk' ? 'KK' : 'KTP'}
+          onResult={(r: KtpScanResult) => {
+            const v = scanFor.type === 'kk' ? r.nokk || r.nik : r.nik;
+            if (v) setVal(scanFor.name, v);
+          }}
+        />
+      )}
     </div>
   );
 }

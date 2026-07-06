@@ -597,23 +597,28 @@ const navigationItems = [
         description: "Data statistik kependudukan",
         subItems: [
           {
+            title: "Jenis Kelamin",
+            href: "/media/demografi/jenis-kelamin",
+            description: "Statistik berdasarkan jenis kelamin",
+          },
+          {
             title: "Agama",
             href: "/media/demografi/agama",
             description: "Statistik berdasarkan agama",
           },
           {
             title: "Golongan Darah",
-            href: "/media/demografi/golongan-darah",
+            href: "/media/demografi/gol-darah",
             description: "Statistik berdasarkan golongan darah",
           },
           {
-            title: "Jenis Kelamin",
-            href: "/media/demografi/jenis-kelamin",
-            description: "Statistik berdasarkan jenis kelamin",
+            title: "Pekerjaan",
+            href: "/media/demografi/pekerjaan",
+            description: "Statistik berdasarkan pekerjaan",
           },
           {
-            title: "Kepala Keluarga",
-            href: "/media/demografi/kepala-keluarga",
+            title: "Kartu Keluarga",
+            href: "/media/demografi/kk",
             description: "Statistik data kepala keluarga",
           },
           {
@@ -623,7 +628,7 @@ const navigationItems = [
           },
           {
             title: "Status Perkawinan",
-            href: "/media/demografi/status-perkawinan",
+            href: "/media/demografi/status-kawin",
             description: "Statistik berdasarkan status perkawinan",
           },
           {

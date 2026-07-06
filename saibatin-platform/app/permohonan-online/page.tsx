@@ -277,11 +277,31 @@ export default function PelayananOnlineDemo() {
     useState(false);
   const [konsolidasiModalOpen, setKonsolidasiModalOpen] = useState(false);
 
+  // Layanan yang disembunyikan admin (dari dashboard → Pengaturan Pelayanan).
+  const [hiddenServices, setHiddenServices] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/static-content?keys=pelayanan.visibilitas")
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return;
+        const hidden = j.data?.items?.["pelayanan.visibilitas"]?.hidden;
+        if (Array.isArray(hidden)) setHiddenServices(new Set(hidden));
+      })
+      .catch(() => {
+        /* gagal fetch → tampilkan semua (default aman) */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Memoize filtered services for better performance
   const filteredServicesByCategory = useMemo(() => {
     return categories.reduce(
       (acc, category) => {
         acc[category.id] = services.filter((service) => {
+          if (hiddenServices.has(service.modalType)) return false;
           const matchesCategory =
             category.id === "all" || service.category === category.id;
           const matchesSearch =
@@ -295,7 +315,7 @@ export default function PelayananOnlineDemo() {
       },
       {} as Record<string, typeof services>,
     );
-  }, [searchQuery]);
+  }, [searchQuery, hiddenServices]);
 
   const handleServiceClick = (service: (typeof services)[0]) => {
     // Wajib login sebelum mengisi form permohonan apa pun.

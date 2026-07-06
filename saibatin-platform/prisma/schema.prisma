@@ -244,3 +244,22 @@ model Wilayah {
   @@index([jenis])
   @@map("m_wilayah")
 }
+
+/// Data demografi agregat per wilayah, hasil import Excel Dukcapil (SIAK).
+/// `kategori` = jenis-kelamin/agama/gol-darah/pekerjaan/kk/pendidikan/status-kawin/wajib-ktp.
+/// `data` menyimpan kolom nilai (mis. { L, P, JML } untuk jenis kelamin).
+/// Hierarki via `level` (4=kecamatan, 5=pekon/kelurahan) + `parentKode`.
+model DemografiWilayah {
+  id         Int      @id @default(autoincrement())
+  kategori   String
+  kode       String
+  wilayah    String
+  level      Int      // 4=kecamatan, 5=pekon/kelurahan
+  parentKode String?  @map("parent_kode")
+  data       Json
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([kategori, kode])
+  @@index([kategori, level])
+  @@map("m_demografi_wilayah")
+}
