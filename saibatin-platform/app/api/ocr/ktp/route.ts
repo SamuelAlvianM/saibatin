@@ -68,6 +68,17 @@ function isValidNik(nik: string): boolean {
   return hari >= 1 && hari <= 31 && bulan >= 1 && bulan <= 12;
 }
 
+/** Dari deretan digit, ambil jendela 16-digit yang valid sebagai NIK.
+ *  Menangani kasus OCR menyisipkan 1 digit liar (deret jadi 17+ digit). */
+function pickNik(digits: string): string | undefined {
+  if (digits.length < 16) return undefined;
+  for (let i = 0; i + 16 <= digits.length; i++) {
+    const cand = digits.slice(i, i + 16);
+    if (isValidNik(cand)) return cand;
+  }
+  return digits.length === 16 ? digits : undefined;
+}
+
 interface KtpParsed {
   nik?: string;
   nama?: string;
@@ -86,20 +97,19 @@ function parseKtpText(raw: string): KtpParsed {
     const digits = normalizeDigits(line).replace(/[^0-9]/g, "");
     const m16 = digits.match(/\d{16}/);
 
-    if (
-      !result.nokk &&
-      m16 &&
-      /(no\.?\s*kk|kartu\s*keluarga|nomor\s*kk)/i.test(line)
-    ) {
-      result.nokk = m16[0];
-      continue;
+    if (!result.nokk && /(no\.?\s*kk|kartu\s*keluarga|nomor\s*kk)/i.test(line)) {
+      // Ambil digit setelah ":" agar "No"/"KK" (huruf) tak jadi digit palsu.
+      const tail = line.includes(":") ? line.slice(line.lastIndexOf(":") + 1) : line;
+      const tailDigits = normalizeDigits(tail).replace(/[^0-9]/g, "");
+      const mk = tailDigits.match(/\d{16}/);
+      if (mk) {
+        result.nokk = mk[0];
+        continue;
+      }
     }
-    if (
-      !result.nik &&
-      m16 &&
-      (/nik/i.test(line) || (digits.length <= 20 && isValidNik(m16[0])))
-    ) {
-      result.nik = m16[0];
+    if (!result.nik && m16 && (/nik/i.test(line) || digits.length <= 20)) {
+      const nik = pickNik(digits);
+      if (nik) result.nik = nik;
     }
     if (!result.nama && /nama/i.test(line) && !/keluarga/i.test(line)) {
       const after = line.split(/[:∶]/)[1];
@@ -111,10 +121,13 @@ function parseKtpText(raw: string): KtpParsed {
   }
 
   if (!result.nik) {
-    const all = normalizeDigits(raw).replace(/[^0-9\n ]/g, "");
-    const cands = all.match(/\d{16}/g) ?? [];
-    const valid = cands.find(isValidNik);
-    if (valid) result.nik = valid;
+    for (const run of normalizeDigits(raw).match(/\d{16,}/g) ?? []) {
+      const nik = pickNik(run);
+      if (nik) {
+        result.nik = nik;
+        break;
+      }
+    }
   }
 
   return result;
