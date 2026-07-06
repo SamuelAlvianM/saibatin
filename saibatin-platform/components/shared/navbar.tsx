@@ -649,9 +649,9 @@ const navigationItems = [
         description: "Survey kepuasan layanan publik",
       },
       {
-        title: "GIS Dukcapil",
+        title: "GIS Dukcapil — Peta Sebaran Penduduk",
         href: "/media/gis",
-        description: "Sistem informasi geografis Dukcapil",
+        description: "Peta sebaran jumlah penduduk per kecamatan",
       },
       {
         title: "Laporan Data Demografi",

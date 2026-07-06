@@ -53,7 +53,7 @@ export async function GET() {
     // Rekap demografi hasil import Excel (level kecamatan). Dijumlahkan untuk
     // kartu ringkasan beranda; fallback ke placeholder statis bila belum ada.
     prisma.demografiWilayah.findMany({
-      where: { level: 4, kategori: { in: ["jenis-kelamin", "kk"] } },
+      where: { level: 4, kategori: { in: ["jenis-kelamin", "kk", "wajib-ktp"] } },
       select: { kategori: true, data: true },
     }),
   ]);
@@ -100,9 +100,15 @@ export async function GET() {
   const kepalaKeluarga = hasKat("kk")
     ? sumCol("kk", "KK_JML")
     : sum("kepala-keluarga");
-  // Wajib/rekam KTP tetap dari placeholder (pemetaan kolom file WKTP menyusul).
-  const sudahKtpEl = find("wajib-ktp", "Sudah Memiliki KTP-el");
-  const belumKtpEl = find("wajib-ktp", "Belum Memiliki KTP-el");
+  // Wajib KTP: kolom JML (wajib) & JML_WKTP (sudah rekam). Bila belum diimport,
+  // pakai placeholder statis. Pemetaan kolom file WKTP dapat disesuaikan.
+  const wajibKtp = hasKat("wajib-ktp")
+    ? sumCol("wajib-ktp", "JML")
+    : find("wajib-ktp", "Sudah Memiliki KTP-el") + find("wajib-ktp", "Belum Memiliki KTP-el");
+  const sudahKtpEl = hasKat("wajib-ktp")
+    ? sumCol("wajib-ktp", "JML_WKTP")
+    : find("wajib-ktp", "Sudah Memiliki KTP-el");
+  const belumKtpEl = Math.max(0, wajibKtp - sudahKtpEl);
 
   return ok({
     // ── Pelayanan (live dari database) ──
@@ -121,7 +127,7 @@ export async function GET() {
     lakiLaki,
     perempuan,
     kepalaKeluarga,
-    wajibKtp: sudahKtpEl + belumKtpEl,
+    wajibKtp,
     sudahKtpEl,
     belumKtpEl,
     periodeKependudukan:
