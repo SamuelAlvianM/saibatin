@@ -19,6 +19,7 @@ import {
   FilePlus2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { BackButton } from '@/components/shared/back-button';
 import { LAYANAN_FORMS, type LayananForm } from '@/lib/layanan-forms';
 import { StaffPengajuanForm } from '@/components/dashboard/staff-pengajuan-form';
 
@@ -46,6 +47,7 @@ export function PengajuanBaruClient() {
   // ── Grid pilihan layanan ──
   return (
     <div>
+      <BackButton href="/dashboard" />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-900">
