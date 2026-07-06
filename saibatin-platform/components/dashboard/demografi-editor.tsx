@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Trash2, Check, X } from 'lucide-react';
+import { Loader2, Plus, Trash2, Check, X, FileUp, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EditRow {
@@ -20,6 +20,17 @@ interface EditRow {
   kode: string;
   wilayah: string;
   data: Record<string, number>;
+}
+
+interface ImportRow {
+  kode: string;
+  wilayah: string;
+  data: Record<string, number>;
+}
+interface Conflict {
+  kode: string;
+  wilayah: string;
+  options: { label: string; data: Record<string, number> }[];
 }
 
 let seq = 0;
@@ -50,6 +61,64 @@ export function DemografiEditor({
   const [rows, setRows] = useState<EditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Import Excel (multi-file) + resolusi konflik.
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [conflicts, setConflicts] = useState<Conflict[] | null>(null);
+  const [pending, setPending] = useState<{ kolom: string[]; rows: ImportRow[] } | null>(null);
+  const [choice, setChoice] = useState<Record<string, number>>({});
+
+  // Ganti seluruh grid dengan hasil import (baris auto + konflik terpilih).
+  const applyImport = (importKolom: string[], importRows: ImportRow[]) => {
+    setKolom(importKolom.length ? importKolom : kolom);
+    setRows(
+      importRows.map((r) => ({ _id: nid(), kode: r.kode, wilayah: r.wilayah, data: { ...r.data } })),
+    );
+    toast.success(`${importRows.length} baris dimuat dari Excel — periksa lalu Simpan`);
+  };
+
+  const handleImport = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setImporting(true);
+    try {
+      const form = new FormData();
+      form.append('kategori', kategori);
+      Array.from(fileList).forEach((f) => form.append('files', f));
+      const res = await fetch('/api/admin/demografi/parse', { method: 'POST', body: form });
+      const j = await res.json();
+      if (j.error?.length) {
+        toast.error(j.error[0]);
+        return;
+      }
+      const d = j.data as { kolom: string[]; rows: ImportRow[]; conflicts: Conflict[] };
+      if (d.conflicts.length > 0) {
+        // Default pilihan = opsi pertama tiap konflik.
+        setChoice(Object.fromEntries(d.conflicts.map((c) => [c.kode, 0])));
+        setPending({ kolom: d.kolom, rows: d.rows });
+        setConflicts(d.conflicts);
+      } else {
+        applyImport(d.kolom, d.rows);
+      }
+    } catch {
+      toast.error('Gagal memproses file');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // Terapkan pilihan konflik → gabung dengan baris auto.
+  const resolveConflicts = () => {
+    if (!pending || !conflicts) return;
+    const resolved: ImportRow[] = conflicts.map((c) => ({
+      kode: c.kode,
+      wilayah: c.wilayah,
+      data: c.options[choice[c.kode] ?? 0].data,
+    }));
+    applyImport(pending.kolom, [...pending.rows, ...resolved]);
+    setConflicts(null);
+    setPending(null);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -130,10 +199,12 @@ export function DemografiEditor({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Edit Manual — {label}</DialogTitle>
+          <DialogTitle>Edit Data — {label}</DialogTitle>
           <DialogDescription>
-            Isi seperti Excel. <b>Kode</b> 6 digit = kecamatan, 10 digit = pekon (otomatis jadi turunan
-            kecamatan berkode 6 digit pertamanya). {isJK && 'Kolom Jumlah dihitung otomatis.'}
+            <b>Import Excel</b> (bisa beberapa file sekaligus) atau isi manual. <b>Kode</b> 6 digit =
+            kecamatan, 10 digit = pekon (otomatis jadi turunan kecamatan berkode 6 digit pertamanya).
+            {isJK && ' Kolom Jumlah dihitung otomatis.'} Bila ada wilayah dengan data berbeda antar file,
+            Anda akan diminta memilih.
           </DialogDescription>
         </DialogHeader>
 
@@ -217,10 +288,33 @@ export function DemografiEditor({
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-1">
-          <Button variant="outline" size="sm" onClick={addRow} disabled={loading}>
-            <Plus className="h-4 w-4 mr-1.5" /> Tambah Baris
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={loading || importing}
+              title="Import satu atau beberapa file Excel (.xlsx)"
+            >
+              {importing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <FileUp className="h-4 w-4 mr-1.5" />}
+              Import Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={addRow} disabled={loading}>
+              <Plus className="h-4 w-4 mr-1.5" /> Tambah Baris
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                handleImport(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </div>
           <span className="text-xs text-slate-400">{rows.length} baris</span>
         </div>
 
@@ -234,6 +328,68 @@ export function DemografiEditor({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Resolusi konflik: wilayah dengan data berbeda antar file / vs tersimpan. */}
+      <Dialog open={!!conflicts} onOpenChange={(o) => !o && (setConflicts(null), setPending(null))}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Data berbeda ditemukan
+            </DialogTitle>
+            <DialogDescription>
+              {conflicts?.length} wilayah punya angka berbeda antar file (atau berbeda dari data
+              tersimpan). Pilih yang benar untuk tiap wilayah.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 space-y-3 overflow-auto">
+            {conflicts?.map((c) => (
+              <div key={c.kode} className="rounded-xl border border-slate-200 p-3">
+                <p className="mb-2 text-sm font-semibold text-slate-800">
+                  {c.wilayah} <span className="font-mono text-xs text-slate-400">({c.kode})</span>
+                </p>
+                <div className="space-y-1.5">
+                  {c.options.map((opt, i) => (
+                    <label
+                      key={i}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm transition-colors',
+                        (choice[c.kode] ?? 0) === i
+                          ? 'border-primary bg-primary/5'
+                          : 'border-slate-200 hover:border-primary/40',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name={`cf-${c.kode}`}
+                        checked={(choice[c.kode] ?? 0) === i}
+                        onChange={() => setChoice((s) => ({ ...s, [c.kode]: i }))}
+                        className="accent-primary"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-xs text-slate-500">{opt.label}</span>
+                      <span className="font-mono text-xs tabular-nums text-slate-700">
+                        {Object.entries(opt.data)
+                          .map(([k, v]) => `${k}:${v}`)
+                          .join('  ')}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => (setConflicts(null), setPending(null))}>
+              Batal
+            </Button>
+            <Button onClick={resolveConflicts}>
+              <Check className="h-4 w-4 mr-1.5" /> Terapkan pilihan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

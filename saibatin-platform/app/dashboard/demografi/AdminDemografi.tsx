@@ -84,10 +84,10 @@ export function AdminDemografi() {
                 disabled={busy}
                 onClick={() => setEditing({ slug: k.slug, label: k.label })}
                 className="flex-shrink-0"
-                title="Isi/ubah data secara manual"
+                title="Edit / import (bisa banyak file) dengan pemeriksaan data berbeda"
               >
                 <Pencil className="h-4 w-4" />
-                <span className="ml-1.5 hidden sm:inline">Manual</span>
+                <span className="ml-1.5 hidden sm:inline">Edit / Import</span>
               </Button>
               <Button
                 variant="outline"
