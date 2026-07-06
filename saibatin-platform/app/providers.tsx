@@ -6,6 +6,7 @@ import StoreProvider from "@/store/StoreProvider";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { useAppDispatch } from "@/store/hooks";
 import { verifySession } from "@/store/slices/authSlice";
+import { InlineEditProvider } from "@/components/konten/inline-edit";
 
 /** Hydrasi status login dari cookie sesi saat aplikasi dimuat. */
 function SessionHydrator() {
@@ -22,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const inner = (
     <>
       <SessionHydrator />
-      {children}
+      <InlineEditProvider>{children}</InlineEditProvider>
       <Toaster richColors position="top-center" />
     </>
   );

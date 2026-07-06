@@ -58,7 +58,7 @@ export default function NotFound() {
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 animate-float">
               <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl animate-pulse" />
               <Image
-                src="/LOGO-dinas_ktt.png"
+                src="/logo-saibatin.png"
                 alt="DISDUKCAPIL Logo"
                 fill
                 className="object-contain drop-shadow-2xl"

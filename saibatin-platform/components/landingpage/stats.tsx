@@ -1,59 +1,98 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, useInView, animate, AnimatePresence, Variants } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { animate, stagger } from 'animejs';
+import { useInView, animate as fmAnimate } from 'framer-motion';
 import {
   Users,
   Home,
   User,
   UserCircle,
-  Map,
+  IdCard,
+  ScanLine,
+  Map as MapIcon,
   FileCheck,
-  TrendingUp,
   ArrowRight,
-  Activity,
+  ExternalLink,
+  CalendarClock,
+  Loader2,
+  CalendarDays,
   CheckCircle2,
+  Hourglass,
+  Building2,
+  Trees,
+  MapPin,
 } from 'lucide-react';
+
+// Ikon header kartu peta & pelayanan — lebih terlihat dari flat, tapi tetap
+// subordinat terhadap 6 ikon kartu demografi (yang putih di atas gradient penuh).
+const HEADER_ICON =
+  'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-primary ' +
+  'bg-gradient-to-br from-primary/25 to-primary/10 ring-1 ring-primary/15';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
+// Peta Leaflet dimuat hanya di klien (akses `window`) — tidak membebani SSR.
+const OfficeMap = dynamic(() => import('./office-map'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center bg-slate-100">
+      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+    </div>
+  ),
+});
+
+// Kartu biru glassy — dipakai semua kartu statistik.
+// Tanpa backdrop-blur: di atas latar putih efeknya nol tapi memicu flicker
+// saat transisi hover. Gradasi tipis memberi kesan kaca seperti navbar.
+const GLASS =
+  'rounded-2xl bg-gradient-to-br from-primary/[0.09] to-primary/[0.03] ' +
+  'border border-primary/15 shadow-[0_4px_20px_rgba(33,118,189,0.06)]';
+const BAR = 'bg-gradient-to-t from-[#1b4b72] to-[#6cb2eb]';
+const BAR_H = 'bg-gradient-to-r from-[#1b4b72] to-[#6cb2eb]';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface TopJenis {
+  nama: string;
+  count: number;
+}
+interface TrendPoint {
+  label: string;
+  count: number;
+}
+interface PelayananStat {
+  total: number;
+  selesai: number;
+  aktif: number;
+  bulanIni: number;
+  topJenis: TopJenis[];
+  trend6: TrendPoint[];
+}
 
 interface StatsData {
   jumlahPenduduk: number;
   kepalaKeluarga: number;
   lakiLaki: number;
   perempuan: number;
-  pelayananBaru?: number;
-  pelayananSelesai?: number;
+  wajibKtp: number;
+  sudahKtpEl: number;
+  belumKtpEl: number;
+  pelayanan: PelayananStat;
+  periodeKependudukan: string;
 }
 
-interface StatsGridProps {
-  data?: StatsData;
-}
+// ─── Animated Counter ───────────────────────────────────────────────────────────
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const ANIMATION = {
-  fadeUp: {
-    hidden: { opacity: 0, y: 24 },
-    show: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.55, delay: i * 0.08, ease: [0.42, 0, 0.58, 1] },
-    }),
-  },
-} satisfies Record<string, Variants>;
-
-// ─── Animated Counter ─────────────────────────────────────────────────────────
-
-function AnimatedNumber({ value, duration = 1.8 }: { value: number; duration?: number }) {
+function AnimatedNumber({ value, duration = 1.6 }: { value: number; duration?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const isInView = useInView(ref, { once: true, margin: '-60px' });
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
     if (!isInView) return;
-    const ctrl = animate(0, value, {
+    const ctrl = fmAnimate(0, value, {
       duration,
       ease: 'easeOut',
       onUpdate: (v) => setDisplay(Math.floor(v)),
@@ -64,34 +103,8 @@ function AnimatedNumber({ value, duration = 1.8 }: { value: number; duration?: n
   return <span ref={ref}>{display.toLocaleString('id-ID')}</span>;
 }
 
-// ─── Thin Progress Bar ────────────────────────────────────────────────────────
-
-function ProgressBar({
-  pct,
-  color,
-  delay = 0,
-}: {
-  pct: number;
-  color: string;
-  delay?: number;
-}) {
-  return (
-    <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-      <motion.div
-        className={cn('h-full rounded-full', color)}
-        initial={{ width: 0 }}
-        whileInView={{ width: `${pct}%` }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.1, delay, ease: [0.22, 1, 0.36, 1] }}
-      />
-    </div>
-  );
-}
-
-// ─── Divider ──────────────────────────────────────────────────────────────────
-
 function Divider() {
-  return <div className="h-px w-full bg-slate-100" />;
+  return <div className="h-px w-full bg-primary/10" />;
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -100,325 +113,317 @@ interface StatCardConfig {
   title: string;
   value: number;
   icon: React.ReactNode;
-  accent: string;       // tailwind text color
-  accentBg: string;     // tailwind bg color (light)
-  accentBar: string;    // tailwind bg color for bar
-  index: number;
+  accent: string;
+  accentBg: string;
+  badge?: string;
 }
 
-function StatCard({ title, value, icon, accent, accentBg, accentBar, index }: StatCardConfig) {
-  const [hovered, setHovered] = useState(false);
-
+function StatCard({ title, value, icon, accent, accentBg, badge }: StatCardConfig) {
   return (
-    <motion.div
-      custom={index}
-      variants={ANIMATION.fadeUp}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: '-40px' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="group relative flex flex-col gap-3 rounded-2xl bg-white p-4
-                 border border-slate-200 hover:border-slate-300
-                 shadow-sm hover:shadow-md
-                 transition-shadow duration-300 cursor-default overflow-hidden"
+    <div
+      className={cn(
+        GLASS,
+        'js-stat group relative flex flex-col justify-between gap-5 h-full p-5',
+        'hover:border-primary/30 hover:shadow-md hover:shadow-primary/10 transition-[box-shadow,border-color] duration-300',
+      )}
     >
-      {/* Top row */}
-      <div className="flex items-center justify-between">
-        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105', accentBg)}>
-          <span className={accent}>{icon}</span>
+      <div className="flex items-start justify-between">
+        <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105', accentBg)}>
+          <span className="text-white">{icon}</span>
         </div>
-        <motion.span
-          animate={{ opacity: hovered ? 1 : 0, x: hovered ? 0 : 4 }}
-          transition={{ duration: 0.2 }}
-          className={cn('text-xs font-semibold flex items-center gap-1', accent)}
-        >
-          Detail <ArrowRight className="w-3 h-3" />
-        </motion.span>
+        {badge && (
+          <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full bg-white border border-primary/10 shadow-sm', accent)}>
+            {badge}
+          </span>
+        )}
       </div>
 
-      {/* Value */}
       <div>
-        <p className="text-2xl font-bold tracking-tight text-slate-900 leading-none mb-1">
+        <p className="text-[1.7rem] font-bold tracking-tight text-slate-900 leading-none mb-2">
           <AnimatedNumber value={value} />
         </p>
-        <p className="text-[0.6rem] font-semibold uppercase tracking-widest text-slate-400">{title}</p>
+        <p className="text-[0.66rem] font-semibold uppercase tracking-widest text-slate-500">{title}</p>
       </div>
-
-      {/* Bottom accent bar */}
-      <ProgressBar pct={100} color={accentBar} delay={index * 0.1 + 0.4} />
-    </motion.div>
+    </div>
   );
 }
 
-function MapCard({ index }: { index: number }) {
+// ─── Mini trend bar chart (6 bulan) ─────────────────────────────────────────────
+
+function TrendChart({ data }: { data: TrendPoint[] }) {
+  const max = Math.max(1, ...data.map((d) => d.count));
   return (
-    <motion.div
-      custom={index}
-      variants={ANIMATION.fadeUp}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true }}
-      className="group relative flex flex-col rounded-2xl bg-white border border-slate-200
-                 hover:border-slate-300 shadow-sm hover:shadow-md
-                 transition-shadow duration-300 overflow-hidden"
-    >
-      {/* Header */}
-      <div className="flex items-center gap-3 px-6 pt-6 pb-4">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-          <Map className="w-5 h-5 text-indigo-600" />
-        </div>
-        <div>
-          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-indigo-500">
-            Wilayah Administrasi
-          </p>
-          <p className="text-sm font-semibold text-slate-800">Peta Kecamatan</p>
-        </div>
-      </div>
-
-      <Divider />
-
-      {/* Map visual */}
-      <div className="relative mx-4 my-4 h-36 rounded-xl overflow-hidden bg-gradient-to-br from-indigo-50 to-slate-100">
-        <svg viewBox="0 0 400 200" className="absolute inset-0 w-full h-full opacity-60">
-          <defs>
-            <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.08" />
-            </linearGradient>
-          </defs>
-          <motion.path
-            d="M30,120 Q80,70 140,110 T240,90 T340,120 T380,100"
-            fill="none" stroke="#6366f1" strokeWidth="32" strokeLinecap="round" strokeOpacity="0.15"
-            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
-            transition={{ duration: 2.2, ease: 'easeInOut' }}
-          />
-          <motion.path
-            d="M60,150 Q120,110 180,140 T290,130 T370,150"
-            fill="none" stroke="#3b82f6" strokeWidth="18" strokeLinecap="round" strokeOpacity="0.12"
-            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
-            transition={{ duration: 2.2, delay: 0.3, ease: 'easeInOut' }}
-          />
-          {[{ cx: 200, cy: 100, r: 7, fill: '#6366f1', delay: 1.4 },
-            { cx: 290, cy: 130, r: 5, fill: '#3b82f6', delay: 1.6 },
-            { cx: 130, cy: 115, r: 4, fill: '#818cf8', delay: 1.8 }].map((pin, i) => (
-            <motion.circle key={i} {...pin}
-              initial={{ scale: 0, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: pin.delay, type: 'spring', stiffness: 300 }}
-            />
-          ))}
-        </svg>
-      </div>
-
-      <Divider />
-
-      {/* Footer stats */}
-      <div className="grid grid-cols-2 divide-x divide-slate-100 px-0 py-3">
-        {[
-          { label: 'Desa / Kelurahan', value: '5' },
-          { label: 'Luas Wilayah', value: '45.2 km²' },
-        ].map((item) => (
-          <div key={item.label} className="flex flex-col items-center py-1">
-            <p className="text-base font-bold text-slate-800">{item.value}</p>
-            <p className="text-[0.65rem] text-slate-400 font-medium">{item.label}</p>
+    <div className="flex items-end justify-between gap-1.5 h-16">
+      {data.map((d, i) => {
+        const h = Math.max(6, (d.count / max) * 100);
+        return (
+          <div key={i} className="flex flex-1 flex-col items-center gap-1">
+            <div className="relative w-full flex items-end justify-center h-12">
+              <div
+                className={cn('w-full max-w-[22px] rounded-md', BAR)}
+                style={{ height: `${h}%` }}
+                title={`${d.label}: ${d.count}`}
+              />
+            </div>
+            <span className="text-[0.6rem] font-medium text-slate-400">{d.label}</span>
           </div>
-        ))}
-      </div>
-    </motion.div>
+        );
+      })}
+    </div>
   );
 }
 
-// ─── Service Stats Card ───────────────────────────────────────────────────────
+// ─── Service Stats Card (agregasi informatif) ───────────────────────────────────
 
-function ServiceCard({
-  pelayananBaru,
-  pelayananSelesai,
-  index,
-}: {
-  pelayananBaru: number;
-  pelayananSelesai: number;
-  index: number;
-}) {
-  const total = pelayananBaru + pelayananSelesai;
-  const newPct = Math.round((pelayananBaru / total) * 100);
-  const donePct = Math.round((pelayananSelesai / total) * 100);
+function ServiceCard({ pelayanan }: { pelayanan: PelayananStat }) {
+  const { total, selesai, aktif, bulanIni, topJenis, trend6 } = pelayanan;
+  const maxJenis = Math.max(1, ...topJenis.map((t) => t.count));
 
-  const items = [
-    {
-      label: 'Pelayanan Baru',
-      value: pelayananBaru,
-      pct: newPct,
-      bar: 'bg-primary',
-      icon: <Activity className="w-3.5 h-3.5 text-primary" />,
-    },
-    {
-      label: 'Selesai Diproses',
-      value: pelayananSelesai,
-      pct: donePct,
-      bar: 'bg-success',
-      icon: <CheckCircle2 className="w-3.5 h-3.5 text-success" />,
-    },
+  const metrics = [
+    { label: 'Bulan Ini', value: bulanIni, icon: <CalendarDays className="w-4 h-4" />, tint: 'text-primary bg-primary/10' },
+    { label: 'Selesai', value: selesai, icon: <CheckCircle2 className="w-4 h-4" />, tint: 'text-success bg-success/10' },
+    { label: 'Berjalan', value: aktif, icon: <Hourglass className="w-4 h-4" />, tint: 'text-amber-600 bg-amber-50' },
   ];
 
   return (
-    <motion.div
-      custom={index}
-      variants={ANIMATION.fadeUp}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true }}
-      className="group relative flex flex-col rounded-2xl bg-white border border-slate-200
-                 hover:border-slate-300 shadow-sm hover:shadow-md
-                 transition-shadow duration-300 overflow-hidden"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+    <div className={cn(GLASS, 'js-stat relative flex flex-col h-full w-full overflow-hidden')}>
+      {/* Header: total + completion */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-            <FileCheck className="w-5 h-5 text-violet-600" />
+          <div className={HEADER_ICON}>
+            <FileCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[0.65rem] font-bold uppercase tracking-widest text-violet-500">
+            <p className="text-[0.62rem] font-bold uppercase tracking-widest text-primary">
               Total Pelayanan
             </p>
-            <p className="text-sm font-semibold text-slate-800">Statistik Bulan Ini</p>
+            <p className="text-2xl font-bold text-slate-900 leading-none mt-0.5">
+              <AnimatedNumber value={total} />
+            </p>
           </div>
-        </div>
-        <div className="flex items-center gap-1 text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-lg">
-          <TrendingUp className="w-3.5 h-3.5" />
-          <span className="text-xs font-bold">+12%</span>
         </div>
       </div>
 
-      <Divider />
-
-      {/* Progress items */}
-      <div className="flex flex-col gap-5 px-6 py-5">
-        {items.map((item, i) => (
-          <div key={item.label} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-sm text-slate-600">
-                {item.icon}
-                {item.label}
-              </span>
-              <div className="text-right">
-                <span className="text-sm font-bold text-slate-900">
-                  {item.value.toLocaleString('id-ID')}
-                </span>
-                <span className="ml-1.5 text-xs text-slate-400">({item.pct}%)</span>
-              </div>
+      {/* 3 metrik agregat */}
+      <div className="grid grid-cols-3 gap-2 px-5 pb-4">
+        {metrics.map((m) => (
+          <div key={m.label} className="rounded-xl bg-white/70 border border-primary/10 p-2.5 text-center">
+            <div className={cn('w-7 h-7 mx-auto rounded-lg flex items-center justify-center mb-1.5', m.tint)}>
+              {m.icon}
             </div>
-            <ProgressBar pct={item.pct} color={item.bar} delay={0.5 + i * 0.2} />
+            <p className="text-lg font-bold text-slate-900 leading-none">{m.value.toLocaleString('id-ID')}</p>
+            <p className="text-[0.6rem] font-medium text-slate-400 mt-1">{m.label}</p>
           </div>
         ))}
       </div>
 
       <Divider />
 
-      {/* Footer */}
-      <div className="flex items-center justify-between px-6 py-3">
-        <p className="text-xs text-slate-400">Update terakhir: hari ini</p>
-        <button className="text-xs font-semibold text-violet-600 hover:text-violet-800 flex items-center gap-1 transition-colors">
-          Lihat detail <ArrowRight className="w-3 h-3" />
-        </button>
+      {/* Tren 6 bulan */}
+      <div className="px-5 pt-4 pb-3">
+        <p className="text-[0.62rem] font-bold uppercase tracking-widest text-slate-400 mb-3">
+          Tren Permohonan · 6 Bulan
+        </p>
+        <TrendChart data={trend6} />
       </div>
-    </motion.div>
+
+      <Divider />
+
+      {/* Layanan terpopuler */}
+      <div className="px-5 pt-4 pb-4 flex-1">
+        <p className="text-[0.62rem] font-bold uppercase tracking-widest text-slate-400 mb-3">
+          Layanan Terpopuler
+        </p>
+        {topJenis.length === 0 ? (
+          <p className="text-xs text-slate-400 py-2">Belum ada data permohonan.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {topJenis.map((t) => (
+              <div key={t.nama} className="space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-slate-600 truncate">{t.nama}</span>
+                  <span className="text-xs font-bold text-slate-900 shrink-0">{t.count.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-primary/10 overflow-hidden">
+                  <div className={cn('h-full rounded-full', BAR_H)} style={{ width: `${(t.count / maxJenis) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Divider />
+
+      <div className="flex items-center justify-between px-5 py-3 mt-auto">
+        <p className="text-xs text-slate-400">Data langsung dari sistem</p>
+        <Link href="/permohonan-online" className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors">
+          Ajukan <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+    </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Map Card (full width, di bawah) ────────────────────────────────────────────
 
-const DEFAULT_DATA: Required<StatsData> = {
-  jumlahPenduduk: 30036,
-  kepalaKeluarga: 9950,
-  lakiLaki: 15762,
-  perempuan: 14274,
-  pelayananBaru: 1234,
-  pelayananSelesai: 9876,
-};
-
-const STAT_CARDS: Omit<StatCardConfig, 'value' | 'index'>[] = [
-  {
-    title: 'Jumlah Penduduk',
-    icon: <Users className="w-5 h-5" />,
-    accent: 'text-primary',
-    accentBg: 'bg-primary/10',
-    accentBar: 'bg-primary',
-  },
-  {
-    title: 'Kepala Keluarga',
-    icon: <Home className="w-5 h-5" />,
-    accent: 'text-amber-600',
-    accentBg: 'bg-amber-50',
-    accentBar: 'bg-amber-400',
-  },
-  {
-    title: 'Laki-laki',
-    icon: <User className="w-5 h-5" />,
-    accent: 'text-sky-600',
-    accentBg: 'bg-sky-50',
-    accentBar: 'bg-sky-500',
-  },
-  {
-    title: 'Perempuan',
-    icon: <UserCircle className="w-5 h-5" />,
-    accent: 'text-rose-500',
-    accentBg: 'bg-rose-50',
-    accentBar: 'bg-rose-400',
-  },
+const WILAYAH = [
+  { label: 'Kecamatan', value: '11', icon: <Building2 className="w-5 h-5" />, chip: 'bg-primary/10 text-primary' },
+  { label: 'Desa / Pekon', value: '118', icon: <Trees className="w-5 h-5" />, chip: 'bg-emerald-50 text-emerald-600' },
 ];
 
-export default function StatsGrid({ data }: StatsGridProps) {
-  const stats: Required<StatsData> = { ...DEFAULT_DATA, ...data };
+function MapCard() {
+  return (
+    <div className={cn(GLASS, 'js-stat relative overflow-hidden')}>
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <div className="flex items-center gap-3">
+          <div className={HEADER_ICON}>
+            <MapIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[0.62rem] font-bold uppercase tracking-widest text-primary">
+              Wilayah Administrasi
+            </p>
+            <p className="text-sm font-semibold text-slate-800">Lokasi Kantor Disdukcapil</p>
+          </div>
+        </div>
+        <Link
+          href="/media/peta"
+          className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+        >
+          Peta Lengkap <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
 
-  const statValues = [
-    stats.jumlahPenduduk,
-    stats.kepalaKeluarga,
-    stats.lakiLaki,
-    stats.perempuan,
+      {/* items-stretch: peta ikut tinggi panel kanan agar sejajar */}
+      <div className="flex flex-col md:flex-row items-stretch gap-4 px-4 pb-4">
+        {/* Peta interaktif Leaflet — stretch mengikuti tinggi panel */}
+        <div className="relative flex-1 min-h-[15rem] rounded-xl overflow-hidden ring-1 ring-primary/15 z-0">
+          <OfficeMap />
+        </div>
+
+        {/* Panel info wilayah — dua tile statistik + alamat */}
+        <div className="md:w-60 flex flex-col gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-3 flex-1">
+            {WILAYAH.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-3.5 rounded-xl bg-white/60 border border-primary/[0.08] px-4 py-3.5"
+              >
+                <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center shrink-0', item.chip)}>
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 leading-none">{item.value}</p>
+                  <p className="text-[0.68rem] text-slate-500 font-medium mt-1 uppercase tracking-wide">
+                    {item.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-start gap-2 rounded-xl bg-primary/[0.05] border border-primary/[0.08] px-3.5 py-3">
+            <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <p className="text-[0.72rem] text-slate-500 leading-snug">
+              Kompleks Perkantoran Pemda, Way Redak, Krui, Kabupaten Pesisir Barat, Lampung
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
+
+const FALLBACK: StatsData = {
+  jumlahPenduduk: 170207,
+  kepalaKeluarga: 30200,
+  lakiLaki: 86340,
+  perempuan: 83867,
+  wajibKtp: 128020,
+  sudahKtpEl: 118400,
+  belumKtpEl: 9620,
+  pelayanan: { total: 0, selesai: 0, aktif: 0, bulanIni: 0, topJenis: [], trend6: [] },
+  periodeKependudukan: 'DKB Semester II 2024',
+};
+
+export default function StatsGrid() {
+  const [stats, setStats] = useState<StatsData>(FALLBACK);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/stats')
+      .then((r) => r.json())
+      .then((j) => {
+        if (!alive || !j?.data) return;
+        setStats((prev) => ({ ...prev, ...j.data }));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!rootRef.current) return;
+    const cards = rootRef.current.querySelectorAll('.js-stat');
+    if (!cards.length) return;
+    animate(cards, {
+      opacity: [0, 1],
+      translateY: [22, 0],
+      scale: [0.97, 1],
+      delay: stagger(80),
+      duration: 620,
+      ease: 'out(3)',
+    });
+  }, []);
+
+  const totalJk = stats.lakiLaki + stats.perempuan || 1;
+  const lakiPct = Math.round((stats.lakiLaki / totalJk) * 100);
+  const perempuanPct = Math.round((stats.perempuan / totalJk) * 100);
+  const ktpPct = stats.wajibKtp > 0 ? Math.round((stats.sudahKtpEl / stats.wajibKtp) * 100) : 0;
+
+  const primaryCards: StatCardConfig[] = [
+    { title: 'Jumlah Penduduk', value: stats.jumlahPenduduk, icon: <Users className="w-6 h-6" />, accent: 'text-primary', accentBg: 'bg-gradient-to-br from-[#2176bd] to-[#1b4b72]' },
+    { title: 'Kepala Keluarga', value: stats.kepalaKeluarga, icon: <Home className="w-6 h-6" />, accent: 'text-amber-600', accentBg: 'bg-gradient-to-br from-amber-400 to-amber-600' },
+    { title: 'Laki-laki', value: stats.lakiLaki, icon: <User className="w-6 h-6" />, accent: 'text-sky-600', accentBg: 'bg-gradient-to-br from-sky-400 to-sky-600', badge: `${lakiPct}%` },
+    { title: 'Perempuan', value: stats.perempuan, icon: <UserCircle className="w-6 h-6" />, accent: 'text-rose-500', accentBg: 'bg-gradient-to-br from-rose-400 to-rose-600', badge: `${perempuanPct}%` },
+    { title: 'Wajib KTP', value: stats.wajibKtp, icon: <IdCard className="w-6 h-6" />, accent: 'text-teal-600', accentBg: 'bg-gradient-to-br from-teal-400 to-teal-600' },
+    { title: 'Sudah Rekam KTP-el', value: stats.sudahKtpEl, icon: <ScanLine className="w-6 h-6" />, accent: 'text-emerald-600', accentBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600', badge: `${ktpPct}%` },
   ];
 
   return (
-    <div className="space-y-4">
-
-      {/* Section header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between"
-      >
+    <div className="space-y-4" ref={rootRef}>
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400 mb-0.5">
+          <p className="text-[0.66rem] font-bold uppercase tracking-widest text-slate-400 mb-1">
             Data Kependudukan
           </p>
-          <h2 className="text-lg font-bold text-slate-900">Statistik Demografi</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Statistik Demografi</h2>
         </div>
-        <span className="flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          Realtime
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full shrink-0">
+          <CalendarClock className="w-3.5 h-3.5" />
+          {stats.periodeKependudukan}
         </span>
-      </motion.div>
-
-      {/* Primary stat cards — 2×2 grid to fit sidebar width */}
-      <div className="grid grid-cols-2 gap-3">
-        {STAT_CARDS.map((card, i) => (
-          <StatCard key={card.title} {...card} value={statValues[i]} index={i} />
-        ))}
       </div>
 
-      {/* Bottom row */}
-      <div className="grid grid-cols-1 gap-3">
-        <MapCard index={5} />
-        <ServiceCard
-          pelayananBaru={stats.pelayananBaru}
-          pelayananSelesai={stats.pelayananSelesai}
-          index={6}
-        />
+      {/* Baris atas: kiri = 6 kartu demografi, kanan = pelayanan (tinggi sama) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-stretch">
+        <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 lg:grid-rows-3 gap-3">
+          {primaryCards.map((card) => (
+            <StatCard key={card.title} {...card} />
+          ))}
+        </div>
+
+        <div className="lg:col-span-5 flex">
+          <ServiceCard pelayanan={stats.pelayanan} />
+        </div>
       </div>
+
+      {/* Peta full width di bawah */}
+      <MapCard />
     </div>
   );
 }

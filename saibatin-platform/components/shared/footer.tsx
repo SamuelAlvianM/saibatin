@@ -28,7 +28,7 @@ export function Footer() {
           <div className="lg:col-span-5 space-y-5">
             <div className="flex items-center gap-3">
               <div className="relative h-11 w-11 flex-shrink-0">
-                <Image src="/LOGO-dinas_ktt.png" alt="Logo SAIBATIN" fill className="object-contain" />
+                <Image src="/logo-saibatin.png" alt="Logo SAIBATIN" fill className="object-contain" />
               </div>
               <div>
                 <span className="text-white font-bold text-lg tracking-wide">SAIBATIN</span>

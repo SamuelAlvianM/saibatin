@@ -1,11 +1,31 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useAppSelector } from '@/store/hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Search, CheckCircle2, XCircle, Users } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader2, Search, CheckCircle2, XCircle, Users, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+
+const EMPTY_FORM = {
+  nama: '',
+  userId: '',
+  kk: '',
+  hp: '',
+  email: '',
+  level: 3,
+  password: '',
+};
 
 interface AdminUser {
   id: number;
@@ -27,6 +47,10 @@ export function AdminUsers() {
   const [isLoading, setIsLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [creating, setCreating] = useState(false);
+  const myLevel = useAppSelector((s) => s.auth.user?.level ?? 2);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -44,12 +68,21 @@ export function AdminUsers() {
   }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setStatus = async (id: number, status: number) => {
+    // Saat menonaktifkan/menolak, minta alasan — dikirim ke warga via email.
+    let alasan: string | undefined;
+    if (status === 0) {
+      const input = window.prompt(
+        'Alasan penolakan/penonaktifan (dikirim ke email warga, kosongkan jika tanpa alasan):',
+      );
+      if (input === null) return; // batal
+      alasan = input.trim() || undefined;
+    }
     setBusyId(id);
     setMessage(null);
     const res = await fetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
+      body: JSON.stringify({ id, status, alasan }),
     });
     const json = await res.json();
     setBusyId(null);
@@ -64,11 +97,35 @@ export function AdminUsers() {
     }
   };
 
+  const createAccount = async () => {
+    setCreating(true);
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const json = await res.json();
+    setCreating(false);
+    if (json.error?.length) {
+      toast.error(json.error[0]);
+      return;
+    }
+    toast.success(json.success?.[0] ?? 'Akun berhasil dibuat');
+    setCreateOpen(false);
+    load();
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 md:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Users className="w-5 h-5 text-slate-700" />
-        <h2 className="font-semibold text-slate-900">Manajemen User</h2>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-slate-700" />
+          <h2 className="font-semibold text-slate-900">Manajemen User</h2>
+        </div>
+        <Button size="sm" onClick={() => { setForm({ ...EMPTY_FORM }); setCreateOpen(true); }}>
+          <UserPlus className="w-4 h-4 mr-1.5" />
+          Tambah Akun
+        </Button>
       </div>
 
       {/* Filter & search */}
@@ -194,6 +251,129 @@ export function AdminUsers() {
           </table>
         </div>
       )}
+
+      {/* Dialog buat akun baru */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" />
+              Tambah Akun Baru
+            </DialogTitle>
+            <DialogDescription>
+              Akun yang dibuat petugas langsung aktif. Pemberitahuan dikirim ke
+              email jika diisi.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Jenis Akun</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {(
+                  [
+                    [3, 'Warga', 'Masyarakat umum'],
+                    [4, 'Operator OPD', 'Instansi pemerintah daerah'],
+                    ...(myLevel === 1
+                      ? ([[2, 'Operator', 'Petugas dinas']] as const)
+                      : []),
+                  ] as const
+                ).map(([val, label, desc]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, level: val }))}
+                    className={`rounded-xl border p-3 text-left transition-all ${
+                      form.level === val
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                        : 'border-slate-200 hover:border-primary/40'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-slate-800">{label}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Nama Lengkap {form.level === 4 ? '/ Nama Instansi' : ''} *</Label>
+              <Input
+                value={form.nama}
+                onChange={(e) => setForm((f) => ({ ...f, nama: e.target.value }))}
+                placeholder={form.level === 4 ? 'mis. Dinas Kesehatan Pesisir Barat' : 'Nama sesuai KTP'}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{form.level === 3 ? 'NIK (16 digit) *' : 'Username *'}</Label>
+                <Input
+                  value={form.userId}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      userId: form.level === 3 ? e.target.value.replace(/\D/g, '') : e.target.value,
+                    }))
+                  }
+                  maxLength={form.level === 3 ? 16 : 30}
+                  placeholder={form.level === 3 ? '16 digit NIK' : 'mis. opd_dinkes'}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>No. KK {form.level === 3 ? '' : '(opsional)'}</Label>
+                <Input
+                  value={form.kk}
+                  onChange={(e) => setForm((f) => ({ ...f, kk: e.target.value.replace(/\D/g, '') }))}
+                  maxLength={16}
+                  placeholder="16 digit nomor KK"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>No. HP</Label>
+                <Input
+                  value={form.hp}
+                  onChange={(e) => setForm((f) => ({ ...f, hp: e.target.value }))}
+                  placeholder="08xxxxxxxxxx"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="nama@email.com"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Password Awal *</Label>
+              <Input
+                type="text"
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                placeholder="Minimal 6 karakter, bukan angka semua"
+              />
+              <p className="text-xs text-muted-foreground">
+                Sampaikan password ini ke pemilik akun; sarankan segera diganti
+                lewat menu pengaturan akun.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>
+              Batal
+            </Button>
+            <Button onClick={createAccount} disabled={creating}>
+              {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Buat Akun
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { AdminUsers } from './AdminUsers';
-import { FileText, Users, UserCheck, Clock, ArrowRight, ClipboardList } from 'lucide-react';
+import { FileText, Users, UserCheck, Clock, ClipboardList, FilePlus2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,47 +14,8 @@ export default async function DashboardPage() {
   const isAdmin = session.level <= 2;
 
   // â”€â”€ Tampilan WARGA â”€â”€
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 md:px-8 lg:px-16 py-10 max-w-3xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900">
-                Halo, {session.nama ?? session.userId}
-              </h1>
-              <p className="text-sm text-slate-500">Selamat datang di portal SAIBATIN.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              href="/permohonan-online"
-              className="glass-card rounded-2xl p-5 hover:shadow-lg hover:border-yellow-300/50 transition-all"
-            >
-              <FileText className="w-6 h-6 text-yellow-600 mb-2" />
-              <h2 className="font-semibold text-slate-900">Permohonan Online</h2>
-              <p className="text-sm text-slate-500 mt-1">Ajukan dokumen kependudukan.</p>
-              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-yellow-700">
-                Mulai <ArrowRight className="w-3 h-3" />
-              </span>
-            </Link>
-            <Link
-              href="/riwayat"
-              className="glass-card rounded-2xl p-5 hover:shadow-lg hover:border-primary/30 transition-all"
-            >
-              <Users className="w-6 h-6 text-primary mb-2" />
-              <h2 className="font-semibold text-slate-900">Riwayat Permohonan</h2>
-              <p className="text-sm text-slate-500 mt-1">Pantau status pengajuan Anda.</p>
-              <span className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary">
-                Lihat <ArrowRight className="w-3 h-3" />
-              </span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Warga & Operator OPD tidak punya dashboard — langsung ke halaman pengajuan.
+  if (!isAdmin) redirect('/user/pengajuan');
 
   // â”€â”€ Tampilan ADMIN/OPERATOR â”€â”€
   const [totalUser, userAktif, userPending, totalPermohonan] = await Promise.all([
@@ -99,6 +60,11 @@ export default async function DashboardPage() {
 
         {/* Menu manajemen */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Link href="/dashboard/pengajuan-baru" className="rounded-2xl p-5 text-white shadow-lg transition-all hover:shadow-xl" style={{ background: 'linear-gradient(135deg, #2176bd, #1b4b72)' }}>
+            <FilePlus2 className="w-5 h-5 mb-2" />
+            <p className="font-semibold">Pengajuan Baru</p>
+            <p className="text-xs text-white/80 mt-0.5">Bantu warga ajukan dokumen</p>
+          </Link>
           <Link href="/dashboard/permohonan" className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all">
             <ClipboardList className="w-5 h-5 text-primary mb-2" />
             <p className="font-semibold text-slate-900">Permohonan</p>

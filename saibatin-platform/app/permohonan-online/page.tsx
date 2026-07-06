@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAppSelector } from "@/store/hooks";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -9,6 +11,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AktaKelahiranNikAda from "@/components/permohonan-online/AktaKelahiranNikAdaModal";
 import AktaKelahiranNikTidakAdaModal from "@/components/permohonan-online/AktaKelahiranNikTidakAdaModal";
 import AktaKematian from "@/components/permohonan-online/AktaKematianModal";
@@ -41,6 +52,8 @@ import {
   Home,
   Zap,
   ArrowRight,
+  LogIn,
+  ShieldAlert,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
@@ -224,9 +237,21 @@ const categories = [
   { id: "data", name: "Data", icon: FileText },
 ];
 
+const LOGIN_URL = "/login?redirect=/permohonan-online";
+
 export default function PelayananOnlineDemo() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAppSelector(
+    (state) => state.auth,
+  );
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Terima kata kunci dari pencarian hero beranda (/permohonan-online?q=...).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setSearchQuery(q);
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [
     aktaKelahiranNikTidakAdaModalOpen,
@@ -273,6 +298,11 @@ export default function PelayananOnlineDemo() {
   }, [searchQuery]);
 
   const handleServiceClick = (service: (typeof services)[0]) => {
+    // Wajib login sebelum mengisi form permohonan apa pun.
+    if (!isAuthenticated) {
+      setLoginPromptOpen(true);
+      return;
+    }
     if (service.useModal) {
       // Open the appropriate modal based on modalType
       if (service.modalType === "konsolidasi") {
@@ -335,7 +365,7 @@ export default function PelayananOnlineDemo() {
                     <div className="absolute -inset-1 bg-linear-to-r from-primary to-primary/80 rounded-2xl opacity-25 group-hover:opacity-40 blur transition duration-500" />
                     <div className="relative dark:bg-slate-900 p-1 rounded-xxl">
                       <Image
-                        src="/LOGO-dinas_ktt.png"
+                        src="/logo-saibatin.png"
                         alt="Logo"
                         width={64}
                         height={64}
@@ -372,6 +402,39 @@ export default function PelayananOnlineDemo() {
               </div>
             </CardHeader>
           </Card>
+
+          {/* Pemberitahuan wajib login — tampil dari awal jika belum masuk */}
+          {!authLoading && !isAuthenticated && (
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-950/40 backdrop-blur-sm p-4 sm:p-5 animate-in fade-in slide-in-from-top-2 duration-500">
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/60 shrink-0">
+                <ShieldAlert className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-900 dark:text-amber-200">
+                  Login diperlukan untuk mengajukan permohonan
+                </p>
+                <p className="text-sm text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+                  Anda bebas melihat daftar layanan, tetapi untuk mengisi
+                  formulir permohonan Anda harus masuk terlebih dahulu dengan
+                  akun terdaftar.
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+                <Button asChild className="flex-1 sm:flex-none">
+                  <Link href={LOGIN_URL}>
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Masuk
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="flex-1 sm:flex-none border-amber-300 dark:border-amber-700">
+                  <Link href="/register">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Daftar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Category Filter Chips */}
           <div className="flex flex-wrap justify-center gap-5 mb-8">
@@ -473,6 +536,37 @@ export default function PelayananOnlineDemo() {
           </Tabs>
         </div>
       </div>
+
+      {/* Dialog wajib login */}
+      <Dialog open={loginPromptOpen} onOpenChange={setLoginPromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-2">
+              <LogIn className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Login Diperlukan</DialogTitle>
+            <DialogDescription className="text-center">
+              Untuk mengajukan permohonan online, Anda harus masuk terlebih
+              dahulu. Belum punya akun? Daftar gratis menggunakan NIK dan
+              nomor KK Anda.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button asChild className="w-full">
+              <Link href={LOGIN_URL}>
+                <LogIn className="h-4 w-4 mr-2" />
+                Masuk Sekarang
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/register">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Daftar Akun Baru
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modals */}
       <AktaKelahiranNikAda

@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { sendMail } from "@/lib/mail";
+import { tplRegistrasiDiterima } from "@/lib/mail-templates";
 
 /**
  * Registrasi warga — port dari RegisterController@postDatas (Laravel data-2).
@@ -83,6 +85,10 @@ export async function POST(req: NextRequest) {
         createdBy: 3,
       },
     });
+
+    // Email konfirmasi — kegagalan kirim tidak menggagalkan pendaftaran.
+    const konfirmasi = tplRegistrasiDiterima(nama);
+    await sendMail({ to: email, ...konfirmasi });
 
     return ok(
       { nik, email, hp },

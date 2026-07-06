@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1000,11 +1002,11 @@ export default function KKPerubahanBiodataModal({
       fields.push(
         <div key="tanggallahir" className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-150">
           <Label htmlFor="tanggallahir">Tanggal Lahir *</Label>
-          <Input
+          <DatePicker
             id="tanggallahir"
-            type="date"
             value={formData.tanggallahir}
-            onChange={(e) => handleInputChange("tanggallahir", e.target.value)}
+            onChange={(v) => handleInputChange("tanggallahir", v)}
+            maxToday
             className={getInputClass("tanggallahir")}
           />
           {showFieldError("tanggallahir")}
@@ -1269,12 +1271,16 @@ export default function KKPerubahanBiodataModal({
                       {formData.pemohonnik.length}/16
                     </span>
                   </Label>
-                  <Input
+                  <PemohonNikField
                     id="pemohonnik"
                     value={formData.pemohonnik}
-                    onChange={(e) => handleInputChange("pemohonnik", e.target.value)}
-                    placeholder="Masukkan 16 digit NIK"
-                    maxLength={16}
+                    onChange={(v) => handleInputChange("pemohonnik", v)}
+                    onAutoFill={(d) => {
+                      if (d.nama && !formData.pemohonnama) handleInputChange("pemohonnama", d.nama);
+                      if (d.nokk && !formData.pemohonkk) handleInputChange("pemohonkk", d.nokk);
+                      if (d.hp && !formData.pemohonhp) handleInputChange("pemohonhp", d.hp);
+                      if (d.email && !formData.pemohonemail) handleInputChange("pemohonemail", d.email);
+                    }}
                     className={getInputClass("pemohonnik")}
                   />
                   {showFieldError("pemohonnik")}

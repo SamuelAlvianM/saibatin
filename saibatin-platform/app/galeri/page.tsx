@@ -80,20 +80,20 @@ export default function GaleriPage() {
             <p>Belum ada foto dalam galeri.</p>
           </div>
         ) : (
-          <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="break-inside-avoid glass-card rounded-xl overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
+                className="glass-card rounded-xl overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
                 onClick={() => setSelected(item)}
               >
-                <div className="relative overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-50">
                   <Image
                     src={item.gambar.startsWith('/') ? item.gambar : `/uploads/gallery/${item.gambar}`}
                     alt={item.judul}
-                    width={400}
-                    height={300}
-                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-contain p-1.5 group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">

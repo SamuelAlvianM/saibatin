@@ -5,7 +5,7 @@ import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Footer } from '@/components/shared/footer';
-import { ArrowLeft, Loader2, Newspaper } from 'lucide-react';
+import { ArrowLeft, Loader2, Newspaper, CalendarDays } from 'lucide-react';
 
 interface News {
   id: number;
@@ -39,62 +39,90 @@ export default function BeritaDetailPage() {
 
   if (notFoundFlag) notFound();
 
-  return (
-    <div className="relative bg-slate-50/30 min-h-screen">
-      <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16 max-w-7xl">
-        <Link
-          href="/media/berita"
-          className="inline-flex items-center gap-2 text-sm text-primary hover:underline mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Kembali ke Berita
-        </Link>
+  const tgl = berita
+    ? new Date(berita.createdAt).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : '';
 
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : berita ? (
-          <article className="mx-auto max-w-3xl">
-            {/* Gambar di tengah */}
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-100 mx-auto">
+  return (
+    <div className="relative bg-white min-h-screen">
+      {isLoading ? (
+        <div className="flex justify-center py-32">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : berita ? (
+        <>
+          <article className="container mx-auto px-4 md:px-8 lg:px-16 pt-8 pb-14 max-w-4xl">
+            <Link
+              href="/media/berita"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition-colors mb-8"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Kembali ke Berita
+            </Link>
+
+            {/* Header — rata tengah */}
+            <header className="text-center max-w-3xl mx-auto">
+              <h1 className="text-3xl sm:text-[2.6rem] font-bold text-slate-900 leading-[1.15] tracking-tight text-balance">
+                {berita.judul}
+              </h1>
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-5 text-sm">
+                <span className="flex items-center gap-1.5 text-slate-500">
+                  <CalendarDays className="w-4 h-4 text-slate-400" />
+                  {tgl}
+                </span>
+                {berita.kategori && (
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
+                    {berita.kategori}
+                  </span>
+                )}
+              </div>
+            </header>
+
+            {/* Gambar utama */}
+            <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-slate-100 mt-9 ring-1 ring-slate-200/70">
               {berita.gambar ? (
-                <Image src={berita.gambar} alt={berita.judul} fill className="object-cover" />
+                <Image
+                  src={berita.gambar}
+                  alt={berita.judul}
+                  fill
+                  sizes="(max-width: 896px) 100vw, 896px"
+                  className="object-cover"
+                  priority
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                  <Newspaper className="w-10 h-10" />
+                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <Newspaper className="w-12 h-12" />
                 </div>
               )}
             </div>
 
-            {/* Judul di bawah gambar */}
-            <div className="text-center mt-8">
-              {berita.kategori && (
-                <span className="text-xs font-medium text-primary uppercase tracking-wide">
-                  {berita.kategori}
-                </span>
-              )}
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mt-2 mb-3 text-balance">
-                {berita.judul}
-              </h1>
-              <p className="text-sm text-slate-400">
-                {new Date(berita.createdAt).toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-                {berita.penulis ? ` • ${berita.penulis}` : ''}
-              </p>
-            </div>
-
-            {/* Deskripsi/konten di bawah judul */}
+            {/* Konten */}
             <div
-              className="prose prose-slate prose-lg max-w-none mt-10"
+              className="prose prose-slate prose-lg max-w-3xl mx-auto mt-10
+                         prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-slate-900
+                         prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                         prose-img:rounded-xl prose-blockquote:border-primary
+                         prose-strong:text-slate-900"
               dangerouslySetInnerHTML={{ __html: berita.konten }}
             />
+
+            {/* Footer artikel */}
+            <div className="max-w-3xl mx-auto mt-12 pt-6 border-t border-slate-100">
+              <Link
+                href="/media/berita"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:gap-3 transition-all"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Lihat berita lainnya
+              </Link>
+            </div>
           </article>
-        ) : null}
-      </div>
+        </>
+      ) : null}
       <Footer />
     </div>
   );

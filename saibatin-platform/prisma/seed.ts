@@ -32,6 +32,7 @@ async function main() {
       { id: 1, nama: "Super Admin" },
       { id: 2, nama: "Operator" },
       { id: 3, nama: "Warga" },
+      { id: 4, nama: "Operator OPD" }, // instansi pemerintah daerah (istilah legacy)
     ],
     skipDuplicates: true,
   });

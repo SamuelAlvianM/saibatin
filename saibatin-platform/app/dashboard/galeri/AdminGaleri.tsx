@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Trash2, X, ImageIcon, Upload } from 'lucide-react';
+import { Loader2, Plus, Trash2, X, ImageIcon } from 'lucide-react';
+import { MediaUpload } from '@/components/media/media-upload';
 
 interface Foto {
   id: number;
@@ -25,10 +26,8 @@ export function AdminGaleri() {
   const [judul, setJudul] = useState('');
   const [kategori, setKategori] = useState('PELAYANAN');
   const [gambar, setGambar] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,24 +40,6 @@ export function AdminGaleri() {
   useEffect(() => {
     load();
   }, [load]);
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('folder', 'galeri');
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    const json = await res.json();
-    setUploading(false);
-    if (json.error?.length) {
-      toast.error(json.error[0]);
-    } else {
-      setGambar(json.data.url);
-      toast.success('Foto terunggah');
-    }
-  };
 
   const openNew = () => {
     setJudul('');
@@ -125,8 +106,8 @@ export function AdminGaleri() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map((f) => (
             <div key={f.id} className="group relative overflow-hidden rounded-xl border border-slate-200">
-              <div className="relative aspect-square bg-slate-100">
-                <Image src={f.gambar} alt={f.judul} fill className="object-cover" />
+              <div className="relative aspect-square bg-slate-50">
+                <Image src={f.gambar} alt={f.judul} fill className="object-contain p-1" />
               </div>
               <div className="p-2">
                 <p className="truncate text-sm font-medium text-slate-800">{f.judul}</p>
@@ -179,32 +160,23 @@ export function AdminGaleri() {
               </div>
               <div className="space-y-1.5">
                 <Label>Foto</Label>
-                <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleFile} />
                 {gambar ? (
-                  <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200">
-                    <Image src={gambar} alt="preview" fill className="object-cover" />
-                  </div>
+                  <>
+                    <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                      <Image src={gambar} alt="preview" fill className="object-contain p-1" />
+                    </div>
+                    <button type="button" onClick={() => setGambar('')} className="text-xs text-destructive hover:underline">
+                      Ganti foto
+                    </button>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-200 py-8 text-slate-400 hover:border-primary/40 hover:text-primary"
-                  >
-                    {uploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
-                    <span className="text-sm">{uploading ? 'Mengunggah...' : 'Pilih foto (JPG/PNG, maks 5MB)'}</span>
-                  </button>
-                )}
-                {gambar && (
-                  <button type="button" onClick={() => setGambar('')} className="text-xs text-destructive hover:underline">
-                    Ganti foto
-                  </button>
+                  <MediaUpload onUploaded={(media) => setGambar(media.url)} />
                 )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-                <Button onClick={save} disabled={saving || uploading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button onClick={save} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>

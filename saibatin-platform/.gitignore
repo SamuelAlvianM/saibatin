@@ -26,3 +26,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Media terupload runtime (backup terpisah, jangan ikut git)
+/storage/uploads/
