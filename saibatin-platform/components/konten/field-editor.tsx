@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,8 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { RichEditor } from '@/components/shared/rich-editor';
-import { MediaPicker } from '@/components/media/media-picker';
-import { Plus, Trash2, ImageIcon, X, Search, Shapes } from 'lucide-react';
+import { ImagePickerField } from '@/components/media/image-picker-field';
+import { Plus, Trash2, Search, Shapes } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ICON_MAP, ICON_NAMES } from '@/lib/icon-map';
 import type { StaticField } from '@/lib/static-content-registry';
@@ -197,7 +196,7 @@ export function FieldEditor({
   );
 }
 
-/** Kolom gambar dalam editor "items": thumbnail + tombol pilih (Media picker). */
+/** Kolom gambar dalam editor "items": satu tile preview-sekaligus-tombol. */
 function ImageColumnInput({
   label,
   value,
@@ -207,37 +206,13 @@ function ImageColumnInput({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="flex items-center gap-2">
-      {value ? (
-        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
-          <Image src={value} alt={label} fill sizes="56px" className="object-cover" />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-md bg-destructive text-white flex items-center justify-center"
-            title="Hapus gambar"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      ) : (
-        <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shrink-0">
-          <ImageIcon className="h-5 w-5 text-slate-300" />
-        </div>
-      )}
-      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <ImageIcon className="h-4 w-4 mr-1.5" />
-        {value ? 'Ganti' : label}
-      </Button>
-      <MediaPicker
-        open={open}
-        onOpenChange={setOpen}
-        title={`Pilih ${label}`}
-        onSelect={(m) => onChange(m.url)}
-      />
-    </div>
+    <ImagePickerField
+      label={label}
+      value={value}
+      onChange={onChange}
+      className="aspect-[4/3] w-full"
+    />
   );
 }
 

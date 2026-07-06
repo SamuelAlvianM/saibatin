@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Plus, Trash2, X, ImageIcon } from 'lucide-react';
-import { MediaUpload } from '@/components/media/media-upload';
+import { ImagePickerField } from '@/components/media/image-picker-field';
 
 interface Foto {
   id: number;
@@ -160,18 +160,13 @@ export function AdminGaleri() {
               </div>
               <div className="space-y-1.5">
                 <Label>Foto</Label>
-                {gambar ? (
-                  <>
-                    <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                      <Image src={gambar} alt="preview" fill className="object-contain p-1" />
-                    </div>
-                    <button type="button" onClick={() => setGambar('')} className="text-xs text-destructive hover:underline">
-                      Ganti foto
-                    </button>
-                  </>
-                ) : (
-                  <MediaUpload onUploaded={(media) => setGambar(media.url)} />
-                )}
+                <ImagePickerField
+                  label="Foto"
+                  title="Pilih Foto Galeri"
+                  value={gambar}
+                  onChange={setGambar}
+                  className="aspect-video w-full"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
