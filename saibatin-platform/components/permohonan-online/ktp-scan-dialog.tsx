@@ -15,60 +15,13 @@ import { toast } from "sonner";
 export interface KtpScanResult {
   nik?: string;
   nama?: string;
+  nokk?: string;
 }
 
 interface KtpScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onResult: (result: KtpScanResult) => void;
-}
-
-/** Perbaiki salah baca OCR yang umum pada digit NIK. */
-function normalizeDigits(text: string): string {
-  return text
-    .replace(/[OoQ]/g, "0")
-    .replace(/[Il|]/g, "1")
-    .replace(/[S]/g, "5")
-    .replace(/[B]/g, "8")
-    .replace(/[Zz]/g, "2");
-}
-
-/** Ekstrak NIK (16 digit) dan Nama dari teks hasil OCR KTP. */
-function parseKtpText(raw: string): KtpScanResult {
-  const result: KtpScanResult = {};
-  const lines = raw
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-
-  for (const line of lines) {
-    // Baris NIK biasanya "NIK : 1871xxxxxxxxxxxx"
-    const candidate = normalizeDigits(line).replace(/[^0-9]/g, "");
-    if (!result.nik) {
-      const m = candidate.match(/\d{16}/);
-      if (m && (/nik/i.test(line) || candidate.length <= 20)) {
-        result.nik = m[0];
-      }
-    }
-    // Baris nama: "Nama : BUDI SANTOSO"
-    if (!result.nama && /nama/i.test(line)) {
-      const after = line.split(/[:∶]/)[1];
-      if (after) {
-        const nama = after.replace(/[^A-Za-z.,'\s-]/g, "").trim();
-        if (nama.length >= 3) result.nama = nama;
-      }
-    }
-  }
-
-  // Fallback: cari 16 digit di mana pun pada teks
-  if (!result.nik) {
-    const m = normalizeDigits(raw)
-      .replace(/[^0-9\n]/g, "")
-      .match(/\d{16}/);
-    if (m) result.nik = m[0];
-  }
-
-  return result;
 }
 
 export function KtpScanDialog({
@@ -117,33 +70,33 @@ export function KtpScanDialog({
   }, [open, startCamera, stopCamera]);
 
   const runOcr = useCallback(
-    async (image: HTMLCanvasElement | File) => {
+    async (blob: Blob, filename: string) => {
       setScanning(true);
       setProgress(0);
       try {
-        const { createWorker } = await import("tesseract.js");
-        const worker = await createWorker("ind", 1, {
-          logger: (m) => {
-            if (m.status === "recognizing text") {
-              setProgress(Math.round(m.progress * 100));
-            }
-          },
-        });
-        const { data } = await worker.recognize(image);
-        await worker.terminate();
+        const form = new FormData();
+        form.append("file", new File([blob], filename, { type: blob.type }));
+        const res = await fetch("/api/ocr/ktp", { method: "POST", body: form });
+        const json = await res.json();
 
-        const parsed = parseKtpText(data.text ?? "");
-        if (!parsed.nik && !parsed.nama) {
+        if (!res.ok || json.error?.length) {
           toast.error(
-            "NIK tidak terbaca. Coba foto ulang dengan pencahayaan lebih baik.",
+            json.error?.[0] ??
+              "NIK tidak terbaca. Coba foto ulang dengan pencahayaan lebih baik.",
           );
+          return;
+        }
+
+        const parsed = (json.data ?? {}) as KtpScanResult;
+        if (!parsed.nik && !parsed.nama && !parsed.nokk) {
+          toast.error("Data tidak terbaca. Coba foto ulang dengan pencahayaan lebih baik.");
           return;
         }
         onResult(parsed);
         toast.success(
           parsed.nik
             ? `NIK terbaca: ${parsed.nik} — mohon periksa kembali`
-            : "Nama terbaca — mohon periksa kembali",
+            : "Data terbaca — mohon periksa kembali",
         );
         onOpenChange(false);
       } catch {
@@ -162,13 +115,19 @@ export function KtpScanDialog({
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext("2d")?.drawImage(video, 0, 0);
-    runOcr(canvas);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) runOcr(blob, "ktp-kamera.jpg");
+      },
+      "image/jpeg",
+      0.92,
+    );
   }, [cameraReady, runOcr]);
 
   const handleFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) runOcr(file);
+      if (file) runOcr(file, file.name);
       e.target.value = "";
     },
     [runOcr],
