@@ -10,13 +10,15 @@ import {
   Network,
   ChevronRight,
   Quote,
-  Shield,
-  Clock,
-  Award,
-  Sparkles,
   Minus,
+  Pencil,
 } from 'lucide-react';
+import { Tree, TreeNode } from 'react-organizational-chart';
 import { cn } from '@/lib/utils';
+import { useStaticContent } from '@/lib/use-static-content';
+import { useInlineEdit } from '@/components/konten/inline-edit';
+import { StrukturEditor } from '@/components/konten/struktur-editor';
+import { getIcon } from '@/lib/icon-map';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,10 +64,10 @@ const CONTENT: Record<string, any> = {
   },
   'maklumat': {
     janji: [
-      { title: 'Cepat',  desc: '15 menit',    icon: Clock },
-      { title: 'Akurat', desc: 'Data valid',   icon: Shield },
-      { title: 'Gratis', desc: 'Tanpa biaya',  icon: Award },
-      { title: 'Ramah',  desc: 'Sikap prima',  icon: Sparkles },
+      { title: 'Cepat',  desc: '15 menit',    icon: 'Clock' },
+      { title: 'Akurat', desc: 'Data valid',   icon: 'ShieldCheck' },
+      { title: 'Gratis', desc: 'Tanpa biaya',  icon: 'Gift' },
+      { title: 'Ramah',  desc: 'Sikap prima',  icon: 'Smile' },
     ],
     standar: 'Kami berkomitmen memberikan pelayanan terbaik sesuai Standar Pelayanan Publik',
   },
@@ -217,32 +219,36 @@ function MottoPanel({ data }: { data: typeof CONTENT['motto'] }) {
 function MaklumatPanel({ data }: { data: typeof CONTENT['maklumat'] }) {
   return (
     <div className="space-y-8">
-      {/* Promise cards */}
+      {/* Promise cards — biru glassy seperti kartu statistik */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {data.janji.map((item: any, i: number) => (
-          <motion.div
-            key={i}
-            {...fadeUp(0.15 + i * 0.08)}
-            whileHover={{ y: -4 }}
-            className="group flex flex-col items-center text-center p-5 rounded-2xl bg-slate-50 hover:bg-white border border-slate-100 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-primary mb-3 group-hover:scale-110 group-hover:border-primary/20 group-hover:shadow-primary/20 transition-all duration-300">
-              <item.icon className="w-5 h-5" />
-            </div>
-            <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
-          </motion.div>
-        ))}
+        {data.janji.map((item: any, i: number) => {
+          const Icon = getIcon(item.icon);
+          return (
+            <motion.div
+              key={i}
+              {...fadeUp(0.15 + i * 0.08)}
+              whileHover={{ y: -4 }}
+              className="group flex flex-col items-center text-center p-5 rounded-2xl bg-gradient-to-br from-primary/[0.09] to-primary/[0.03] border border-primary/15 shadow-[0_4px_20px_rgba(33,118,189,0.06)] hover:from-primary/[0.13] hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-primary/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 group-hover:shadow-primary/20 transition-all duration-300">
+                <Icon className="w-5 h-5" />
+              </div>
+              <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Commitment statement */}
+      {/* Commitment statement — biru glassy seperti header navbar */}
       <motion.div
         {...fadeUp(0.55)}
-        className="relative p-7 rounded-2xl bg-slate-900 text-white overflow-hidden"
+        className="relative p-7 rounded-2xl text-white overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #2176bd 0%, #1b4b72 100%)' }}
       >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <Quote className="w-7 h-7 text-primary/40 mb-3" />
-        <p className="text-base font-light leading-relaxed relative z-10 text-slate-200">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <Quote className="w-7 h-7 text-white/40 mb-3" />
+        <p className="text-base font-light leading-relaxed relative z-10 text-white/90">
           {data.standar}
         </p>
       </motion.div>
@@ -280,75 +286,70 @@ function TugasPanel({ data }: { data: typeof CONTENT['tugas'] }) {
   );
 }
 
-function StrukturPanel({ data }: { data: typeof CONTENT['struktur'] }) {
+// ── Bagan struktur organisasi (pohon berbasis "atasan") ──
+
+function OrgBox({ node, root = false }: { node: any; root?: boolean }) {
+  const hasNama = node.nama && node.nama !== '-';
   return (
-    <div className="max-w-2xl mx-auto space-y-3">
-      {data.organisasi.map((item: any, i: number) => {
-        const isPimpinan = item.status === 'Pimpinan';
-        const hasNama = item.nama && item.nama !== '-';
-        // Tanpa nama pejabat: avatar & judul utama pakai jabatan.
-        const initials = (hasNama ? item.nama : item.jabatan)
-          .split(' ')
-          .slice(0, 2)
-          .map((w: string) => w[0])
-          .join('')
-          .toUpperCase();
+    <div
+      className={cn(
+        'rounded-xl border px-3.5 py-2.5 text-center w-[190px] shrink-0',
+        root
+          ? 'text-white border-transparent shadow-md shadow-primary/25'
+          : 'bg-gradient-to-br from-primary/[0.09] to-primary/[0.03] border-primary/15 shadow-sm',
+      )}
+      style={root ? { background: 'linear-gradient(135deg, #2176bd, #1b4b72)' } : undefined}
+    >
+      <p className={cn('font-semibold text-xs leading-tight', root ? 'text-white' : 'text-slate-900')}>
+        {node.jabatan}
+      </p>
+      {hasNama && (
+        <p className={cn('text-[0.68rem] mt-0.5', root ? 'text-white/75' : 'text-slate-500')}>
+          {node.nama}
+        </p>
+      )}
+    </div>
+  );
+}
 
-        return (
-          <motion.div
-            key={i}
-            {...fadeUp(0.1 + i * 0.09)}
-            className={cn(
-              'group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300',
-              isPimpinan
-                ? 'bg-slate-900 border-slate-900 shadow-lg shadow-slate-900/20'
-                : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-md',
-            )}
+/** Node rekursif: satu jabatan + turunannya, dipetakan ke <TreeNode> react-organizational-chart. */
+function OrgTreeNodes({ nodes, childrenOf }: { nodes: any[]; childrenOf: (j: string) => any[] }) {
+  return (
+    <>
+      {nodes.map((n) => (
+        <TreeNode key={n.jabatan} label={<div className="inline-flex"><OrgBox node={n} /></div>}>
+          <OrgTreeNodes nodes={childrenOf(n.jabatan)} childrenOf={childrenOf} />
+        </TreeNode>
+      ))}
+    </>
+  );
+}
+
+function StrukturPanel({ data }: { data: typeof CONTENT['struktur'] }) {
+  const org: any[] = Array.isArray(data.organisasi) ? data.organisasi : [];
+  const childrenOf = (jab: string) => org.filter((o) => (o.parent ?? '') === jab);
+  // Root = jabatan tanpa atasan (atau atasannya tidak ada di daftar).
+  const roots = org.filter((o) => !o.parent || !org.some((x) => x.jabatan === o.parent));
+
+  if (org.length === 0) {
+    return <p className="text-sm text-slate-400 py-10 text-center">Struktur organisasi belum diisi.</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="min-w-max flex flex-col items-center gap-8 px-4">
+        {roots.map((root) => (
+          <Tree
+            key={root.jabatan}
+            lineWidth="1px"
+            lineColor="rgba(33,118,189,0.25)"
+            lineBorderRadius="8px"
+            label={<div className="inline-flex"><OrgBox node={root} root /></div>}
           >
-            {/* Avatar */}
-            <div
-              className={cn(
-                'w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0',
-                isPimpinan
-                  ? 'bg-white/10 text-white'
-                  : 'bg-slate-100 text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300',
-              )}
-            >
-              {initials}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              {hasNama ? (
-                <>
-                  <p className={cn('font-semibold text-sm truncate', isPimpinan ? 'text-white' : 'text-slate-900')}>
-                    {item.nama}
-                  </p>
-                  <p className={cn('text-xs mt-0.5', isPimpinan ? 'text-slate-400' : 'text-slate-500')}>
-                    {item.jabatan}
-                  </p>
-                </>
-              ) : (
-                <p className={cn('font-semibold text-sm', isPimpinan ? 'text-white' : 'text-slate-900')}>
-                  {item.jabatan}
-                </p>
-              )}
-            </div>
-
-            {/* Badge */}
-            <span
-              className={cn(
-                'px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0',
-                isPimpinan
-                  ? 'bg-white/10 text-slate-300'
-                  : 'bg-slate-100 text-slate-500',
-              )}
-            >
-              {item.status}
-            </span>
-          </motion.div>
-        );
-      })}
+            <OrgTreeNodes nodes={childrenOf(root.jabatan)} childrenOf={childrenOf} />
+          </Tree>
+        ))}
+      </div>
     </div>
   );
 }
@@ -360,11 +361,45 @@ export default function ProfileTabs() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: '-50px' });
 
-  const activeContent = CONTENT[activeTab];
+  // Isi tab dari konten editable (dashboard → Konten Halaman), fallback default registry.
+  const cms = useStaticContent([
+    'profil.visi-misi',
+    'profil.motto',
+    'profil.maklumat',
+    'profil.tugas',
+    'profil.struktur',
+  ]);
+  const content: Record<string, any> = {
+    'visi-misi': cms['profil.visi-misi'],
+    motto: cms['profil.motto'],
+    maklumat: cms['profil.maklumat'],
+    tugas: cms['profil.tugas'],
+    struktur: cms['profil.struktur'],
+  };
+
+  const activeContent = content[activeTab] ?? CONTENT[activeTab];
   const activeTabConfig = TABS.find((t) => t.id === activeTab)!;
+  const { editMode, openEditor } = useInlineEdit();
+  const [strukturEditorOpen, setStrukturEditorOpen] = useState(false);
 
   return (
     <section ref={containerRef} className="relative py-14 overflow-hidden bg-white border-t border-slate-100">
+      {editMode && (
+        <button
+          onClick={() =>
+            activeTab === 'struktur'
+              ? setStrukturEditorOpen(true)
+              : openEditor(`profil.${activeTab}`)
+          }
+          className="absolute top-4 right-4 z-50 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white shadow-lg hover:bg-primary/90"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Edit {activeTabConfig.label}
+        </button>
+      )}
+      {activeTab === 'struktur' && (
+        <StrukturEditor open={strukturEditorOpen} onOpenChange={setStrukturEditorOpen} />
+      )}
       {/* Subtle ambient */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-50/80 to-transparent" />
@@ -440,7 +475,7 @@ export default function ProfileTabs() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.99 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden"
+              className="rounded-3xl shadow-[0_8px_40px_rgba(33,118,189,0.08)] border border-primary/15 bg-gradient-to-br from-primary/[0.06] to-primary/[0.02] overflow-hidden"
             >
               {/* Top accent line */}
               <div className="h-0.5 bg-gradient-to-r from-primary via-primary/70 to-primary/40" />

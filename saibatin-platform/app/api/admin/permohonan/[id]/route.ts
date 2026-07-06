@@ -2,6 +2,11 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { sendMail } from "@/lib/mail";
+import {
+  tplPermohonanSelesai,
+  tplPermohonanDitolak,
+} from "@/lib/mail-templates";
 
 const STATUS_VALID = ["MENUNGGU", "DIPROSES", "SELESAI", "DITOLAK"];
 
@@ -47,13 +52,49 @@ export async function PATCH(
   }
 
   try {
-    await prisma.permohonan.update({
+    const sebelum = await prisma.permohonan.findUnique({
+      where: { id: Number(id) },
+      select: { status: true },
+    });
+    if (!sebelum) return fail(["Permohonan tidak ditemukan"], 404);
+
+    const updated = await prisma.permohonan.update({
       where: { id: Number(id) },
       data: {
         ...(status ? { status } : {}),
         ...(catatan !== undefined ? { catatan } : {}),
       },
+      include: {
+        jenis: { select: { nama: true } },
+        user: { select: { userFullname: true, userId: true, userEmail: true } },
+      },
     });
+
+    // Email notifikasi ke warga saat status berubah menjadi SELESAI / DITOLAK.
+    if (
+      status &&
+      status !== sebelum.status &&
+      (status === "SELESAI" || status === "DITOLAK") &&
+      updated.user.userEmail
+    ) {
+      const nama = updated.user.userFullname ?? updated.user.userId;
+      const mail =
+        status === "SELESAI"
+          ? tplPermohonanSelesai(
+              nama,
+              updated.noregister,
+              updated.jenis.nama,
+              updated.catatan ?? undefined,
+            )
+          : tplPermohonanDitolak(
+              nama,
+              updated.noregister,
+              updated.jenis.nama,
+              updated.catatan ?? undefined,
+            );
+      await sendMail({ to: updated.user.userEmail, ...mail });
+    }
+
     return ok(null, ["Info: Permohonan berhasil diperbarui"]);
   } catch {
     return fail(["Info: Gagal memperbarui permohonan"], 500);

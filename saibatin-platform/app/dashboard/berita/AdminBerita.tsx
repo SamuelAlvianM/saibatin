@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Pencil, Trash2, X, Newspaper, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, X, Newspaper, Eye, EyeOff, ImageIcon } from 'lucide-react';
 import { slugify } from '@/lib/slug';
 import { RichEditor } from '@/components/shared/rich-editor';
+import { MediaPicker } from '@/components/media/media-picker';
+import Image from 'next/image';
 
 interface News {
   id: number;
@@ -37,6 +39,7 @@ export function AdminBerita() {
   const [items, setItems] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -222,8 +225,35 @@ export function AdminBerita() {
                   <Input id="kategori" value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value })} placeholder="mis. Pengumuman" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="gambar">URL Gambar</Label>
-                  <Input id="gambar" value={form.gambar} onChange={(e) => setForm({ ...form, gambar: e.target.value })} placeholder="/uploads/... atau https://..." />
+                  <Label>Gambar Utama</Label>
+                  <div className="flex items-center gap-3">
+                    {form.gambar ? (
+                      <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
+                        <Image src={form.gambar} alt="Gambar berita" fill sizes="96px" className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center w-24 h-16 rounded-lg border border-dashed border-slate-300 bg-slate-50 shrink-0">
+                        <ImageIcon className="h-5 w-5 text-slate-300" />
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+                        <ImageIcon className="h-4 w-4 mr-1.5" />
+                        {form.gambar ? 'Ganti Gambar' : 'Pilih Gambar'}
+                      </Button>
+                      {form.gambar && (
+                        <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setForm({ ...form, gambar: '' })}>
+                          <X className="h-4 w-4 mr-1" /> Hapus
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <MediaPicker
+                    open={pickerOpen}
+                    onOpenChange={setPickerOpen}
+                    title="Pilih Gambar Berita"
+                    onSelect={(media) => setForm((f) => ({ ...f, gambar: media.url }))}
+                  />
                 </div>
               </div>
               <div className="space-y-1.5">

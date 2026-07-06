@@ -6,7 +6,9 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
-import { useEffect } from 'react';
+import { Placeholder } from '@tiptap/extensions';
+import { useEffect, useState } from 'react';
+import { MediaPicker } from '@/components/media/media-picker';
 import {
   Bold,
   Italic,
@@ -70,6 +72,8 @@ function Divider() {
 }
 
 function Toolbar({ editor }: { editor: Editor }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   const addLink = () => {
     const prev = editor.getAttributes('link').href as string | undefined;
     const url = window.prompt('Masukkan URL tautan', prev ?? 'https://');
@@ -79,11 +83,6 @@ function Toolbar({ editor }: { editor: Editor }) {
       return;
     }
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  };
-
-  const addImage = () => {
-    const url = window.prompt('Masukkan URL gambar');
-    if (url) editor.chain().focus().setImage({ src: url }).run();
   };
 
   return (
@@ -145,9 +144,17 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton onClick={() => editor.chain().focus().unsetLink().run()} disabled={!editor.isActive('link')} title="Hapus tautan">
         <Link2Off className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={addImage} title="Sisipkan gambar">
+      <ToolbarButton onClick={() => setPickerOpen(true)} title="Sisipkan gambar">
         <ImageIcon className="h-4 w-4" />
       </ToolbarButton>
+      <MediaPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        title="Sisipkan Gambar"
+        onSelect={(media) =>
+          editor.chain().focus().setImage({ src: media.url, alt: media.namaAsli }).run()
+        }
+      />
 
       <Divider />
 
@@ -170,6 +177,9 @@ export function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { class: 'text-primary underline' } }),
       Image.configure({ HTMLAttributes: { class: 'rounded-lg my-2 max-w-full' } }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Placeholder.configure({
+        placeholder: placeholder ?? 'Tulis isi berita di sini...',
+      }),
     ],
     content: value || '',
     editorProps: {

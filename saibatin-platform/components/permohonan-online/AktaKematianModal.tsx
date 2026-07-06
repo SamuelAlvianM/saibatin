@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -886,12 +888,16 @@ export default function AktaKematianModal({
                       {formData.pemohonnik.length}/16
                     </span>
                   </Label>
-                  <Input
+                  <PemohonNikField
                     id="pemohonnik"
                     value={formData.pemohonnik}
-                    onChange={(e) => handleInputChange("pemohonnik", e.target.value)}
-                    placeholder="Masukkan 16 digit NIK"
-                    maxLength={16}
+                    onChange={(v) => handleInputChange("pemohonnik", v)}
+                    onAutoFill={(d) => {
+                      if (d.nama && !formData.pemohonnama) handleInputChange("pemohonnama", d.nama);
+                      if (d.nokk && !formData.pemohonkk) handleInputChange("pemohonkk", d.nokk);
+                      if (d.hp && !formData.pemohonhp) handleInputChange("pemohonhp", d.hp);
+                      if (d.email && !formData.pemohonemail) handleInputChange("pemohonemail", d.email);
+                    }}
                     className={getInputClass("pemohonnik")}
                   />
                   {showFieldError("pemohonnik")}
@@ -1035,11 +1041,11 @@ export default function AktaKematianModal({
 
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-150">
                   <Label htmlFor="tgllahir">Tanggal Lahir *</Label>
-                  <Input
+                  <DatePicker
                     id="tgllahir"
-                    type="date"
                     value={formData.tgllahir}
-                    onChange={(e) => handleInputChange("tgllahir", e.target.value)}
+                    onChange={(v) => handleInputChange("tgllahir", v)}
+                    maxToday
                     className={getInputClass("tgllahir")}
                   />
                   {showFieldError("tgllahir")}
@@ -1195,11 +1201,11 @@ export default function AktaKematianModal({
 
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-75">
                   <Label htmlFor="tglkematian">Tanggal Kematian *</Label>
-                  <Input
+                  <DatePicker
                     id="tglkematian"
-                    type="date"
                     value={formData.tglkematian}
-                    onChange={(e) => handleInputChange("tglkematian", e.target.value)}
+                    onChange={(v) => handleInputChange("tglkematian", v)}
+                    maxToday
                     className={getInputClass("tglkematian")}
                   />
                   {showFieldError("tglkematian")}

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -700,14 +701,16 @@ export default function KedatanganPendudukModal({
                       {formData.pemohonnik.length}/16
                     </span>
                   </Label>
-                  <Input
+                  <PemohonNikField
                     id="pemohonnik"
                     value={formData.pemohonnik}
-                    onChange={(e) =>
-                      handleInputChange("pemohonnik", e.target.value)
-                    }
-                    placeholder="Masukkan 16 digit NIK"
-                    maxLength={16}
+                    onChange={(v) => handleInputChange("pemohonnik", v)}
+                    onAutoFill={(d) => {
+                      if (d.nama && !formData.pemohonnama) handleInputChange("pemohonnama", d.nama);
+                      if (d.nokk && !formData.pemohonkk) handleInputChange("pemohonkk", d.nokk);
+                      if (d.hp && !formData.pemohonhp) handleInputChange("pemohonhp", d.hp);
+                      if (d.email && !formData.pemohonemail) handleInputChange("pemohonemail", d.email);
+                    }}
                     className={getInputClass("pemohonnik")}
                   />
                   {showFieldError("pemohonnik")}

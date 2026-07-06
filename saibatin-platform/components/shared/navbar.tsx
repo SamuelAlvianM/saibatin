@@ -867,6 +867,10 @@ function AuthArea({
   }
 
   const displayName = user?.name || user?.user_id || "Pengguna";
+  // Petugas (level 1-2) ke dashboard admin; warga/OPD langsung ke pengajuan.
+  const isPetugas = (user?.level ?? 3) <= 2;
+  const areaHref = isPetugas ? "/dashboard" : "/user/pengajuan";
+  const areaLabel = isPetugas ? "Dashboard" : "Pengajuan Saya";
 
   // ── Mobile: tersusun vertikal di dalam sheet ──
   if (mobile) {
@@ -879,18 +883,18 @@ function AuthArea({
           <span className="truncate">{displayName}</span>
         </div>
         <Link
-          href="/dashboard"
+          href={areaHref}
           onClick={onNavigate}
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
         >
-          <LayoutDashboard className="h-4 w-4" /> Dashboard
+          <LayoutDashboard className="h-4 w-4" /> {areaLabel}
         </Link>
         <Link
           href="/profil"
           onClick={onNavigate}
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
         >
-          <UserIcon className="h-4 w-4" /> Profil Saya
+          <UserIcon className="h-4 w-4" /> Pengaturan Akun
         </Link>
         <button
           onClick={handleLogout}
@@ -924,18 +928,18 @@ function AuthArea({
       {open && (
         <div className="absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.15)' }}>
           <Link
-            href="/dashboard"
+            href={areaHref}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
           >
-            <LayoutDashboard className="h-4 w-4" /> Dashboard
+            <LayoutDashboard className="h-4 w-4" /> {areaLabel}
           </Link>
           <Link
             href="/profil"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
           >
-            <UserIcon className="h-4 w-4" /> Profil Saya
+            <UserIcon className="h-4 w-4" /> Pengaturan Akun
           </Link>
           <div className="my-1 border-t" />
           <button
@@ -986,7 +990,7 @@ export function Navbar() {
               logoHovered && "scale-120"
             )}>
               <Image
-                src="/LOGO-dinas_ktt.png"
+                src="/logo-saibatin.png"
                 alt="DISDUKCAPIL Logo"
                 fill
                 className="object-contain"

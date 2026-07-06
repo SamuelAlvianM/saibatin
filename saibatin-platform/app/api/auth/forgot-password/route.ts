@@ -2,11 +2,13 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { appUrl, sendMail } from "@/lib/mail";
+import { tplResetPassword } from "@/lib/mail-templates";
 
 /**
  * Permintaan reset password berbasis NIK.
- * Membuat kode reset (forgottenCode) dan menyimpan waktunya. Pengiriman email
- * belum dikonfigurasi — kode dapat diambil petugas dari DB. Tidak crash.
+ * Membuat kode reset (forgottenCode), menyimpan waktunya, lalu mengirim
+ * tautan reset ke email terdaftar (jika MAIL_* terkonfigurasi).
  */
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -29,7 +31,13 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: { forgottenCode: code, forgottenTime: new Date() },
     });
-    // TODO: kirim email berisi tautan /reset-password?key=<code> saat MAIL_* terkonfigurasi.
+    if (user.userEmail) {
+      const mail = tplResetPassword(
+        user.userFullname ?? user.userId,
+        appUrl(`/reset-password?key=${code}`),
+      );
+      await sendMail({ to: user.userEmail, ...mail });
+    }
   }
 
   return ok({}, [

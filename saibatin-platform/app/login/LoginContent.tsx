@@ -36,6 +36,11 @@ export default function LoginPage() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const urlId = searchParams.get('id');
+  // Tujuan setelah login — hanya terima path internal agar tidak jadi open redirect.
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+    ? rawRedirect
+    : '/dashboard';
 
   // Mount animation
   useEffect(() => {
@@ -52,9 +57,9 @@ export default function LoginPage() {
   // Redirect setelah Redux state terupdate (backup jika handleSubmit race)
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/dashboard');
+      router.replace(redirectTo);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, redirectTo]);
 
   useEffect(() => {
     return () => {
@@ -145,7 +150,7 @@ export default function LoginPage() {
           <div className="flex justify-center">
             <div className="relative w-16 h-16 drop-shadow-md">
               <Image
-                src="/LOGO-dinas_ktt.png"
+                src="/logo-saibatin.png"
                 alt="Logo Disdukcapil Pesisir Barat"
                 fill
                 className="object-contain"

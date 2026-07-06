@@ -195,6 +195,42 @@ model SkmJawaban {
   @@map("t_skm_jawaban")
 }
 
+/// Konten statis editable (visi/misi/motto/maklumat/hero beranda, dst).
+/// Daftar blok + nilai default ada di lib/static-content-registry.ts;
+/// baris di tabel ini meng-override default (upsert dari dashboard).
+model StaticContent {
+  id        Int      @id @default(autoincrement())
+  kunci     String   @unique // mis. "profil.visi-misi"
+  judul     String
+  konten    Json
+  updatedBy Int?     @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("t_static_contents")
+}
+
+/// Pustaka media terpusat (gambar/berkas dashboard).
+/// File fisik disimpan di storage/uploads/yyyy/mm (di luar public),
+/// disajikan lewat route /uploads/media/[...path] — user tidak pernah
+/// mengetik URL; semua lewat picker/drag-drop.
+model Media {
+  id         String   @id // uuid v4
+  namaAsli   String   @map("nama_asli")
+  namaFile   String   @map("nama_file") // uuid.ext
+  mimeType   String   @map("mime_type")
+  ukuran     Int
+  lebar      Int?
+  tinggi     Int?
+  path       String   // relatif: yyyy/mm/uuid.ext
+  url        String   // publik: /uploads/media/yyyy/mm/uuid.ext
+  uploadedBy Int?     @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([mimeType])
+  @@map("t_media")
+}
+
 /// Master wilayah (kecamatan & kelurahan) untuk dropdown opt/optx.
 model Wilayah {
   id       Int       @id @default(autoincrement())

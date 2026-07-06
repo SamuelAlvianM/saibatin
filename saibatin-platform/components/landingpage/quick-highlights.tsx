@@ -4,176 +4,135 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { animate, stagger } from 'animejs';
-import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
+import { Newspaper, ArrowRight, CalendarDays } from 'lucide-react';
 
 interface News {
   id: number;
   judul: string;
   slug: string;
+  kategori: string | null;
   ringkasan: string | null;
   gambar: string | null;
+  createdAt: string;
 }
 
-interface CardData {
-  key: string | number;
-  title: string;
-  desc: string;
-  href: string;
-  image: string;
+function tglID(s: string) {
+  return new Date(s).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
-
-const FALLBACK: CardData[] = [
-  {
-    key: 'permohonan-online',
-    title: 'Permohonan Online',
-    desc: 'Ajukan 15+ jenis dokumen kependudukan tanpa antre, kapan saja.',
-    href: '/permohonan-online',
-    image: '/highlights/layanan-online.jpg',
-  },
-  {
-    key: 'pantau-status',
-    title: 'Pantau Status Real-time',
-    desc: 'Cek progres permohonan dari Menunggu hingga Selesai lewat Riwayat.',
-    href: '/riwayat',
-    image: '/highlights/pantau-status.png',
-  },
-  {
-    key: 'unduh-bukti',
-    title: 'Unduh Bukti Permohonan',
-    desc: 'Download bukti pengajuan dalam format PDF langsung dari akun Anda.',
-    href: '/riwayat',
-    image: '/highlights/unduh-bukti.png',
-  },
-  {
-    key: 'berita-info',
-    title: 'Berita & Informasi',
-    desc: 'Ikuti kabar terbaru seputar layanan Disdukcapil Pesisir Barat.',
-    href: '/media/berita',
-    image: '/highlights/berita-info.jpg',
-  },
-];
-
-const PAGE_SIZE = 4;
-const AUTO_ROTATE_MS = 6000;
 
 export default function QuickHighlights() {
   const [news, setNews] = useState<News[] | null>(null);
-  const [page, setPage] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Integrasi database berita
   useEffect(() => {
-    fetch('/api/berita?page=1&limit=12')
+    fetch('/api/berita?page=1&limit=3')
       .then((r) => r.json())
       .then((j) => setNews(j.data?.items ?? []))
       .catch(() => setNews([]));
   }, []);
 
-  const cards: CardData[] =
-    news && news.length > 0
-      ? news.map((n) => ({
-          key: n.id,
-          title: n.judul,
-          desc: n.ringkasan ?? '',
-          href: `/media/berita/${n.slug}`,
-          image: n.gambar ?? '',
-        }))
-      : FALLBACK;
-
-  const totalPages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
-  const currentCards = cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
-
-  const next = () => setPage((p) => (p + 1) % totalPages);
-  const prev = () => setPage((p) => (p - 1 + totalPages) % totalPages);
-
-  // Animasi masuk anime.js setiap kali halaman berita berubah
+  // Animasi masuk berurutan setelah data tiba
   useEffect(() => {
-    if (!gridRef.current) return;
-    const items = gridRef.current.querySelectorAll('.js-hl-card');
+    if (!gridRef.current || !news?.length) return;
+    const items = gridRef.current.querySelectorAll('.js-news-card');
     if (!items.length) return;
     animate(items, {
       opacity: [0, 1],
-      translateY: [20, 0],
-      scale: [0.96, 1],
-      delay: stagger(70),
-      duration: 550,
+      translateY: [22, 0],
+      scale: [0.97, 1],
+      delay: stagger(90),
+      duration: 600,
       ease: 'out(3)',
     });
-  }, [page, news]);
+  }, [news]);
 
-  // Auto-rotate halaman kalau data lebih dari 1 halaman
-  useEffect(() => {
-    if (totalPages <= 1) return;
-    const timer = setInterval(next, AUTO_ROTATE_MS);
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
+  // Jangan tampilkan section bila belum ada berita.
+  if (news !== null && news.length === 0) return null;
 
   return (
-    <div className="relative flex-1 min-h-[220px]">
-      <div ref={gridRef} className="grid grid-cols-2 auto-rows-fr gap-3 h-full">
-        {currentCards.map((item) => (
-          <div key={item.key} className="js-hl-card h-full w-full" style={{ opacity: 0 }}>
-            <Link
-              href={item.href}
-              className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-slate-200 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-            >
-              {item.image ? (
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-300 text-slate-400">
-                  <Newspaper className="h-6 w-6" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/0" />
-              <div className="relative mt-auto p-3.5">
-                <h3 className="text-sm font-semibold text-white leading-snug line-clamp-1">{item.title}</h3>
-                {item.desc && (
-                  <p className="mt-1 text-xs text-white/75 line-clamp-2 leading-relaxed">{item.desc}</p>
-                )}
-              </div>
-            </Link>
-          </div>
-        ))}
+    <div>
+      {/* Header seksi */}
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <p className="text-[0.66rem] font-bold uppercase tracking-widest text-primary mb-1">
+            Media Informasi
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+            Berita Terbaru
+          </h2>
+        </div>
+        <Link
+          href="/media/berita"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all shrink-0"
+        >
+          Lihat Semua <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
-      {/* Kontrol navigasi — hanya tampil bila lebih dari 1 halaman */}
-      {totalPages > 1 && (
-        <>
-          <button
-            onClick={prev}
-            aria-label="Sebelumnya"
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/95 shadow-lg border border-slate-200 flex items-center justify-center hover:scale-110 transition-transform"
-          >
-            <ChevronLeft className="h-4 w-4 text-slate-700" />
-          </button>
-          <button
-            onClick={next}
-            aria-label="Selanjutnya"
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/95 shadow-lg border border-slate-200 flex items-center justify-center hover:scale-110 transition-transform"
-          >
-            <ChevronRight className="h-4 w-4 text-slate-700" />
-          </button>
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i)}
-                aria-label={`Halaman ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === page ? 'w-6 bg-primary' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
-                }`}
-              />
+      {/* Grid kartu */}
+      <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {news === null
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-slate-200/70 bg-white overflow-hidden animate-pulse">
+                <div className="aspect-[16/10] bg-slate-200" />
+                <div className="p-5 space-y-3">
+                  <div className="h-4 w-full bg-slate-200 rounded" />
+                  <div className="h-4 w-2/3 bg-slate-200 rounded" />
+                  <div className="h-3 w-24 bg-slate-200 rounded mt-4" />
+                </div>
+              </div>
+            ))
+          : news.map((item) => (
+              <Link
+                key={item.id}
+                href={`/media/berita/${item.slug}`}
+                className="js-news-card group flex flex-col bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden hover:shadow-lg hover:border-primary/30 hover:-translate-y-1 transition-all duration-300"
+                style={{ opacity: 0 }}
+              >
+                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                  {item.gambar ? (
+                    <Image
+                      src={item.gambar}
+                      alt={item.judul}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                      <Newspaper className="w-9 h-9" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col flex-1 p-5">
+                  {item.kategori && (
+                    <span className="text-[0.66rem] font-bold uppercase tracking-widest text-primary mb-1.5">
+                      {item.kategori}
+                    </span>
+                  )}
+                  <h3 className="font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    {item.judul}
+                  </h3>
+                  {item.ringkasan && (
+                    <p className="text-sm text-slate-500 mt-2 line-clamp-2 leading-relaxed flex-1">
+                      {item.ringkasan}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      {tglID(item.createdAt)}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                </div>
+              </Link>
             ))}
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }

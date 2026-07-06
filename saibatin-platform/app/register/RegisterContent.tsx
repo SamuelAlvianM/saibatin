@@ -219,7 +219,7 @@ export default function RegisterPage() {
     <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl opacity-40" />
     <div className="relative p-1">
       <Image
-        src="/LOGO-dinas_ktt.png"
+        src="/logo-saibatin.png"
         alt="Logo Dinas KTT"
         width={60}
         height={60}
