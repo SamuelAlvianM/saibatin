@@ -83,6 +83,15 @@ interface KtpParsed {
   nik?: string;
   nama?: string;
   nokk?: string;
+  /** true bila NIK ditemukan pada baris berlabel "NIK" (keyakinan lebih tinggi). */
+  nikLabeled?: boolean;
+}
+
+/** Skor keyakinan hasil parse — dipakai memilih orientasi terbaik. */
+function scoreParsed(p: KtpParsed): number {
+  return (
+    (p.nikLabeled ? 3 : p.nik ? 1 : 0) + (p.nama ? 1 : 0) + (p.nokk ? 2 : 0)
+  );
 }
 
 /** Ekstrak NIK / No.KK (16 digit) dan Nama dari teks OCR KTP/KK. */
@@ -109,7 +118,10 @@ function parseKtpText(raw: string): KtpParsed {
     }
     if (!result.nik && m16 && (/nik/i.test(line) || digits.length <= 20)) {
       const nik = pickNik(digits);
-      if (nik) result.nik = nik;
+      if (nik) {
+        result.nik = nik;
+        result.nikLabeled = /nik/i.test(line);
+      }
     }
     if (!result.nama && /nama/i.test(line) && !/keluarga/i.test(line)) {
       const after = line.split(/[:∶]/)[1];
@@ -157,12 +169,12 @@ export async function POST(req: NextRequest) {
 
   const input = Buffer.from(await file.arrayBuffer());
 
-  // Pra-proses: kunci naiknya akurasi OCR dibanding di browser.
-  let pre: Buffer;
+  // Pra-proses dasar: auto-orient EXIF, upscale, grayscale, normalize, sharpen.
+  let base: Buffer;
   try {
-    pre = await sharp(input)
+    base = await sharp(input)
       .rotate() // auto-orient dari EXIF
-      .resize({ width: 1500, withoutEnlargement: false })
+      .resize({ width: 1600, withoutEnlargement: false })
       .grayscale()
       .normalize()
       .sharpen()
@@ -172,11 +184,27 @@ export async function POST(req: NextRequest) {
     return fail(["Gambar tidak dapat diproses"]);
   }
 
-  let text = "";
+  // Banyak foto KTP/KK terpotret miring/terputar. Coba beberapa orientasi
+  // (0/90/270/180) lalu pakai hasil pertama yang menemukan NIK/No.KK. Nama
+  // saja disimpan sebagai cadangan bila tak ada nomor yang terbaca.
+  let best: KtpParsed = {};
+  let bestScore = -1;
   try {
     const worker = await getWorker();
-    const { data } = await withTimeout(worker.recognize(pre), OCR_TIMEOUT);
-    text = data.text ?? "";
+    for (const angle of [0, 90, 270, 180]) {
+      const img =
+        angle === 0 ? base : await sharp(base).rotate(angle).toBuffer();
+      const { data } = await withTimeout(worker.recognize(img), OCR_TIMEOUT);
+      const parsed = parseKtpText(data.text ?? "");
+      const score = scoreParsed(parsed);
+      if (score > bestScore) {
+        best = parsed;
+        bestScore = score;
+      }
+      // NIK berlabel + minimal satu data lain → cukup yakin, hentikan.
+      if (parsed.nikLabeled && (parsed.nama || parsed.nokk)) break;
+    }
+    delete best.nikLabeled;
   } catch (e) {
     const msg =
       e instanceof Error && e.message === "timeout"
@@ -185,13 +213,12 @@ export async function POST(req: NextRequest) {
     return fail([msg], 500);
   }
 
-  const parsed = parseKtpText(text);
-  if (!parsed.nik && !parsed.nama && !parsed.nokk) {
+  if (!best.nik && !best.nama && !best.nokk) {
     return fail(
       ["Teks KTP/KK tidak terbaca. Coba foto ulang dengan pencahayaan lebih baik."],
       422,
     );
   }
 
-  return ok(parsed, ["Hasil scan — mohon periksa kembali sebelum lanjut"]);
+  return ok(best, ["Hasil scan — mohon periksa kembali sebelum lanjut"]);
 }
