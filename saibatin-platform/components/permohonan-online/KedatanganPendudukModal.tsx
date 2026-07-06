@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
+import { KkScanField } from "@/components/permohonan-online/kk-scan-field";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -713,14 +714,10 @@ export default function KonsolidasiUpdateDataModal({
                       {formData.pemohonkk.length}/16
                     </span>
                   </Label>
-                  <Input
+                  <KkScanField
                     id="pemohonkk"
                     value={formData.pemohonkk}
-                    onChange={(e) =>
-                      handleInputChange("pemohonkk", e.target.value)
-                    }
-                    placeholder="Masukkan 16 digit KK"
-                    maxLength={16}
+                    onChange={(v) => handleInputChange("pemohonkk", v)}
                     className={getInputClass("pemohonkk")}
                   />
                   {showFieldError("pemohonkk")}

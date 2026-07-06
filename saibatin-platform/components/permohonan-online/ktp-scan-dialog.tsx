@@ -22,12 +22,19 @@ interface KtpScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onResult: (result: KtpScanResult) => void;
+  /** Label dokumen (default "KTP"). Untuk KK: "KK". */
+  docLabel?: string;
+  title?: string;
+  description?: string;
 }
 
 export function KtpScanDialog({
   open,
   onOpenChange,
   onResult,
+  docLabel = "KTP",
+  title,
+  description,
 }: KtpScanDialogProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -139,12 +146,11 @@ export function KtpScanDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ScanLine className="h-5 w-5 text-primary" />
-            Scan KTP
+            {title ?? `Scan ${docLabel}`}
           </DialogTitle>
           <DialogDescription>
-            Arahkan kamera ke KTP hingga tulisan terlihat jelas, lalu tekan
-            tombol ambil. Hasil scan otomatis mengisi NIK & nama — tetap
-            periksa kembali sebelum lanjut.
+            {description ??
+              `Arahkan kamera ke ${docLabel} hingga tulisan terlihat jelas, lalu tekan tombol ambil. Hasil scan mengisi otomatis — tetap periksa kembali sebelum lanjut.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -169,7 +175,7 @@ export function KtpScanDialog({
             <div className="absolute inset-0 bg-slate-950/70 flex flex-col items-center justify-center gap-3 text-white">
               <Loader2 className="h-8 w-8 animate-spin" />
               <p className="text-sm">
-                Membaca teks KTP... {progress > 0 ? `${progress}%` : ""}
+                Membaca teks {docLabel}... {progress > 0 ? `${progress}%` : ""}
               </p>
             </div>
           )}
@@ -204,7 +210,7 @@ export function KtpScanDialog({
             className="flex-1"
           >
             <ImageUp className="h-4 w-4 mr-2" />
-            Unggah Foto KTP
+            Unggah Foto {docLabel}
           </Button>
           <input
             ref={fileInputRef}
