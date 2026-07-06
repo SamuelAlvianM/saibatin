@@ -15,8 +15,8 @@ export interface InfoPageContent {
 
 export function InfoPage({ content }: { content: InfoPageContent }) {
   return (
-    <div className="relative bg-slate-50/30 min-h-screen">
-      <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16">
+    <div className="relative flex min-h-screen flex-col bg-slate-50/30">
+      <div className="container mx-auto flex-1 px-4 md:px-8 lg:px-16 py-12 lg:py-16">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
