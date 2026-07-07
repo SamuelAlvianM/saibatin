@@ -25,7 +25,12 @@ export async function createSession(payload: SessionPayload) {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Secure di produksi, KECUALI di-nonaktifkan (mis. deploy demo via HTTP/IP tanpa
+    // SSL) dengan AUTH_COOKIE_SECURE=false — jika Secure aktif di HTTP, cookie tak
+    // pernah terkirim → sesi server kosong → loop /login↔/dashboard.
+    secure:
+      process.env.NODE_ENV === "production" &&
+      process.env.AUTH_COOKIE_SECURE !== "false",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
