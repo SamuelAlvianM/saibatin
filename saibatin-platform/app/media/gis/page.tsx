@@ -1,17 +1,7 @@
-import dynamic from 'next/dynamic';
 import { Footer } from '@/components/shared/footer';
 import { BackButton } from '@/components/shared/back-button';
-import { Map as MapIcon, Loader2 } from 'lucide-react';
-
-// Leaflet mengakses window → hanya di klien.
-const PetaDemografi = dynamic(() => import('@/components/landingpage/peta-demografi'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[520px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
-      <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-    </div>
-  ),
-});
+import { Map as MapIcon } from 'lucide-react';
+import PetaDemografiLoader from '@/components/landingpage/peta-demografi-loader';
 
 export const metadata = {
   title: 'GIS Dukcapil — Peta Sebaran Penduduk',
@@ -38,7 +28,7 @@ export default function GisPage() {
           </div>
         </div>
 
-        <PetaDemografi />
+        <PetaDemografiLoader />
       </div>
       <Footer />
     </div>
