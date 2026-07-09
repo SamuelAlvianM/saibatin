@@ -5,7 +5,17 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Trash2, X, FileText, Upload, ExternalLink, Search } from 'lucide-react';
+import { Loader2, Plus, Trash2, X, FileText, Upload, ExternalLink, Search, Globe } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DOKUMEN_KATEGORI, getDokumenKategori } from '@/lib/dokumen-registry';
 
 interface Produk {
   id: number;
@@ -16,12 +26,7 @@ interface Produk {
   createdAt: string;
 }
 
-const TABS: { key: string; label: string }[] = [
-  { key: 'PERSYARATAN', label: 'Formulir Persyaratan' },
-  { key: 'HUKUM', label: 'Produk Hukum' },
-  { key: 'SOP', label: 'SOP' },
-  { key: 'STANDAR_PELAYANAN', label: 'Standar Pelayanan' },
-];
+const GROUPS = ['Produk Layanan', 'PPID / Transparansi'] as const;
 
 export function AdminProduk() {
   const [tab, setTab] = useState('PERSYARATAN');
@@ -109,21 +114,53 @@ export function AdminProduk() {
     }
   };
 
+  const kategori = getDokumenKategori(tab);
+
   return (
     <div className="glass-card rounded-2xl p-5 md:p-6">
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 mb-4 border-b border-slate-200/60 pb-3">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => { setTab(t.key); setQ(''); }}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.key ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Pemilih kategori (dikelompokkan) */}
+      <div className="mb-4 grid gap-3 lg:grid-cols-[320px_1fr]">
+        <div className="space-y-1.5">
+          <Label>Kategori Dokumen</Label>
+          <Select value={tab} onValueChange={(v) => { setTab(v); setQ(''); }}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GROUPS.map((g) => (
+                <SelectGroup key={g}>
+                  <SelectLabel>{g}</SelectLabel>
+                  {DOKUMEN_KATEGORI.filter((k) => k.group === g).map((k) => (
+                    <SelectItem key={k.key} value={k.key}>
+                      {k.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Info: dokumen kategori ini tampil di halaman publik mana */}
+        <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700">
+          <p className="flex items-center gap-1.5 font-medium text-slate-800">
+            <Globe className="h-4 w-4 text-primary" aria-hidden />
+            Berkas kategori ini otomatis tampil di halaman publik:
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {kategori?.halaman.map((h) => (
+              <a
+                key={h.href}
+                href={h.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-primary ring-1 ring-primary/20 hover:bg-primary/10"
+              >
+                {h.label} <ExternalLink className="h-3 w-3" aria-hidden />
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
@@ -194,7 +231,7 @@ export function AdminProduk() {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4" onClick={() => setOpen(false)}>
           <div className="my-8 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900">Tambah Dokumen — {TABS.find((t) => t.key === tab)?.label}</h3>
+              <h3 className="font-semibold text-slate-900">Tambah Dokumen — {kategori?.label}</h3>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
@@ -203,7 +240,15 @@ export function AdminProduk() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="judul">Nama Dokumen</Label>
-                <Input id="judul" value={judul} onChange={(e) => setJudul(e.target.value)} />
+                <Input
+                  id="judul"
+                  value={judul}
+                  onChange={(e) => setJudul(e.target.value)}
+                  placeholder={`Contoh: ${kategori?.label ?? 'Dokumen'} ${new Date().getFullYear()}`}
+                />
+                <p className="text-xs text-slate-400">
+                  Nama ini tampil sebagai &quot;Nama Berkas&quot; di halaman publik.
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label>File (PDF/JPG/PNG, maks 5MB)</Label>
@@ -227,6 +272,11 @@ export function AdminProduk() {
                   </button>
                 )}
               </div>
+
+              <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-slate-600">
+                Setelah disimpan, dokumen langsung tampil di:{' '}
+                <b>{kategori?.halaman.map((h) => h.label).join(', ')}</b>
+              </p>
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>

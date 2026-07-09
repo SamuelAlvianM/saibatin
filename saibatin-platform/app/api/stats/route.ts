@@ -50,11 +50,12 @@ export async function GET() {
       where: { createdAt: { gte: start6Bulan } },
       select: { createdAt: true },
     }),
-    // Rekap demografi hasil import Excel (level kecamatan). Dijumlahkan untuk
-    // kartu ringkasan beranda; fallback ke placeholder statis bila belum ada.
+    // Rekap demografi hasil import Excel. Total kabupaten dihitung dari data
+    // pekon (level 5) bila ada — konsisten dengan tabel publik yang kini
+    // menjumlahkan pekon; fallback ke baris kecamatan (level 4) lalu placeholder.
     prisma.demografiWilayah.findMany({
-      where: { level: 4, kategori: { in: ["jenis-kelamin", "kk", "wajib-ktp"] } },
-      select: { kategori: true, data: true },
+      where: { level: { in: [4, 5] }, kategori: { in: ["jenis-kelamin", "kk", "wajib-ktp"] } },
+      select: { kategori: true, level: true, data: true },
     }),
   ]);
 
@@ -84,12 +85,16 @@ export async function GET() {
     if (idx !== undefined) trend6[idx].count += 1;
   }
 
-  // Agregasi demografi per kecamatan (import Excel) → total kabupaten.
+  // Agregasi demografi (import Excel) → total kabupaten. Pakai baris pekon
+  // (level 5) bila ada agar sama dengan tabel ringkasan; kalau belum, baris
+  // kecamatan (level 4).
   const hasKat = (kat: string) => demografiRows.some((d) => d.kategori === kat);
+  const rowsFor = (kat: string) => {
+    const pekon = demografiRows.filter((d) => d.kategori === kat && d.level === 5);
+    return pekon.length ? pekon : demografiRows.filter((d) => d.kategori === kat);
+  };
   const sumCol = (kat: string, col: string) =>
-    demografiRows
-      .filter((d) => d.kategori === kat)
-      .reduce((a, d) => a + (Number((d.data as Record<string, unknown>)?.[col]) || 0), 0);
+    rowsFor(kat).reduce((a, d) => a + (Number((d.data as Record<string, unknown>)?.[col]) || 0), 0);
 
   const lakiLaki = hasKat("jenis-kelamin")
     ? sumCol("jenis-kelamin", "L")

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Upload, CheckCircle2, FileSpreadsheet, Pencil } from 'lucide-react';
 import { DEMOGRAFI_KATEGORI } from '@/lib/demografi-kategori';
 import { DemografiEditor } from '@/components/dashboard/demografi-editor';
+import { DemografiView } from '@/components/landingpage/demografi-view';
 
 export function AdminDemografi() {
   const [counts, setCounts] = useState<Record<string, number | null>>({});
@@ -126,6 +127,17 @@ export function AdminDemografi() {
           onSaved={() => refresh(editing.slug)}
         />
       )}
+
+      {/* Pratinjau data tersimpan — sama persis dengan tampilan publik:
+          tabel ringkasan per kecamatan (jumlah seluruh pekon) + tombol Detail. */}
+      <div className="pt-2">
+        <h2 className="mb-1 text-lg font-semibold text-slate-900">Data Tersimpan</h2>
+        <p className="mb-4 text-sm text-slate-500">
+          Angka per kecamatan = <b>jumlah seluruh pekon</b> di bawahnya. Klik <b>Detail</b> untuk
+          rincian per pekon, atau <b>Edit data</b> untuk mengubah langsung.
+        </p>
+        <DemografiView editable onDataChanged={() => DEMOGRAFI_KATEGORI.forEach((k) => refresh(k.slug))} />
+      </div>
     </div>
   );
 }

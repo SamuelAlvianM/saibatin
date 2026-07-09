@@ -6,7 +6,26 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, ChevronDown, ChevronRight, Home, FileText, Info, Building2, Newspaper, Image as ImageIcon, Phone, LogOut, LayoutDashboard, User as UserIcon, Loader2 } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Home,
+  FileText,
+  Info,
+  Building2,
+  Newspaper,
+  Image as ImageIcon,
+  Phone,
+  LogOut,
+  LayoutDashboard,
+  User as UserIcon,
+  Loader2,
+  Ticket,
+  Landmark,
+  ShieldAlert,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -18,7 +37,12 @@ function DropdownMenu({
   icon: Icon,
 }: {
   title: string;
-  items?: Array<{ title: string; href: string; description: string; subItems?: Array<{ title: string; href: string; description: string }> }>;
+  items?: Array<{
+    title: string;
+    href: string;
+    description: string;
+    subItems?: Array<{ title: string; href: string; description: string }>;
+  }>;
   icon?: React.ElementType;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -70,25 +94,27 @@ function DropdownMenu({
           "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-yellow-300",
           "before:transition-all before:duration-300 before:ease-out",
           "hover:before:w-[calc(100%-1.25rem)]",
-          isOpen && "text-yellow-300 bg-white/10"
+          isOpen && "text-yellow-300 bg-white/10",
         )}
       >
         {Icon && (
-          <Icon 
+          <Icon
             className={cn(
               "h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out",
-              isHovered && "scale-110"
-            )} 
-            strokeWidth={2} 
+              isHovered && "scale-110",
+            )}
+            strokeWidth={2}
           />
         )}
-        <span className="transition-transform duration-300 ease-out">{title}</span>
+        <span className="transition-transform duration-300 ease-out">
+          {title}
+        </span>
         {items && (
           <ChevronDown
             className={cn(
               "h-4 w-4 flex-shrink-0 transition-all duration-300 ease-out",
               isOpen && "rotate-180",
-              isHovered && !isOpen && "translate-y-0.5"
+              isHovered && !isOpen && "translate-y-0.5",
             )}
             strokeWidth={2}
           />
@@ -103,7 +129,7 @@ function DropdownMenu({
             style={{
               height: isOpen ? contentHeight : 0,
               opacity: isOpen ? 1 : 0,
-              pointerEvents: isOpen ? 'auto' : 'none',
+              pointerEvents: isOpen ? "auto" : "none",
             }}
           >
             <div
@@ -111,14 +137,14 @@ function DropdownMenu({
               className={cn(
                 "rounded-xl py-2",
                 "transition-all duration-300 ease-out",
-                isOpen ? "shadow-xl scale-100" : "shadow-lg scale-95"
+                isOpen ? "shadow-xl scale-100" : "shadow-lg scale-95",
               )}
               style={{
-                background: 'rgba(255,255,255,0.97)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(33,118,189,0.12)',
-                boxShadow: '0 8px 32px rgba(33,118,189,0.12)',
-                overflow: isOpen ? 'visible' : 'hidden',
+                background: "rgba(255,255,255,0.97)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(33,118,189,0.12)",
+                boxShadow: "0 8px 32px rgba(33,118,189,0.12)",
+                overflow: isOpen ? "visible" : "hidden",
               }}
             >
               {items.map((item, i) => (
@@ -144,7 +170,12 @@ function DropdownItem({
   index,
   isVisible,
 }: {
-  item: { title: string; href: string; description: string; subItems?: Array<{ title: string; href: string; description: string }> };
+  item: {
+    title: string;
+    href: string;
+    description: string;
+    subItems?: Array<{ title: string; href: string; description: string }>;
+  };
   onClose: () => void;
   index: number;
   isVisible: boolean;
@@ -153,7 +184,7 @@ function DropdownItem({
   const [showSubItems, setShowSubItems] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
+    undefined,
   );
 
   const handleMouseEnter = () => {
@@ -165,7 +196,7 @@ function DropdownItem({
       timeoutRef.current = setTimeout(() => setShowDescription(true), 250);
     }
   };
-  
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -186,12 +217,12 @@ function DropdownItem({
   const handleSubmenuLeave = () => {
     setShowSubItems(false);
   };
-  
+
   React.useEffect(
     () => () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     },
-    []
+    [],
   );
 
   if (item.subItems) {
@@ -208,7 +239,7 @@ function DropdownItem({
             "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
             "hover:shadow-sm hover:translate-x-1",
             "transition-[opacity,transform,background,shadow] ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
           )}
           style={{
             transitionDelay: isVisible ? `${index * 40}ms` : "0ms",
@@ -216,33 +247,43 @@ function DropdownItem({
           }}
           onClick={(e) => e.preventDefault()}
         >
-          <div className={cn(
-            "font-medium text-sm transition-all duration-300 ease-out",
-            isHovered && "text-primary translate-x-1"
-          )}>
+          <div
+            className={cn(
+              "font-medium text-sm transition-all duration-300 ease-out",
+              isHovered && "text-primary translate-x-1",
+            )}
+          >
             {item.title}
           </div>
-          <ChevronRight 
+          <ChevronRight
             className={cn(
               "h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out",
-              isHovered && "translate-x-1 text-primary"
-            )} 
-            strokeWidth={2} 
+              isHovered && "translate-x-1 text-primary",
+            )}
+            strokeWidth={2}
           />
         </div>
 
         {/* Sub-menu - appears to the right */}
-        <div 
+        <div
           className={cn(
             "absolute left-full top-0 ml-1 min-w-[250px] z-[100]",
             "transition-all duration-300 ease-out",
-            showSubItems 
-              ? "opacity-100 visible translate-x-0 scale-100" 
-              : "opacity-0 invisible -translate-x-2 scale-95 pointer-events-none"
+            showSubItems
+              ? "opacity-100 visible translate-x-0 scale-100"
+              : "opacity-0 invisible -translate-x-2 scale-95 pointer-events-none",
           )}
           onMouseEnter={handleSubmenuEnter}
         >
-          <div className="rounded-xl shadow-xl py-2" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.12)' }}>
+          <div
+            className="rounded-xl shadow-xl py-2"
+            style={{
+              background: "rgba(255,255,255,0.97)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(33,118,189,0.12)",
+              boxShadow: "0 8px 32px rgba(33,118,189,0.12)",
+            }}
+          >
             {item.subItems.map((subItem, subIndex) => (
               <SubDropdownItem
                 key={subItem.title}
@@ -266,7 +307,7 @@ function DropdownItem({
         "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
         "hover:shadow-sm hover:translate-x-1",
         "transition-[opacity,transform,background,shadow] ease-out",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
       )}
       style={{
         transitionDelay: isVisible ? `${index * 40}ms` : "0ms",
@@ -276,17 +317,19 @@ function DropdownItem({
       onMouseLeave={handleMouseLeave}
       onClick={onClose}
     >
-      <div className={cn(
-        "font-medium text-sm transition-all duration-300 ease-out",
-        isHovered && "text-primary translate-x-1"
-      )}>
+      <div
+        className={cn(
+          "font-medium text-sm transition-all duration-300 ease-out",
+          isHovered && "text-primary translate-x-1",
+        )}
+      >
         {item.title}
       </div>
       <div
         className={cn(
           "text-xs text-muted-foreground overflow-hidden",
           "transition-all duration-300 ease-out",
-          showDescription ? "opacity-100 max-h-20 mt-1" : "opacity-0 max-h-0"
+          showDescription ? "opacity-100 max-h-20 mt-1" : "opacity-0 max-h-0",
         )}
       >
         {item.description}
@@ -307,7 +350,7 @@ function SubDropdownItem({
   const [showDescription, setShowDescription] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
+    undefined,
   );
 
   const handleMouseEnter = () => {
@@ -325,7 +368,7 @@ function SubDropdownItem({
     () => () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     },
-    []
+    [],
   );
 
   return (
@@ -335,28 +378,51 @@ function SubDropdownItem({
         "block px-4 py-3 rounded-md mx-2",
         "transition-all duration-300 ease-out",
         "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
-        "hover:shadow-sm hover:translate-x-1"
+        "hover:shadow-sm hover:translate-x-1",
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClose}
     >
-      <div className={cn(
-        "font-medium text-sm transition-all duration-300 ease-out",
-        isHovered && "text-primary translate-x-1"
-      )}>
+      <div
+        className={cn(
+          "font-medium text-sm transition-all duration-300 ease-out",
+          isHovered && "text-primary translate-x-1",
+        )}
+      >
         {item.title}
       </div>
       <div
         className={cn(
           "text-xs text-muted-foreground overflow-hidden",
           "transition-all duration-300 ease-out",
-          showDescription ? "opacity-100 max-h-20 mt-1" : "opacity-0 max-h-0"
+          showDescription ? "opacity-100 max-h-20 mt-1" : "opacity-0 max-h-0",
         )}
       >
         {item.description}
       </div>
     </Link>
+  );
+}
+
+/** Kotak ikon kecil di kiri item menu mobile. */
+function MobileItemIcon({
+  icon: Icon,
+  active,
+}: {
+  icon?: React.ElementType;
+  active?: boolean;
+}) {
+  if (!Icon) return null;
+  return (
+    <span
+      className={cn(
+        "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors",
+        active ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-500",
+      )}
+    >
+      <Icon className="h-4 w-4" strokeWidth={2} />
+    </span>
   );
 }
 
@@ -367,79 +433,53 @@ function MobileMenuItem({
   icon: Icon,
 }: {
   title: string;
-  items?: Array<{ title: string; href: string; description: string; subItems?: Array<{ title: string; href: string; description: string }> }>;
+  items?: Array<{
+    title: string;
+    href: string;
+    description: string;
+    subItems?: Array<{ title: string; href: string; description: string }>;
+  }>;
   onClose: () => void;
   icon?: React.ElementType;
 }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [expandedSubMenu, setExpandedSubMenu] = React.useState<string | null>(null);
+  const [expandedSubMenu, setExpandedSubMenu] = React.useState<string | null>(
+    null,
+  );
 
   if (!items) {
     return (
       <Link
         href={`/${title.toLowerCase().replace(/\s+/g, "-")}`}
-        className={cn(
-          "block p-3 rounded-lg font-medium flex items-center justify-between gap-2",
-          "transition-all duration-300 ease-out",
-          "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
-          "hover:shadow-sm hover:translate-x-1"
-        )}
+        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
         onClick={onClose}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="flex items-center gap-2">
-          {Icon && (
-            <Icon 
-              className={cn(
-                "h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out",
-                isHovered && "scale-110"
-              )} 
-              strokeWidth={2} 
-            />
-          )}
-          <span className={cn(
-            "transition-transform duration-300 ease-out",
-            isHovered && "translate-x-1"
-          )}>
-            {title}
-          </span>
-        </div>
+        <MobileItemIcon icon={Icon} />
+        {title}
       </Link>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div>
       <button
         onClick={() => setIsExpanded((prev) => !prev)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        aria-expanded={isExpanded}
         className={cn(
-          "w-full p-3 rounded-lg font-medium flex items-center justify-between gap-2 text-left",
-          "transition-all duration-300 ease-out",
-          "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
-          "hover:shadow-sm",
-          isExpanded && "bg-accent/30"
+          "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-[0.925rem] font-medium transition-colors",
+          isExpanded
+            ? "bg-primary/5 text-primary"
+            : "text-slate-700 hover:bg-primary/5 hover:text-primary",
         )}
       >
-        <div className="flex items-center gap-2">
-          {Icon && (
-            <Icon 
-              className={cn(
-                "h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out",
-                isHovered && "scale-110"
-              )} 
-              strokeWidth={2} 
-            />
-          )}
-          <span>{title}</span>
-        </div>
+        <span className="flex items-center gap-3">
+          <MobileItemIcon icon={Icon} active={isExpanded} />
+          {title}
+        </span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out",
-            isExpanded && "rotate-180"
+            "h-4 w-4 flex-shrink-0 text-slate-400 transition-transform duration-300 ease-out",
+            isExpanded && "rotate-180 text-primary",
           )}
           strokeWidth={2}
         />
@@ -448,10 +488,10 @@ function MobileMenuItem({
       <div
         className={cn(
           "overflow-hidden transition-all duration-300 ease-out",
-          isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
         )}
       >
-        <div className="ml-6 space-y-1 border-l-2 border-accent pl-3">
+        <div className="ml-[1.35rem] mt-1 space-y-0.5 border-l border-slate-200 pl-3 pb-1">
           {items.map((item) => {
             if (item.subItems) {
               return (
@@ -459,20 +499,21 @@ function MobileMenuItem({
                   <button
                     onClick={() =>
                       setExpandedSubMenu((prev) =>
-                        prev === item.title ? null : item.title
+                        prev === item.title ? null : item.title,
                       )
                     }
                     className={cn(
-                      "w-full p-2 rounded-md text-sm font-medium flex items-center justify-between gap-2 text-left",
-                      "transition-all duration-300 ease-out",
-                      "hover:bg-accent/50 hover:translate-x-1"
+                      "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                      expandedSubMenu === item.title
+                        ? "text-primary"
+                        : "text-slate-600 hover:bg-primary/5 hover:text-primary",
                     )}
                   >
                     <span>{item.title}</span>
                     <ChevronRight
                       className={cn(
-                        "h-3 w-3 flex-shrink-0 transition-transform duration-300 ease-out",
-                        expandedSubMenu === item.title && "rotate-90"
+                        "h-3.5 w-3.5 flex-shrink-0 text-slate-400 transition-transform duration-300 ease-out",
+                        expandedSubMenu === item.title && "rotate-90 text-primary",
                       )}
                       strokeWidth={2}
                     />
@@ -482,19 +523,15 @@ function MobileMenuItem({
                       "overflow-hidden transition-all duration-300 ease-out",
                       expandedSubMenu === item.title
                         ? "max-h-[1000px] opacity-100"
-                        : "max-h-0 opacity-0"
+                        : "max-h-0 opacity-0",
                     )}
                   >
-                    <div className="ml-4 space-y-1 border-l-2 border-accent/50 pl-3">
+                    <div className="ml-3 mt-0.5 space-y-0.5 border-l border-slate-200 pl-3 pb-1">
                       {item.subItems.map((subItem) => (
                         <Link
                           key={subItem.title}
                           href={subItem.href}
-                          className={cn(
-                            "block p-2 rounded-md text-sm",
-                            "transition-all duration-300 ease-out",
-                            "hover:bg-accent/40 hover:translate-x-1 hover:text-primary"
-                          )}
+                          className="block rounded-lg px-3 py-1.5 text-[0.83rem] text-slate-500 transition-colors hover:bg-primary/5 hover:text-primary"
                           onClick={onClose}
                         >
                           {subItem.title}
@@ -510,11 +547,7 @@ function MobileMenuItem({
               <Link
                 key={item.title}
                 href={item.href}
-                className={cn(
-                  "block p-2 rounded-md text-sm",
-                  "transition-all duration-300 ease-out",
-                  "hover:bg-accent/50 hover:translate-x-1 hover:text-primary"
-                )}
+                className="block rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-primary/5 hover:text-primary"
                 onClick={onClose}
               >
                 {item.title}
@@ -534,11 +567,13 @@ function MobileMenuItem({
 // Icon mapping for navigation items
 const navigationIcons: { [key: string]: React.ElementType } = {
   "Pelayanan Online": Building2,
-  "Pengaduan": Info,
-  "Produk": FileText,
+  Pengaduan: Info,
+  Produk: FileText,
   "Media Informasi": Newspaper,
-  "Gallery": ImageIcon,
+  Gallery: ImageIcon,
   "Hubungi Kami": Phone,
+  PPID: Landmark,
+  WBS: ShieldAlert,
 };
 
 const navigationItems = [
@@ -570,7 +605,7 @@ const navigationItems = [
         href: "/produk/hukum",
         description: "Produk hukum terkait kependudukan",
       },
-      
+
       {
         title: "Standar Operasional Prosedur (SOP)",
         href: "/produk/sop",
@@ -735,8 +770,8 @@ const navigationItems = [
           },
           {
             title: "Perjanjian Kerjasama",
-              href: "/ppid/perjanjian-kerjasama",
-              description: "Perjanjian kerjasama",
+            href: "/ppid/perjanjian-kerjasama",
+            description: "Perjanjian kerjasama",
           },
         ],
       },
@@ -769,6 +804,11 @@ const navigationItems = [
             title: "Standar Operasional Prosedur (SOP)",
             href: "/ppid/sop",
             description: "Standar operasional prosedur",
+          },
+          {
+            title: "LHKPN",
+            href: "/ppid/lhkpn",
+            description: "Laporan Harta Kekayaan Penyelenggara Negara",
           },
           {
             title: "Zona Integritas",
@@ -833,7 +873,8 @@ function AuthArea({
   // Tutup dropdown saat klik di luar.
   React.useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     if (open) document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -861,7 +902,7 @@ function AuthArea({
         asChild
         className={cn(
           mobile && "w-full",
-          "transition-all duration-300 ease-out hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
+          "transition-all duration-300 ease-out hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 active:scale-95 active:translate-y-0",
         )}
       >
         <Link href="/login" onClick={onNavigate}>
@@ -895,6 +936,13 @@ function AuthArea({
           <LayoutDashboard className="h-4 w-4" /> {areaLabel}
         </Link>
         <Link
+          href="/tiket"
+          onClick={onNavigate}
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
+        >
+          <Ticket className="h-4 w-4" /> Tiket Bantuan
+        </Link>
+        <Link
           href="/profil"
           onClick={onNavigate}
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
@@ -906,7 +954,11 @@ function AuthArea({
           disabled={loggingOut}
           className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
         >
-          {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          {loggingOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
           Keluar
         </button>
       </div>
@@ -920,24 +972,44 @@ function AuthArea({
         onClick={() => setOpen((p) => !p)}
         className={cn(
           "inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/15",
-          open && "bg-white/15"
+          open && "bg-white/15",
         )}
       >
         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/40">
           <UserIcon className="h-4 w-4" />
         </span>
         <span className="max-w-[10rem] truncate text-white">{displayName}</span>
-        <ChevronDown className={cn("h-4 w-4 text-white transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-white transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50" style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)', border: '1px solid rgba(33,118,189,0.12)', boxShadow: '0 8px 32px rgba(33,118,189,0.15)' }}>
+        <div
+          className="absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50"
+          style={{
+            background: "rgba(255,255,255,0.97)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(33,118,189,0.12)",
+            boxShadow: "0 8px 32px rgba(33,118,189,0.15)",
+          }}
+        >
           <Link
             href={areaHref}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
           >
             <LayoutDashboard className="h-4 w-4" /> {areaLabel}
+          </Link>
+          <Link
+            href="/tiket"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
+          >
+            <Ticket className="h-4 w-4" /> Tiket Bantuan
           </Link>
           <Link
             href="/profil"
@@ -952,7 +1024,11 @@ function AuthArea({
             disabled={loggingOut}
             className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
           >
-            {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            {loggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
             Keluar
           </button>
         </div>
@@ -978,22 +1054,24 @@ export function Navbar() {
         "sticky top-0 z-50 w-full transition-all duration-500 ease-out glass-nav",
         isScrolled
           ? "shadow-lg shadow-blue-900/20"
-          : "shadow-md shadow-blue-900/10"
+          : "shadow-md shadow-blue-900/10",
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex min-h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0"
             onMouseEnter={() => setLogoHovered(true)}
             onMouseLeave={() => setLogoHovered(false)}
           >
-            <div className={cn(
-              "relative w-10 h-10 transition-all duration-500 ease-out",
-              logoHovered && "scale-120"
-            )}>
+            <div
+              className={cn(
+                "relative w-10 h-10 transition-all duration-500 ease-out",
+                logoHovered && "scale-120",
+              )}
+            >
               <Image
                 src="/logo-saibatin.png"
                 alt="DISDUKCAPIL Logo"
@@ -1003,16 +1081,20 @@ export function Navbar() {
               />
             </div>
             <div className="flex flex-col">
-              <span className={cn(
-                "font-bold text-base leading-tight transition-all duration-300 ease-out text-white",
-                logoHovered && "text-yellow-300 translate-x-1"
-              )}>
+              <span
+                className={cn(
+                  "font-bold text-base leading-tight transition-all duration-300 ease-out text-white",
+                  logoHovered && "text-yellow-300 translate-x-1",
+                )}
+              >
                 SAIBATIN
               </span>
-              <span className={cn(
-                "hidden sm:block text-xs leading-tight transition-all duration-300 ease-out text-primary-foreground/80",
-                logoHovered && "translate-x-1"
-              )}>
+              <span
+                className={cn(
+                  "hidden sm:block text-xs leading-tight transition-all duration-300 ease-out text-primary-foreground/80",
+                  logoHovered && "translate-x-1",
+                )}
+              >
                 Disdukcapil Kab. Pesisir Barat
               </span>
             </div>
@@ -1028,11 +1110,11 @@ export function Navbar() {
                 "hover:text-yellow-300 hover:bg-white/10",
                 "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-yellow-300",
                 "before:transition-all before:duration-300 before:ease-out",
-                "hover:before:w-[calc(100%-1.25rem)]"
+                "hover:before:w-[calc(100%-1.25rem)]",
               )}
             >
-              <Home className="h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={2} />
-              <span>Beranda</span>
+              {/* <Home className="h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={2} />
+              <span>Beranda</span> */}
             </Link>
 
             {navigationItems.map((item) => (
@@ -1053,34 +1135,59 @@ export function Navbar() {
           {/* Mobile Menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild className="lg:hidden">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="transition-all duration-300 ease-out hover:scale-110 hover:bg-accent/50"
+              <button
+                aria-label="Buka menu navigasi"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
               >
-                {mobileOpen ? (
-                  <X className="h-5 w-5 transition-transform duration-300 ease-out rotate-90" />
-                ) : (
-                  <Menu className="h-5 w-5 transition-transform duration-300 ease-out" />
-                )}
-              </Button>
+                <Menu className="h-5 w-5" strokeWidth={2} />
+              </button>
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[300px] sm:w-[400px] md:w-[450px] overflow-y-auto"
+              showCloseButton={false}
+              className="flex w-[320px] flex-col gap-0 border-l-0 p-0 sm:w-[380px] sm:max-w-[380px]"
             >
-              <nav className="flex flex-col space-y-4 mt-8">
+              {/* Kepala panel: identitas + tombol tutup */}
+              <div
+                className="flex items-center justify-between px-5 py-4"
+                style={{ background: "linear-gradient(135deg, #1b4b72 0%, #2176bd 100%)" }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative h-9 w-9">
+                    <Image
+                      src="/logo-saibatin.png"
+                      alt="Logo SAIBATIN"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-tight text-white">SAIBATIN</p>
+                    <p className="text-[0.7rem] leading-tight text-white/70">
+                      Disdukcapil Kab. Pesisir Barat
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  aria-label="Tutup menu"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25"
+                >
+                  <X className="h-4 w-4" strokeWidth={2} />
+                </button>
+              </div>
+
+              {/* Isi menu (scroll) */}
+              <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+                <p className="px-3 pb-1.5 text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">
+                  Menu
+                </p>
                 <Link
                   href="/"
-                  className={cn(
-                    "block p-3 rounded-lg font-medium flex items-center gap-2",
-                    "transition-all duration-300 ease-out",
-                    "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
-                    "hover:shadow-sm hover:translate-x-1"
-                  )}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <Home className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
+                  <MobileItemIcon icon={Home} />
                   Beranda
                 </Link>
 
@@ -1096,22 +1203,18 @@ export function Navbar() {
 
                 <Link
                   href="/kebijakan-privasi"
-                  className={cn(
-                    "block p-3 rounded-lg font-medium flex items-center gap-2",
-                    "transition-all duration-300 ease-out",
-                    "hover:bg-gradient-to-r hover:from-accent/80 hover:to-accent/40",
-                    "hover:shadow-sm hover:translate-x-1"
-                  )}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <FileText className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
+                  <MobileItemIcon icon={FileText} />
                   Kebijakan & Privasi
                 </Link>
-
-                <div className="flex pt-4 border-t">
-                  <AuthArea mobile onNavigate={() => setMobileOpen(false)} />
-                </div>
               </nav>
+
+              {/* Area akun menempel di bawah */}
+              <div className="border-t border-slate-100 bg-slate-50/80 p-4">
+                <AuthArea mobile onNavigate={() => setMobileOpen(false)} />
+              </div>
             </SheetContent>
           </Sheet>
         </nav>

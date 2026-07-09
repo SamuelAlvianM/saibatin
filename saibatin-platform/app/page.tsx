@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { motion, Easing } from "framer-motion";
 import HeroSection from "@/components/landingpage/hero-section";
@@ -15,7 +15,6 @@ const smoothEase: Easing = [0.25, 0.1, 0.25, 1];
 export default function Home() {
   return (
     <div className="relative bg-slate-50/30">
-
       {/* ── Hero: headline + pencarian layanan + carousel ── */}
       <HeroSection />
 
@@ -33,14 +32,14 @@ export default function Home() {
       </motion.section>
 
       {/* ── Menu Layanan Populer ── */}
-      <motion.section
+      {/* <motion.section
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.6, ease: smoothEase }}
       >
         <MenuPopuler />
-      </motion.section>
+      </motion.section> */}
 
       {/* ── Alur layanan 3 langkah ── */}
       <AlurLayanan />

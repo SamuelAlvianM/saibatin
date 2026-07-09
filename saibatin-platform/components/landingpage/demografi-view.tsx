@@ -18,6 +18,8 @@ interface Row {
   kode: string;
   wilayah: string;
   data: Record<string, number>;
+  /** Jumlah pekon/kelurahan di bawah kecamatan ini (dari API ringkasan). */
+  jumlahPekon?: number;
 }
 
 // Label ramah untuk kode kolom singkat (jenis kelamin). Kolom lain sudah bernama lengkap.
@@ -185,9 +187,11 @@ export function DemografiView({
                     <td className="px-4 py-2.5 text-center">
                       <button
                         onClick={() => openDetail(r)}
+                        title={`Lihat rincian ${r.jumlahPekon ?? ''} pekon/kelurahan`.replace('  ', ' ')}
                         className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20"
                       >
-                        Pekon <ChevronRight className="h-3.5 w-3.5" />
+                        Detail{typeof r.jumlahPekon === 'number' && r.jumlahPekon > 0 ? ` (${r.jumlahPekon})` : ''}
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
