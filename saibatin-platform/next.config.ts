@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Build self-contained (server.js + node_modules ter-trace) untuk deploy ke VPS
+  // via PM2 tanpa mengirim source/`npm install` di server.
+  output: "standalone",
+  // tesseract.js & sharp memuat worker/binary native sendiri — jangan di-bundle
+  // oleh Turbopack (kalau di-bundle, resolusi path worker rusak → OCR menggantung).
+  serverExternalPackages: ["tesseract.js", "sharp"],
   // pdfkit butuh file font .afm-nya ikut ter-trace pada build produksi.
   outputFileTracingIncludes: {
     "/api/permohonan/[id]/pdf": ["./node_modules/pdfkit/js/data/*.afm"],

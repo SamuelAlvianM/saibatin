@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={[
         geistSans.variable,
         geistMono.variable,
@@ -48,9 +48,12 @@ export default function RootLayout({
       ].join(" ")}
     >
       <body className={geistSans.className}>
+        <a href="#konten-utama" className="skip-to-content">
+          Lompat ke konten utama
+        </a>
         <Providers>
           <Navbar />
-          {children}
+          <main id="konten-utama">{children}</main>
         </Providers>
       </body>
     </html>

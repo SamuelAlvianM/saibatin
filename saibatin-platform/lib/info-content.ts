@@ -117,6 +117,28 @@ export const ppidContent: Record<string, InfoPageContent> = {
     title: 'Standar Operasional Prosedur (SOP)',
     description: 'SOP PPID Disdukcapil Pesisir Barat.',
   },
+  lhkpn: {
+    title: 'LHKPN',
+    description:
+      'Laporan Harta Kekayaan Penyelenggara Negara pejabat di lingkungan Disdukcapil Pesisir Barat.',
+    body: [
+      'LHKPN (Laporan Harta Kekayaan Penyelenggara Negara) adalah laporan seluruh harta kekayaan yang wajib disampaikan penyelenggara negara kepada Komisi Pemberantasan Korupsi (KPK), sesuai UU No. 28 Tahun 1999 dan Peraturan KPK No. 2 Tahun 2020. Kewajiban ini berlaku antara lain bagi pejabat struktural di lingkungan Dinas Kependudukan dan Pencatatan Sipil Kabupaten Pesisir Barat.',
+      'Pelaporan dilakukan setiap tahun melalui aplikasi e-LHKPN milik KPK. Pengumuman harta kekayaan pejabat yang telah dilaporkan dapat diakses publik melalui menu e-Announcement pada situs resmi e-LHKPN.',
+    ],
+    list: [
+      'Penyampaian LHKPN: paling lambat 31 Maret setiap tahun (periode pelaporan tahun sebelumnya)',
+      'Wajib lapor: Kepala Dinas, Sekretaris, dan pejabat struktural sesuai ketentuan',
+      'Kanal pelaporan: aplikasi e-LHKPN KPK (elhkpn.kpk.go.id)',
+      'Pengumuman harta kekayaan dapat dicari publik melalui menu e-Announcement',
+    ],
+    links: [
+      {
+        label: 'Buka e-LHKPN KPK (e-Announcement)',
+        href: 'https://elhkpn.kpk.go.id',
+        external: true,
+      },
+    ],
+  },
   'zona-integritas': {
     title: 'Zona Integritas',
     description: 'Pembangunan zona integritas menuju WBK/WBBM.',

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
+import { KkScanField } from "@/components/permohonan-online/kk-scan-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +37,7 @@ import {
   FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { notifyError, notifySuccess } from "@/lib/notify";
 
 interface AktaNikahModalProps {
   open: boolean;
@@ -319,6 +321,7 @@ export default function AktaNikahModal({
     
     if (!isValid) {
       setErrors(stepErrors);
+      notifyError(stepErrors, "Data belum lengkap");
       // Scroll to top to show errors
       const formElement = document.querySelector('form');
       if (formElement) {
@@ -506,6 +509,7 @@ export default function AktaNikahModal({
 
       if (result.error && result.error.length > 0) {
         setErrors(result.error.flat());
+        notifyError(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         const serverFileName = result.success[0];
 
@@ -566,6 +570,7 @@ export default function AktaNikahModal({
       const { isValid, errors: stepErrors } = validateStep(step);
       if (!isValid) {
         setErrors(stepErrors);
+        notifyError(stepErrors, "Data belum lengkap");
         setCurrentStep(step);
         return false;
       }
@@ -606,8 +611,10 @@ export default function AktaNikahModal({
 
       if (result.error && result.error.length > 0) {
         setErrors(result.error.flat());
+        notifyError(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         setSuccess(result.success.flat());
+        notifySuccess(result.success.flat());
         setTimeout(() => { window.location.href = "/riwayat"; }, 1200);
         setTimeout(() => {
           onOpenChange(false);
@@ -856,12 +863,10 @@ export default function AktaNikahModal({
                       {formData.pemohonkk.length}/16
                     </span>
                   </Label>
-                  <Input
+                  <KkScanField
                     id="pemohonkk"
                     value={formData.pemohonkk}
-                    onChange={(e) => handleInputChange("pemohonkk", e.target.value)}
-                    placeholder="Masukkan 16 digit KK"
-                    maxLength={16}
+                    onChange={(v) => handleInputChange("pemohonkk", v)}
                     className={getInputClass("pemohonkk")}
                   />
                   {showFieldError("pemohonkk")}
