@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { DOKUMEN_KEYS } from "@/lib/dokumen-registry";
 
-// Jenis sesuai kolom Produk.jenis (lihat schema).
-const JENIS_VALID = ["PERSYARATAN", "HUKUM", "SOP", "STANDAR_PELAYANAN", "DAFDUK"];
+// Jenis valid = registry dokumen (lib/dokumen-registry.ts) + legacy DAFDUK.
+const JENIS_VALID = new Set([...DOKUMEN_KEYS, "DAFDUK"]);
 
 async function requireAdmin() {
   const session = await getSession();
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { jenis, judul, file, konten } = body as Record<string, string>;
 
-  if (!jenis || !JENIS_VALID.includes(jenis)) return fail(["Info: Jenis tidak valid"]);
+  if (!jenis || !JENIS_VALID.has(jenis)) return fail(["Info: Jenis tidak valid"]);
   if (!judul?.trim()) return fail(["Info: Judul wajib diisi"]);
   if (!file && !konten) return fail(["Info: Lampirkan file atau isi konten"]);
 

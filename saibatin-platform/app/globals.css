@@ -393,3 +393,59 @@
 }
 /* Leaflet control cleanup di dalam kartu */
 .leaflet-container { font-family: inherit; }
+
+/* ── Aksesibilitas (accessibility-widget) ── */
+/* Kontras tinggi: pertegas teks & border tanpa merusak layout */
+html.a11y-contrast body {
+  filter: contrast(1.15);
+}
+html.a11y-contrast body a,
+html.a11y-contrast body button {
+  text-decoration-thickness: 2px;
+}
+
+/* Skala abu-abu (membantu sebagian low-vision / buta warna) */
+html.a11y-grayscale body {
+  filter: grayscale(1);
+}
+html.a11y-contrast.a11y-grayscale body {
+  filter: contrast(1.15) grayscale(1);
+}
+
+/* Garis bawahi semua tautan agar mudah dikenali */
+html.a11y-underline a {
+  text-decoration: underline !important;
+  text-underline-offset: 2px;
+}
+
+/* Hentikan seluruh animasi & transisi (vestibular / gangguan fokus) */
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Fokus keyboard yang selalu jelas (navigasi tanpa mouse) */
+:focus-visible {
+  outline: 3px solid #2176bd !important;
+  outline-offset: 2px;
+}
+
+/* Tautan lompat ke konten utama untuk pengguna screen reader/keyboard */
+.skip-to-content {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 100;
+  background: #1b4b72;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: top 0.15s ease;
+}
+.skip-to-content:focus {
+  top: 12px;
+}

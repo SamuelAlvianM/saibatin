@@ -1,59 +1,50 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Footer } from '@/components/shared/footer';
-import { DemografiChart } from '@/components/shared/demografi-chart';
-import { Loader2 } from 'lucide-react';
-import type { DemografiDataset } from '@/lib/demografi-data';
+import { BackButton } from '@/components/shared/back-button';
+import { DemografiView } from '@/components/landingpage/demografi-view';
+import { getDemografiKategori, DEMOGRAFI_KATEGORI } from '@/lib/demografi-kategori';
+import { Users } from 'lucide-react';
 
-interface ApiResp {
-  title: string;
-  description: string;
-  labels: string[];
-  data: number[];
-  satuan: string;
+export function generateStaticParams() {
+  return DEMOGRAFI_KATEGORI.map((k) => ({ slug: k.slug }));
 }
 
-export default function DemografiPage() {
-  const params = useParams<{ slug: string }>();
-  const [dataset, setDataset] = useState<DemografiDataset | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [missing, setMissing] = useState(false);
-
-  useEffect(() => {
-    fetch(`/api/demografi/${params.slug}`)
-      .then((r) => r.json())
-      .then((j) => {
-        if (j.error?.length) {
-          setMissing(true);
-          return;
-        }
-        const d = j.data as ApiResp;
-        setDataset({
-          title: d.title,
-          description: d.description,
-          unit: d.satuan,
-          items: d.labels.map((label, i) => ({ label, value: d.data[i] })),
-        });
-      })
-      .finally(() => setLoading(false));
-  }, [params.slug]);
-
-  if (missing) notFound();
+export default async function DemografiKategoriPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const info = getDemografiKategori(slug);
+  if (!info) notFound();
 
   return (
-    <div className="relative bg-slate-50/30 min-h-screen">
-      <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 lg:py-16">
-        {loading || !dataset ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    <>
+      <div className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+        <div className="container relative z-10 mx-auto px-4 py-12 md:px-8 md:py-14 lg:px-16">
+          <BackButton href="/" />
+          <div className="mt-4 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
+                Data Demografi — {info.label}
+              </h1>
+              <p className="text-sm text-slate-500">
+                Angka per kecamatan adalah <b>jumlah seluruh pekon</b> di bawahnya — klik{' '}
+                <b>Detail</b> untuk rincian tiap pekon/kelurahan.
+              </p>
+            </div>
           </div>
-        ) : (
-          <DemografiChart dataset={dataset} />
-        )}
+        </div>
       </div>
+
+      <div className="container mx-auto px-4 py-10 md:px-8 lg:px-16">
+        <DemografiView initialKategori={info.slug} />
+      </div>
+
       <Footer />
-    </div>
+    </>
   );
 }

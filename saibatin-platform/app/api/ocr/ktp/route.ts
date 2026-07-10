@@ -1,9 +1,24 @@
 import { NextRequest } from "next/server";
 import path from "path";
-import sharp from "sharp";
+import { createRequire } from "module";
 import { createWorker, OEM, type Worker } from "tesseract.js";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+
+// sharp dimuat via require CJS runtime, BUKAN import ESM. Di Next dev (turbopack)
+// import ESM sharp di-"externalImport" dan require file .node-nya mengembalikan
+// objek kosong → `sharp.libvipsVersion is not a function`. createRequire memakai
+// resolusi native Node sehingga binary termuat benar. (serverExternalPackages
+// sudah mencantumkan "sharp".)
+type Sharp = typeof import("sharp").default;
+let sharpMod: Sharp | null = null;
+function loadSharp(): Sharp {
+  if (!sharpMod) {
+    const nodeRequire = createRequire(import.meta.url);
+    sharpMod = nodeRequire("sharp") as Sharp;
+  }
+  return sharpMod;
+}
 
 // OCR memakai CPU cukup berat → wajib Node runtime (bukan Edge) & tak di-cache.
 export const runtime = "nodejs";
@@ -168,6 +183,8 @@ export async function POST(req: NextRequest) {
   if (file.size > MAX_UPLOAD) return fail(["Ukuran gambar maksimal 8 MB"]);
 
   const input = Buffer.from(await file.arrayBuffer());
+
+  const sharp = loadSharp();
 
   // Pra-proses dasar: auto-orient EXIF, upscale, grayscale, normalize, sharpen.
   let base: Buffer;

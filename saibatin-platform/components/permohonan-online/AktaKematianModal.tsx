@@ -36,6 +36,7 @@ import {
   Cross,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { notifyError, notifySuccess } from "@/lib/notify";
 
 interface AktaKematianModalProps {
   open: boolean;
@@ -377,6 +378,7 @@ export default function AktaKematianModal({
     
     if (!isValid) {
       setErrors(stepErrors);
+      notifyError(stepErrors, "Data belum lengkap");
       // Scroll to top to show errors
       const formElement = document.querySelector('form');
       if (formElement) {
@@ -570,6 +572,7 @@ export default function AktaKematianModal({
 
       if (result.error && result.error.length > 0) {
         setErrors(result.error.flat());
+        notifyError(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         const serverFileName = result.success[0];
 
@@ -625,6 +628,7 @@ export default function AktaKematianModal({
       const { isValid, errors: stepErrors } = validateStep(step);
       if (!isValid) {
         setErrors(stepErrors);
+        notifyError(stepErrors, "Data belum lengkap");
         setCurrentStep(step);
         return false;
       }
@@ -664,8 +668,10 @@ export default function AktaKematianModal({
 
       if (result.error && result.error.length > 0) {
         setErrors(result.error.flat());
+        notifyError(result.error.flat());
       } else if (result.success && result.success.length > 0) {
         setSuccess(result.success.flat());
+        notifySuccess(result.success.flat());
         setTimeout(() => { window.location.href = "/riwayat"; }, 1200);
         setTimeout(() => {
           onOpenChange(false);

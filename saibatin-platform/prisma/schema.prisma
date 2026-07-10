@@ -7,6 +7,9 @@
 
 generator client {
   provider = "prisma-client-js"
+  // "native" = Windows (dev lokal); target Linux agar engine ikut ter-bundle saat
+  // build lokal untuk deploy ke Ubuntu 22.04 (OpenSSL 3.0).
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -43,6 +46,8 @@ model User {
 
   level        UserLevel?    @relation(fields: [userlevelId], references: [id])
   permohonans  Permohonan[]
+  tikets       Tiket[]       @relation("TiketPembuat")
+  tiketPesan   TiketPesan[]  @relation("TiketPengirim")
 
   @@index([userId])
   @@index([userNik])
@@ -243,4 +248,61 @@ model Wilayah {
 
   @@index([jenis])
   @@map("m_wilayah")
+}
+
+/// Tiket layanan/chat. Warga membuka tiket bantuan ke petugas; staf/admin/OPD
+/// juga berkomunikasi antar mereka lewat tiket (kategori INTERNAL). Tiket dapat
+/// ditutup/dibuka manual, dan tertutup OTOMATIS bila tidak ada aktivitas
+/// selama TIKET_AUTO_CLOSE_DAYS hari (dicek malas di /api/tiket).
+model Tiket {
+  id        Int       @id @default(autoincrement())
+  nomor     String    @unique // TKT<timestamp>
+  userId    Int       @map("user_id") // pembuat tiket
+  subjek    String
+  kategori  String    @default("LAYANAN") // LAYANAN | TEKNIS | INTERNAL
+  status    String    @default("TERBUKA") // TERBUKA | TERTUTUP
+  closedAt  DateTime? @map("closed_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at") // aktivitas terakhir (dasar auto-close)
+
+  user  User         @relation("TiketPembuat", fields: [userId], references: [id])
+  pesan TiketPesan[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("t_tiket")
+}
+
+/// Pesan/balasan di dalam sebuah tiket (chat).
+model TiketPesan {
+  id        Int      @id @default(autoincrement())
+  tiketId   Int      @map("tiket_id")
+  userId    Int      @map("user_id") // pengirim
+  isi       String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tiket Tiket @relation(fields: [tiketId], references: [id], onDelete: Cascade)
+  user  User  @relation("TiketPengirim", fields: [userId], references: [id])
+
+  @@index([tiketId])
+  @@map("t_tiket_pesan")
+}
+
+/// Data demografi agregat per wilayah, hasil import Excel Dukcapil (SIAK).
+/// `kategori` = jenis-kelamin/agama/gol-darah/pekerjaan/kk/pendidikan/status-kawin/wajib-ktp.
+/// `data` menyimpan kolom nilai (mis. { L, P, JML } untuk jenis kelamin).
+/// Hierarki via `level` (4=kecamatan, 5=pekon/kelurahan) + `parentKode`.
+model DemografiWilayah {
+  id         Int      @id @default(autoincrement())
+  kategori   String
+  kode       String
+  wilayah    String
+  level      Int      // 4=kecamatan, 5=pekon/kelurahan
+  parentKode String?  @map("parent_kode")
+  data       Json
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([kategori, kode])
+  @@index([kategori, level])
+  @@map("m_demografi_wilayah")
 }

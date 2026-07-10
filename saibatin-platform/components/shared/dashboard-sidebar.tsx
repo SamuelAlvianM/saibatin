@@ -16,6 +16,8 @@ import {
   FileText,
   MessagesSquare,
   Images,
+  BarChart3,
+  TicketCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -50,12 +52,14 @@ const GROUPS: MenuGroup[] = [
       { href: '/dashboard/berita', label: 'Berita', icon: Newspaper },
       { href: '/dashboard/galeri', label: 'Galeri', icon: ImageIcon },
       { href: '/dashboard/media', label: 'Pustaka Media', icon: Images },
-      { href: '/dashboard/produk', label: 'Produk & Dokumen', icon: FolderOpen },
+      { href: '/dashboard/produk', label: 'Dokumen Publikasi', icon: FolderOpen },
+      { href: '/dashboard/demografi', label: 'Data Demografi', icon: BarChart3 },
     ],
   },
   {
     title: 'Aspirasi Warga',
     items: [
+      { href: '/dashboard/tiket', label: 'Tiket & Chat', icon: TicketCheck },
       { href: '/dashboard/pengaduan', label: 'Pengaduan', icon: MessageSquare },
       { href: '/dashboard/kritik-saran', label: 'Kritik & Saran', icon: MessagesSquare },
       { href: '/dashboard/skm', label: 'SKM & IKM', icon: Gauge },

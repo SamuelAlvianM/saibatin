@@ -33,6 +33,7 @@ export async function GET() {
     totalBerita,
     grouped,
     recent,
+    demografiRows,
   ] = await Promise.all([
     prisma.permohonan.count(),
     prisma.permohonan.count({ where: { status: "SELESAI" } }),
@@ -48,6 +49,13 @@ export async function GET() {
     prisma.permohonan.findMany({
       where: { createdAt: { gte: start6Bulan } },
       select: { createdAt: true },
+    }),
+    // Rekap demografi hasil import Excel. Total kabupaten dihitung dari data
+    // pekon (level 5) bila ada — konsisten dengan tabel publik yang kini
+    // menjumlahkan pekon; fallback ke baris kecamatan (level 4) lalu placeholder.
+    prisma.demografiWilayah.findMany({
+      where: { level: { in: [4, 5] }, kategori: { in: ["jenis-kelamin", "kk", "wajib-ktp"] } },
+      select: { kategori: true, level: true, data: true },
     }),
   ]);
 
@@ -77,10 +85,35 @@ export async function GET() {
     if (idx !== undefined) trend6[idx].count += 1;
   }
 
-  const lakiLaki = find("jenis-kelamin", "Laki-laki");
-  const perempuan = find("jenis-kelamin", "Perempuan");
-  const sudahKtpEl = find("wajib-ktp", "Sudah Memiliki KTP-el");
-  const belumKtpEl = find("wajib-ktp", "Belum Memiliki KTP-el");
+  // Agregasi demografi (import Excel) → total kabupaten. Pakai baris pekon
+  // (level 5) bila ada agar sama dengan tabel ringkasan; kalau belum, baris
+  // kecamatan (level 4).
+  const hasKat = (kat: string) => demografiRows.some((d) => d.kategori === kat);
+  const rowsFor = (kat: string) => {
+    const pekon = demografiRows.filter((d) => d.kategori === kat && d.level === 5);
+    return pekon.length ? pekon : demografiRows.filter((d) => d.kategori === kat);
+  };
+  const sumCol = (kat: string, col: string) =>
+    rowsFor(kat).reduce((a, d) => a + (Number((d.data as Record<string, unknown>)?.[col]) || 0), 0);
+
+  const lakiLaki = hasKat("jenis-kelamin")
+    ? sumCol("jenis-kelamin", "L")
+    : find("jenis-kelamin", "Laki-laki");
+  const perempuan = hasKat("jenis-kelamin")
+    ? sumCol("jenis-kelamin", "P")
+    : find("jenis-kelamin", "Perempuan");
+  const kepalaKeluarga = hasKat("kk")
+    ? sumCol("kk", "KK_JML")
+    : sum("kepala-keluarga");
+  // Wajib KTP: kolom JML (wajib) & JML_WKTP (sudah rekam). Bila belum diimport,
+  // pakai placeholder statis. Pemetaan kolom file WKTP dapat disesuaikan.
+  const wajibKtp = hasKat("wajib-ktp")
+    ? sumCol("wajib-ktp", "JML")
+    : find("wajib-ktp", "Sudah Memiliki KTP-el") + find("wajib-ktp", "Belum Memiliki KTP-el");
+  const sudahKtpEl = hasKat("wajib-ktp")
+    ? sumCol("wajib-ktp", "JML_WKTP")
+    : find("wajib-ktp", "Sudah Memiliki KTP-el");
+  const belumKtpEl = Math.max(0, wajibKtp - sudahKtpEl);
 
   return ok({
     // ── Pelayanan (live dari database) ──
@@ -98,8 +131,8 @@ export async function GET() {
     jumlahPenduduk: lakiLaki + perempuan,
     lakiLaki,
     perempuan,
-    kepalaKeluarga: sum("kepala-keluarga"),
-    wajibKtp: sudahKtpEl + belumKtpEl,
+    kepalaKeluarga,
+    wajibKtp,
     sudahKtpEl,
     belumKtpEl,
     periodeKependudukan:

@@ -17,11 +17,15 @@ import {
   Search,
   ArrowRight,
   FilePlus2,
+  SlidersHorizontal,
+  ArrowLeft,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/shared/back-button';
 import { LAYANAN_FORMS, type LayananForm } from '@/lib/layanan-forms';
 import { StaffPengajuanForm } from '@/components/dashboard/staff-pengajuan-form';
+import { PengaturanPelayanan } from '@/components/dashboard/pengaturan-pelayanan';
 
 const ICONS: Record<string, React.ElementType> = {
   FileText, Baby, Users, UserPlus, Printer, ScrollText, Heart, Book, IdCard, MapPin, Home, Zap,
@@ -29,7 +33,30 @@ const ICONS: Record<string, React.ElementType> = {
 
 export function PengajuanBaruClient() {
   const [selected, setSelected] = useState<LayananForm | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [q, setQ] = useState('');
+
+  // ── Mode pengaturan layanan (visibilitas di permohonan online) ──
+  if (showSettings) {
+    return (
+      <div>
+        <div className="mb-6 flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setShowSettings(false)} className="gap-1.5">
+            <ArrowLeft className="h-4 w-4" /> Kembali
+          </Button>
+          <div>
+            <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-900">
+              <SlidersHorizontal className="h-5 w-5 text-primary" /> Pengaturan Pelayanan
+            </h1>
+            <p className="text-sm text-slate-500">
+              Pilih layanan mana yang boleh tampil di halaman Permohonan Online publik.
+            </p>
+          </div>
+        </div>
+        <PengaturanPelayanan />
+      </div>
+    );
+  }
 
   const filtered = q.trim()
     ? LAYANAN_FORMS.filter(
@@ -57,9 +84,20 @@ export function PengajuanBaruClient() {
             Bantu warga mengajukan permohonan. Pilih jenis layanan untuk membuka formulirnya.
           </p>
         </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input placeholder="Cari layanan..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input placeholder="Cari layanan..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowSettings(true)}
+            title="Atur layanan yang tampil di Permohonan Online"
+            className="shrink-0 gap-1.5"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="hidden sm:inline">Pengaturan</span>
+          </Button>
         </div>
       </div>
 

@@ -29,3 +29,7 @@ next-env.d.ts
 
 # Media terupload runtime (backup terpisah, jangan ikut git)
 /storage/uploads/
+
+# Deploy secrets
+deploy/.env
+.ssh/saibatin-tunnel.ctl

@@ -7,6 +7,7 @@ import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { useAppDispatch } from "@/store/hooks";
 import { verifySession } from "@/store/slices/authSlice";
 import { InlineEditProvider } from "@/components/konten/inline-edit";
+import { AccessibilityWidget } from "@/components/shared/accessibility-widget";
 
 /** Hydrasi status login dari cookie sesi saat aplikasi dimuat. */
 function SessionHydrator() {
@@ -24,7 +25,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <>
       <SessionHydrator />
       <InlineEditProvider>{children}</InlineEditProvider>
-      <Toaster richColors position="top-center" />
+      <AccessibilityWidget />
+      <Toaster
+        richColors
+        closeButton
+        position="top-center"
+        duration={5000}
+        toastOptions={{ classNames: { toast: "!items-start" } }}
+      />
     </>
   );
 
