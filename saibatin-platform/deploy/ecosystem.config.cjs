@@ -25,6 +25,11 @@ module.exports = {
         MAIL_USER: process.env.MAIL_USER,
         MAIL_PASS: process.env.MAIL_PASS,
         MAIL_FROM: process.env.MAIL_FROM,
+        // OTP WhatsApp (Fonnte): kosong = OTP dilewati saat register.
+        FONNTE_TOKEN: process.env.FONNTE_TOKEN,
+        // Halaman /dashboard/master: kosong = fitur dinonaktifkan (503).
+        MASTER_PASSWORD: process.env.MASTER_PASSWORD,
+        TIKET_AUTO_CLOSE_DAYS: process.env.TIKET_AUTO_CLOSE_DAYS,
       },
     },
   ],
