@@ -3,15 +3,14 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Loader2, KeyRound, Eye, EyeOff, Lock } from 'lucide-react';
+import { Loader2, KeyRound, Lock } from 'lucide-react';
 
 export function ChangePasswordForm() {
   const [passwordLama, setPasswordLama] = useState('');
   const [passwordBaru, setPasswordBaru] = useState('');
   const [konfirmasi, setKonfirmasi] = useState('');
-  const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
@@ -67,9 +66,8 @@ export function ChangePasswordForm() {
           <Label htmlFor="passwordLama" className="flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5" /> Password Lama
           </Label>
-          <Input
+          <PasswordInput
             id="passwordLama"
-            type={show ? 'text' : 'password'}
             value={passwordLama}
             onChange={(e) => setPasswordLama(e.target.value)}
             required
@@ -79,9 +77,8 @@ export function ChangePasswordForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label htmlFor="passwordBaru">Password Baru</Label>
-            <Input
+            <PasswordInput
               id="passwordBaru"
-              type={show ? 'text' : 'password'}
               value={passwordBaru}
               onChange={(e) => setPasswordBaru(e.target.value)}
               required
@@ -89,24 +86,14 @@ export function ChangePasswordForm() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="konfirmasi">Konfirmasi Password</Label>
-            <Input
+            <PasswordInput
               id="konfirmasi"
-              type={show ? 'text' : 'password'}
               value={konfirmasi}
               onChange={(e) => setKonfirmasi(e.target.value)}
               required
             />
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary"
-        >
-          {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-          {show ? 'Sembunyikan' : 'Tampilkan'} password
-        </button>
 
         <div>
           <Button
