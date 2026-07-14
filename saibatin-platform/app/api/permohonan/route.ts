@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { getSession } from "@/lib/auth";
+import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /** Daftar permohonan milik warga login, opsional filter status. */
 export async function GET(req: NextRequest) {
@@ -54,6 +55,18 @@ export async function POST(req: NextRequest) {
       payload: (payload ?? {}) as object,
     },
   });
+
+  // Notifikasi ke petugas: ada permohonan masuk.
+  await safeNotify(() =>
+    notifyPetugas({
+      tipe: "PERMOHONAN_BARU",
+      judul: "Permohonan baru masuk",
+      isi: `${session.nama ?? session.userId} mengajukan ${jenis.nama} (${noregister}).`,
+      link: "/dashboard/permohonan",
+      refType: "Permohonan",
+      refId: permohonan.id,
+    }),
+  );
 
   return ok({ noregister: permohonan.noregister, id: permohonan.id }, [
     "Info: Permohonan berhasil diajukan",

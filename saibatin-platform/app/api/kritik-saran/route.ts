@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { getSession } from "@/lib/auth";
+import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /** Kirim kritik & saran (port frtHubungiKamiKritikSaran/postdata). */
 export async function POST(req: NextRequest) {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     return fail(["Info: Nama dan pesan wajib diisi"]);
   }
 
-  await prisma.kritikSaran.create({
+  const kritik = await prisma.kritikSaran.create({
     data: {
       nama: nama.trim(),
       email: email?.trim() || null,
@@ -24,6 +25,18 @@ export async function POST(req: NextRequest) {
       pesan: pesan.trim(),
     },
   });
+
+  await safeNotify(() =>
+    notifyPetugas({
+      tipe: "KRITIK_BARU",
+      judul: "Kritik & saran baru",
+      isi: `${nama.trim()} mengirim kritik & saran.`,
+      link: "/dashboard/kritik-saran",
+      refType: "KritikSaran",
+      refId: kritik.id,
+    }),
+  );
+
   return ok(null, ["Info: Kritik & saran berhasil dikirim"]);
 }
 
