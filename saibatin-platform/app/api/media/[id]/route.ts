@@ -12,7 +12,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session || session.level !== 1) return fail(["Tidak diizinkan"], 403);
 
   const { id } = await params;
   const media = await prisma.media.findUnique({ where: { id } });

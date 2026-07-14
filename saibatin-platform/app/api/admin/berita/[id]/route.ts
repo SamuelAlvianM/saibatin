@@ -6,7 +6,7 @@ import { slugify } from "@/lib/slug";
 
 async function requireAdmin() {
   const session = await getSession();
-  if (!session || session.level > 2) return null;
+  if (!session || session.level !== 1) return null;
   return session;
 }
 

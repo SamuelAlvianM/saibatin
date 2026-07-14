@@ -97,6 +97,27 @@ const MOBILE_MAIN: MenuItem[] = [
   { href: '/dashboard/pengaduan', label: 'Pengaduan', icon: MessageSquare },
 ];
 
+// Grup menu yang hanya boleh dilihat & diakses admin (level 1) — staff tidak.
+const ADMIN_ONLY_GROUPS = new Set(['Konten & Media']);
+const ADMIN_ONLY_HREFS = new Set([
+  '/dashboard/konten',
+  '/dashboard/berita',
+  '/dashboard/galeri',
+  '/dashboard/media',
+  '/dashboard/produk',
+  '/dashboard/demografi',
+]);
+
+function groupsForLevel(level: number): MenuGroup[] {
+  if (level === 1) return GROUPS;
+  return GROUPS.filter((g) => !ADMIN_ONLY_GROUPS.has(g.title ?? ''));
+}
+
+function mobileMainForLevel(level: number): MenuItem[] {
+  if (level === 1) return MOBILE_MAIN;
+  return MOBILE_MAIN.filter((m) => !ADMIN_ONLY_HREFS.has(m.href));
+}
+
 const COLLAPSE_KEY = 'saibatin-dash-collapsed';
 
 function useIsActive() {
@@ -226,7 +247,7 @@ function DesktopSidebar() {
 
       {/* Menu */}
       <nav className={cn('flex-1 overflow-y-auto p-3', collapsed && 'px-2')}>
-        {GROUPS.map((group, gi) => (
+        {groupsForLevel(user?.level ?? 3).map((group, gi) => (
           <div key={gi} className="flex flex-col gap-0.5">
             {group.title && !collapsed && (
               <p className="px-3 pt-4 pb-1.5 text-[0.62rem] font-bold uppercase tracking-widest text-slate-400">
@@ -348,6 +369,8 @@ function MobileTopBar() {
 function MobileBottomNav() {
   const isActive = useIsActive();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const { user } = useAppSelector((state) => state.auth);
+  const level = user?.level ?? 3;
 
   return (
     <nav
@@ -356,7 +379,7 @@ function MobileBottomNav() {
       aria-label="Navigasi dashboard"
     >
       <div className="grid grid-cols-5">
-        {MOBILE_MAIN.map((m) => {
+        {mobileMainForLevel(level).map((m) => {
           const active = isActive(m.href, m.exact);
           return (
             <Link
@@ -422,7 +445,7 @@ function MobileBottomNav() {
                 Kembali ke Beranda
               </Link>
 
-              {GROUPS.map((group, gi) => (
+              {groupsForLevel(level).map((group, gi) => (
                 <div key={gi}>
                   {group.title && (
                     <p className="px-1 pt-3 pb-1.5 text-[0.62rem] font-bold uppercase tracking-widest text-slate-400">

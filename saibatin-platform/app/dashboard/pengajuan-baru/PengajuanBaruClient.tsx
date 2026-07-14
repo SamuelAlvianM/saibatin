@@ -18,14 +18,22 @@ import {
   ArrowRight,
   FilePlus2,
   SlidersHorizontal,
-  ArrowLeft,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { BackButton } from '@/components/shared/back-button';
+import { useAppSelector } from '@/store/hooks';
 import { LAYANAN_FORMS, type LayananForm } from '@/lib/layanan-forms';
 import { StaffPengajuanForm } from '@/components/dashboard/staff-pengajuan-form';
 import { PengaturanPelayanan } from '@/components/dashboard/pengaturan-pelayanan';
+import { JamLayananEditor } from '@/components/dashboard/jam-layanan-editor';
 
 const ICONS: Record<string, React.ElementType> = {
   FileText, Baby, Users, UserPlus, Printer, ScrollText, Heart, Book, IdCard, MapPin, Home, Zap,
@@ -35,28 +43,9 @@ export function PengajuanBaruClient() {
   const [selected, setSelected] = useState<LayananForm | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [q, setQ] = useState('');
-
-  // ── Mode pengaturan layanan (visibilitas di permohonan online) ──
-  if (showSettings) {
-    return (
-      <div>
-        <div className="mb-6 flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => setShowSettings(false)} className="gap-1.5">
-            <ArrowLeft className="h-4 w-4" /> Kembali
-          </Button>
-          <div>
-            <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-900">
-              <SlidersHorizontal className="h-5 w-5 text-primary" /> Pengaturan Pelayanan
-            </h1>
-            <p className="text-sm text-slate-500">
-              Pilih layanan mana yang boleh tampil di halaman Permohonan Online publik.
-            </p>
-          </div>
-        </div>
-        <PengaturanPelayanan />
-      </div>
-    );
-  }
+  // Pengaturan pelayanan (visibilitas + jam) hanya untuk admin (level 1).
+  const { user } = useAppSelector((s) => s.auth);
+  const isAdmin = (user?.level ?? 3) === 1;
 
   const filtered = q.trim()
     ? LAYANAN_FORMS.filter(
@@ -89,17 +78,49 @@ export function PengajuanBaruClient() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input placeholder="Cari layanan..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowSettings(true)}
-            title="Atur layanan yang tampil di Permohonan Online"
-            className="shrink-0 gap-1.5"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            <span className="hidden sm:inline">Pengaturan</span>
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              onClick={() => setShowSettings(true)}
+              title="Atur ketersediaan layanan & jam kerja permohonan"
+              className="shrink-0 gap-1.5"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              <span className="hidden sm:inline">Pengaturan</span>
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Drawer pengaturan: meluncur dari kanan dengan overlay gelap */}
+      {isAdmin && (
+        <Sheet open={showSettings} onOpenChange={setShowSettings}>
+          <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
+            <SheetHeader className="pb-0">
+              <SheetTitle className="flex items-center gap-2">
+                <SlidersHorizontal className="h-5 w-5 text-primary" /> Kelola Layanan
+              </SheetTitle>
+              <SheetDescription>
+                Atur ketersediaan jenis layanan &amp; jam kerja permohonan.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="space-y-8 px-4 pb-8">
+              <section>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Jam Kerja Permohonan
+                </h3>
+                <JamLayananEditor />
+              </section>
+              <section>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Ketersediaan Jenis Layanan
+                </h3>
+                <PengaturanPelayanan />
+              </section>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
 
       {filtered.length === 0 ? (
         <div className="py-16 text-center text-sm text-slate-500">Tidak ada layanan cocok "{q}".</div>
