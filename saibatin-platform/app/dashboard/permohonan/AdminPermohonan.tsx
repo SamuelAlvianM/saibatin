@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import { Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText, Eye } from 'lucide-react';
+import { Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText, Eye, Lock, AlertTriangle } from 'lucide-react';
+
+/** Status final — data terkunci, hanya bisa dibuka lewat halaman Master. */
+const FINAL_STATUS = ['SELESAI', 'DITOLAK'];
 
 interface Item {
   id: number;
@@ -49,6 +52,8 @@ export function AdminPermohonan() {
   const [editStatus, setEditStatus] = useState('');
   const [editCatatan, setEditCatatan] = useState('');
   const [saving, setSaving] = useState(false);
+  // Konfirmasi ekstra sebelum status dijadikan final (Selesai/Ditolak).
+  const [confirmFinal, setConfirmFinal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,10 +74,22 @@ export function AdminPermohonan() {
     setEditing(it);
     setEditStatus(it.status);
     setEditCatatan(it.catatan ?? '');
+    setConfirmFinal(false);
   };
 
+  const closeEdit = () => {
+    setEditing(null);
+    setConfirmFinal(false);
+  };
+
+  /** Klik Simpan: status final butuh konfirmasi ekstra dulu. */
   const save = async () => {
     if (!editing) return;
+    if (FINAL_STATUS.includes(editStatus) && !confirmFinal) {
+      setConfirmFinal(true);
+      return;
+    }
+    setConfirmFinal(false);
     setSaving(true);
     const res = await fetch(`/api/admin/permohonan/${editing.id}`, {
       method: 'PATCH',
@@ -177,9 +194,18 @@ export function AdminPermohonan() {
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
-                      <Button size="sm" variant="outline" onClick={() => openEdit(it)}>
-                        Proses
-                      </Button>
+                      {FINAL_STATUS.includes(it.status) ? (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-400"
+                          title="Permohonan final — buka kunci lewat halaman Master"
+                        >
+                          <Lock className="h-3.5 w-3.5" /> Terkunci
+                        </span>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => openEdit(it)}>
+                          Proses
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -193,10 +219,10 @@ export function AdminPermohonan() {
       {editing && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setEditing(null)}
+          onClick={closeEdit}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
@@ -204,7 +230,7 @@ export function AdminPermohonan() {
                 <h3 className="font-semibold text-slate-900">Proses Permohonan</h3>
                 <p className="text-xs text-slate-500 font-mono">{editing.noregister}</p>
               </div>
-              <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={closeEdit} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -245,13 +271,57 @@ export function AdminPermohonan() {
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+                <Button variant="outline" onClick={closeEdit}>Batal</Button>
                 <Button onClick={save} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   <span className={saving ? 'ml-1.5' : ''}>Simpan</span>
                 </Button>
               </div>
             </div>
+
+            {/* Konfirmasi ekstra: status final mengunci data */}
+            {confirmFinal && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-black/50 p-4"
+                onClick={() => setConfirmFinal(false)}
+              >
+                <div
+                  className="w-full max-w-sm rounded-xl bg-white p-5 shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mb-3 flex items-center gap-2 text-amber-600">
+                    <AlertTriangle className="h-5 w-5" />
+                    <h4 className="font-semibold text-slate-900">
+                      Jadikan {STATUS[editStatus]?.label ?? editStatus}?
+                    </h4>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    Setelah status diubah menjadi <b>{STATUS[editStatus]?.label}</b>,
+                    permohonan ini <b>terkunci dan tidak dapat diubah lagi</b> —
+                    tombol Proses akan hilang dari tabel. Membuka kunci hanya bisa
+                    dilakukan lewat <b>halaman Master</b>.
+                  </p>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setConfirmFinal(false)}>
+                      Batal
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={save}
+                      disabled={saving}
+                      className={
+                        editStatus === 'DITOLAK'
+                          ? 'bg-destructive text-white hover:bg-destructive/90'
+                          : 'bg-success text-white hover:bg-success/90'
+                      }
+                    >
+                      {saving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+                      Ya, saya mengerti
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

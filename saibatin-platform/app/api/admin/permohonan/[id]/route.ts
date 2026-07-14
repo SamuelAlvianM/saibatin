@@ -7,6 +7,7 @@ import {
   tplPermohonanSelesai,
   tplPermohonanDitolak,
 } from "@/lib/mail-templates";
+import { createNotifikasi, safeNotify } from "@/lib/notifikasi";
 
 const STATUS_VALID = ["MENUNGGU", "DIPROSES", "SELESAI", "DITOLAK"];
 
@@ -58,6 +59,14 @@ export async function PATCH(
     });
     if (!sebelum) return fail(["Permohonan tidak ditemukan"], 404);
 
+    // Status SELESAI/DITOLAK bersifat FINAL — data terkunci. Membuka kembali
+    // hanya lewat halaman Master (/dashboard/master, POST /api/admin/master).
+    if (sebelum.status === "SELESAI" || sebelum.status === "DITOLAK") {
+      return fail([
+        "Info: Permohonan sudah final (Selesai/Ditolak) dan terkunci — buka kunci lewat halaman Master",
+      ], 423);
+    }
+
     const updated = await prisma.permohonan.update({
       where: { id: Number(id) },
       data: {
@@ -93,6 +102,40 @@ export async function PATCH(
               updated.catatan ?? undefined,
             );
       await sendMail({ to: updated.user.userEmail, ...mail });
+    }
+
+    // Notifikasi in-app ke warga saat status berubah (diproses/selesai/ditolak).
+    if (status && status !== sebelum.status) {
+      const labelStatus: Record<string, { judul: string; isi: string }> = {
+        DIPROSES: {
+          judul: "Permohonan sedang diproses",
+          isi: `Permohonan ${updated.jenis.nama} (${updated.noregister}) Anda sedang diproses petugas.`,
+        },
+        SELESAI: {
+          judul: "Permohonan selesai",
+          isi: `Permohonan ${updated.jenis.nama} (${updated.noregister}) Anda telah SELESAI.`,
+        },
+        DITOLAK: {
+          judul: "Permohonan ditolak",
+          isi:
+            `Permohonan ${updated.jenis.nama} (${updated.noregister}) Anda ditolak.` +
+            (updated.catatan ? ` Catatan: ${updated.catatan}` : ""),
+        },
+      };
+      const info = labelStatus[status];
+      if (info) {
+        await safeNotify(() =>
+          createNotifikasi({
+            userId: updated.userId,
+            tipe: "PERMOHONAN_STATUS",
+            judul: info.judul,
+            isi: info.isi,
+            link: "/user/pengajuan",
+            refType: "Permohonan",
+            refId: updated.id,
+          }),
+        );
+      }
     }
 
     return ok(null, ["Info: Permohonan berhasil diperbarui"]);

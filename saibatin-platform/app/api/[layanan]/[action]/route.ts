@@ -80,7 +80,8 @@ function validatePayload(payload: Record<string, unknown>): string[] {
 const FETCH_ACTIONS = ["fetch", "fetchdatas", "jenis", "fetchdata"];
 
 const MAX_SIZE = 5 * 1024 * 1024;
-const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".pdf"];
+// Berkas permohonan HANYA gambar (scan/foto dokumen) — PDF tidak diterima.
+const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp"];
 
 export async function POST(
   req: NextRequest,
@@ -118,7 +119,7 @@ export async function POST(
 
       const ext = extname(file.name).toLowerCase();
       if (!ALLOWED_EXT.includes(ext)) {
-        return fail(["Format file harus JPG, PNG, atau PDF"]);
+        return fail(["Berkas permohonan harus berupa gambar (JPG, PNG, atau WebP)"]);
       }
 
       const safeName = `${session.uid}_${Date.now()}${ext}`;

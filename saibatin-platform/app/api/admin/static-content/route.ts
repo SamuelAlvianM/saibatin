@@ -8,7 +8,12 @@ import type { Prisma } from "@prisma/client";
 /** Simpan/ubah konten statis (upsert per kunci) — admin/operator. */
 export async function PUT(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session) {
+    return fail(["Sesi berakhir — silakan login ulang sebagai petugas"], 401);
+  }
+  if (session.level > 2) {
+    return fail(["Akses khusus petugas dinas — akun Anda bukan petugas"], 403);
+  }
 
   const body = await req.json().catch(() => ({}));
   const { kunci, konten } = body as { kunci?: string; konten?: unknown };

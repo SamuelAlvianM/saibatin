@@ -241,9 +241,12 @@ const LOGIN_URL = "/login?redirect=/permohonan-online";
 
 export default function PelayananOnlineDemo() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAppSelector(
+  const { isAuthenticated, isLoading: authLoading, user } = useAppSelector(
     (state) => state.auth,
   );
+  // Akun OPD: tanpa kartu dekoratif — daftar layanan ringkas, klik langsung
+  // membuka form pengisian.
+  const isOpd = isAuthenticated && user?.level === 4;
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -489,6 +492,39 @@ export default function PelayananOnlineDemo() {
                   value={category.id}
                   className="mt-0"
                 >
+                  {isOpd ? (
+                    // ── Daftar ringkas (akun OPD): klik baris → form pengisian ──
+                    <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-700 dark:bg-slate-900">
+                      {filteredServices.map((service) => {
+                        const Icon = service.icon;
+                        return (
+                          <button
+                            key={service.id}
+                            type="button"
+                            onClick={() => handleServiceClick(service)}
+                            className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-primary/5"
+                          >
+                            <div
+                              className={`shrink-0 rounded-lg bg-linear-to-br p-2 text-white shadow-sm ${service.color}`}
+                            >
+                              <Icon className="h-6 w-6" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-slate-900 transition-colors group-hover:text-primary dark:text-slate-100">
+                                {service.title}
+                              </p>
+                              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                                {service.description}
+                              </p>
+                            </div>
+                            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition-all group-hover:gap-2.5">
+                              Isi Formulir <ArrowRight className="h-3.5 w-3.5" />
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredServices.map((service, index) => {
                       const Icon = service.icon;
@@ -535,6 +571,7 @@ export default function PelayananOnlineDemo() {
                       );
                     })}
                   </div>
+                  )}
 
                   {/* Empty state with animation */}
                   {filteredServices.length === 0 && (
