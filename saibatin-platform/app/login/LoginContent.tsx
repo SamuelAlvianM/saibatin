@@ -226,7 +226,7 @@ export default function LoginPage() {
                   id="user_id"
                   name="user_id"
                   type="text"
-                  placeholder="Masukkan NIK Anda"
+                  placeholder="NIK (warga) atau username (instansi/staff)"
                   value={formData.user_id}
                   onChange={handleInputChange}
                   onFocus={() => setFocusedField('user_id')}

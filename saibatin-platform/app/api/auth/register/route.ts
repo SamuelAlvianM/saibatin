@@ -5,6 +5,7 @@ import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { sendMail } from "@/lib/mail";
 import { tplRegistrasiDiterima } from "@/lib/mail-templates";
+import { cekBukti, normalisasiHp, otpWajib } from "@/lib/otp";
 
 /**
  * Registrasi warga — port dari RegisterController@postDatas (Laravel data-2).
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
     pass,
     pass2,
     recaptchaToken,
+    otpBukti,
   } = body as Record<string, string>;
 
   if (!(await verifyRecaptcha(recaptchaToken))) {
@@ -44,6 +46,15 @@ export async function POST(req: NextRequest) {
   }
   if (pass !== pass2) {
     return fail(["Info: Password Konfirmasi Tidak Sama (N-09)"]);
+  }
+
+  // Nomor WhatsApp wajib lolos OTP (kecuali layanan OTP belum dikonfigurasi
+  // di production — lihat lib/otp.ts otpWajib()).
+  if (otpWajib()) {
+    const hpNormal = normalisasiHp(hp);
+    if (!hpNormal || !cekBukti(hpNormal, otpBukti ?? "")) {
+      return fail(["Info: Nomor WhatsApp belum diverifikasi OTP (N-16)"]);
+    }
   }
 
   try {

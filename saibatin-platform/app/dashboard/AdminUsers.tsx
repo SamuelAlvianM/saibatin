@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 const EMPTY_FORM = {
   nama: '',
   userId: '',
-  kk: '',
+  nik: '', // NIK perwakilan instansi (khusus OPD)
   hp: '',
   email: '',
   level: 3,
@@ -40,8 +40,17 @@ interface AdminUser {
   level: { nama: string } | null;
 }
 
+// Kelompok akun (tab): warga, operator OPD, dan staff dinas (level 1 & 2).
+const GRUP_AKUN = [
+  { key: '3', label: 'Warga', desc: 'Masyarakat umum (NIK)' },
+  { key: '4', label: 'OPD', desc: 'Operator instansi pemerintah daerah' },
+  { key: 'staff', label: 'Staff', desc: 'Petugas dinas (admin & operator)' },
+] as const;
+type GrupKey = (typeof GRUP_AKUN)[number]['key'];
+
 export function AdminUsers() {
   const [items, setItems] = useState<AdminUser[]>([]);
+  const [grup, setGrup] = useState<GrupKey>('3');
   const [statusFilter, setStatusFilter] = useState<'' | '0' | '1'>('');
   const [q, setQ] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -55,17 +64,18 @@ export function AdminUsers() {
   const load = useCallback(async () => {
     setIsLoading(true);
     const params = new URLSearchParams();
+    params.set('level', grup);
     if (statusFilter) params.set('status', statusFilter);
     if (q.trim()) params.set('q', q.trim());
     const res = await fetch(`/api/admin/users?${params.toString()}`);
     const json = await res.json();
     setItems(json.data?.items ?? []);
     setIsLoading(false);
-  }, [statusFilter, q]);
+  }, [grup, statusFilter, q]);
 
   useEffect(() => {
     load();
-  }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grup, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setStatus = async (id: number, status: number) => {
     // Saat menonaktifkan/menolak, minta alasan — dikirim ke warga via email.
@@ -115,17 +125,38 @@ export function AdminUsers() {
     load();
   };
 
+  const grupAktif = GRUP_AKUN.find((g) => g.key === grup)!;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 md:p-6">
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-slate-700" />
-          <h2 className="font-semibold text-slate-900">Manajemen User</h2>
+          <h2 className="font-semibold text-slate-900">Daftar Akun</h2>
         </div>
         <Button size="sm" onClick={() => { setForm({ ...EMPTY_FORM }); setCreateOpen(true); }}>
           <UserPlus className="w-4 h-4 mr-1.5" />
           Tambah Akun
         </Button>
+      </div>
+
+      {/* Tab kelompok akun: Warga / OPD / Staff */}
+      <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4">
+        {GRUP_AKUN.map((g) => (
+          <button
+            key={g.key}
+            onClick={() => setGrup(g.key)}
+            title={g.desc}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              grup === g.key
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {g.label}
+          </button>
+        ))}
+        <span className="ml-1 text-xs text-slate-400">{grupAktif.desc}</span>
       </div>
 
       {/* Filter & search */}
@@ -273,9 +304,9 @@ export function AdminUsers() {
                 {(
                   [
                     [3, 'Warga', 'Masyarakat umum'],
-                    [4, 'Operator OPD', 'Instansi pemerintah daerah'],
+                    [4, 'OPD', 'Instansi pemerintah daerah'],
                     ...(myLevel === 1
-                      ? ([[2, 'Operator', 'Petugas dinas']] as const)
+                      ? ([[2, 'Staff', 'Petugas dinas']] as const)
                       : []),
                   ] as const
                 ).map(([val, label, desc]) => (
@@ -305,30 +336,59 @@ export function AdminUsers() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Identitas login: warga = NIK; OPD & staff = username.
+                OPD juga mengisi NIK perwakilan (untuk lupa password). */}
+            <div className="space-y-1.5">
+              <Label>
+                {form.level === 3
+                  ? 'NIK / No. KTP (16 digit) *'
+                  : form.level === 4
+                    ? 'Username Instansi *'
+                    : 'Username *'}
+              </Label>
+              <Input
+                value={form.userId}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    userId: form.level === 3 ? e.target.value.replace(/\D/g, '') : e.target.value,
+                  }))
+                }
+                maxLength={form.level === 3 ? 16 : 30}
+                placeholder={
+                  form.level === 3
+                    ? '16 digit NIK sesuai KTP'
+                    : form.level === 4
+                      ? 'mis. rs.saibatin'
+                      : 'mis. staff_dinas'
+                }
+              />
+              {form.level === 4 && (
+                <p className="text-xs text-muted-foreground">
+                  Username ini yang dipakai instansi untuk <b>login</b> (4-30 karakter,
+                  huruf/angka/titik/underscore/strip).
+                </p>
+              )}
+            </div>
+
+            {form.level === 4 && (
               <div className="space-y-1.5">
-                <Label>{form.level === 3 ? 'NIK (16 digit) *' : 'Username *'}</Label>
+                <Label>NIK Perwakilan (16 digit) *</Label>
                 <Input
-                  value={form.userId}
+                  value={form.nik}
                   onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      userId: form.level === 3 ? e.target.value.replace(/\D/g, '') : e.target.value,
-                    }))
+                    setForm((f) => ({ ...f, nik: e.target.value.replace(/\D/g, '') }))
                   }
-                  maxLength={form.level === 3 ? 16 : 30}
-                  placeholder={form.level === 3 ? '16 digit NIK' : 'mis. opd_dinkes'}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>No. KK {form.level === 3 ? '' : '(opsional)'}</Label>
-                <Input
-                  value={form.kk}
-                  onChange={(e) => setForm((f) => ({ ...f, kk: e.target.value.replace(/\D/g, '') }))}
                   maxLength={16}
-                  placeholder="16 digit nomor KK"
+                  placeholder="16 digit NIK perwakilan/penanggung jawab instansi"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Dipakai untuk <b>fitur lupa password</b> akun instansi.
+                </p>
               </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>No. HP</Label>
                 <Input

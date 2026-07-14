@@ -13,13 +13,15 @@ async function requireAdmin() {
   return session;
 }
 
-/** Daftar user untuk panel admin (filter status & pencarian). */
+/** Daftar user untuk panel admin (filter status, kelompok level & pencarian). */
 export async function GET(req: NextRequest) {
   const session = await requireAdmin();
   if (!session) return fail(["Tidak diizinkan"], 403);
 
   const { searchParams } = new URL(req.url);
   const statusParam = searchParams.get("status"); // "0" | "1" | null
+  // Kelompok akun: "3" = warga, "4" = operator OPD, "staff" = petugas dinas (1&2).
+  const levelParam = searchParams.get("level");
   const q = searchParams.get("q")?.trim();
 
   const items = await prisma.user.findMany({
@@ -27,6 +29,11 @@ export async function GET(req: NextRequest) {
       ...(statusParam === "0" || statusParam === "1"
         ? { status: Number(statusParam) }
         : {}),
+      ...(levelParam === "staff"
+        ? { userlevelId: { in: [1, 2] } }
+        : levelParam === "3" || levelParam === "4"
+          ? { userlevelId: Number(levelParam) }
+          : {}),
       ...(q
         ? {
             OR: [
@@ -70,9 +77,10 @@ export async function POST(req: NextRequest) {
   if (!session) return fail(["Tidak diizinkan"], 403);
 
   const body = await req.json().catch(() => ({}));
-  const { nama, userId, kk, hp, email, level, password } = body as {
+  const { nama, userId, nik, kk, hp, email, level, password } = body as {
     nama?: string;
-    userId?: string; // NIK (warga) atau username (OPD/operator)
+    userId?: string; // NIK (warga) atau username (OPD/staff)
+    nik?: string; // NIK perwakilan instansi (khusus OPD)
     kk?: string;
     hp?: string;
     email?: string;
@@ -87,12 +95,24 @@ export async function POST(req: NextRequest) {
     return fail(["Info: Level akun tidak valid"]);
   }
   if (level === 2 && session.level !== 1) {
-    return fail(["Info: Hanya Super Admin yang dapat membuat akun Operator"], 403);
+    return fail(["Info: Hanya Super Admin yang dapat membuat akun Staff"], 403);
   }
   if (level === 3 && !/^\d{16}$/.test(userId)) {
     return fail(["Info: NIK warga harus 16 digit angka"]);
   }
-  if (level !== 3 && userId.trim().length < 4) {
+  // OPD login memakai USERNAME instansi (mis. rs.saibatin); NIK perwakilan
+  // disimpan terpisah untuk fitur lupa password.
+  if (level === 4) {
+    if (!/^[a-z0-9][a-z0-9._-]{3,29}$/i.test(userId.trim())) {
+      return fail([
+        "Info: Username OPD 4-30 karakter (huruf/angka/titik/underscore/strip)",
+      ]);
+    }
+    if (!/^\d{16}$/.test(nik ?? "")) {
+      return fail(["Info: NIK perwakilan OPD harus 16 digit angka"]);
+    }
+  }
+  if (level === 2 && userId.trim().length < 4) {
     return fail(["Info: Username minimal 4 karakter"]);
   }
   if (password.length < 6) {
@@ -121,7 +141,14 @@ export async function POST(req: NextRequest) {
         password: hashpass,
         userlevelId: level,
         userFullname: nama.trim(),
-        userNik: level === 3 ? userId.trim() : null,
+        // NIK untuk fitur lupa password: warga = NIK login-nya sendiri,
+        // OPD = NIK perwakilan instansi (field terpisah dari username).
+        userNik:
+          level === 4
+            ? (nik ?? "").trim()
+            : /^\d{16}$/.test(userId.trim())
+              ? userId.trim()
+              : null,
         userNokk: kk?.trim() || null,
         userHp: hp?.trim() || null,
         userEmail: email?.trim() || null,
