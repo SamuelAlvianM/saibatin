@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { createNotifikasi, notifyPetugas, safeNotify } from "@/lib/notifikasi";
+import { cekJamLayananSekarang } from "@/lib/jam-layanan-server";
 
 /**
  * Catch-all kompatibilitas untuk modal permohonan (warisan struktur Laravel).
@@ -138,6 +139,10 @@ export async function POST(
 
   // ── Submit permohonan ──
   if (SUBMIT_ACTIONS.includes(action)) {
+    // Jam layanan berlaku untuk semua pembuat permohonan (warga & staff).
+    const jam = await cekJamLayananSekarang();
+    if (!jam.open) return fail([jam.message], 403);
+
     const payload = await req.json().catch(() => ({}));
 
     const kekurangan = validatePayload(payload as Record<string, unknown>);

@@ -4,6 +4,7 @@ import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { getSession } from "@/lib/auth";
 import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
+import { cekJamLayananSekarang } from "@/lib/jam-layanan-server";
 
 /** Daftar permohonan milik warga login, opsional filter status. */
 export async function GET(req: NextRequest) {
@@ -29,6 +30,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return fail(["Silakan login terlebih dahulu"], 401);
+
+  // Jam layanan berlaku untuk semua pembuat permohonan (warga & staff).
+  const jam = await cekJamLayananSekarang();
+  if (!jam.open) return fail([jam.message], 403);
 
   const body = await req.json().catch(() => ({}));
   const { jenisKode, payload, recaptchaToken } = body as {
