@@ -172,7 +172,7 @@ export const hubungiKamiContent: Record<string, InfoPageContent> = {
     description: 'Alamat dan informasi kontak kantor Disdukcapil Pesisir Barat.',
     body: [
       'Dinas Kependudukan dan Pencatatan Sipil Kabupaten Pesisir Barat',
-      'Jl. Pelayanan Publik, Kabupaten Pesisir Barat, Provinsi Lampung',
+      'Pasar Mulya Timur 01, Kelurahan Pasar Krui, Kecamatan Pesisir Tengah, Kabupaten Pesisir Barat, Lampung',
     ],
   },
   kontak: {

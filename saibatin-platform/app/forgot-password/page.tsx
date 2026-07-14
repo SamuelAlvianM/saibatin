@@ -96,11 +96,11 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative overflow-hidden">
-      {/* Animated background elements */}
+      {/* Animated background elements — tema biru brand */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-200/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl animate-pulse delay-700" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-sky-300/25 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300/25 rounded-full blur-3xl animate-pulse delay-700" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
       <Card 
@@ -109,17 +109,17 @@ export default function ForgotPasswordPage() {
         }`}
       >
         {/* Decorative top accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-400 rounded-t-lg" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1b4b72] to-[#2176bd] rounded-t-lg" />
         
         <CardHeader className="space-y-3 pb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
   {/* Logo */}
   <div className="relative">
-    <div className="absolute inset-0 bg-yellow-400/20 rounded-2xl blur-xl opacity-40" />
+    <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl opacity-40" />
     <div className="relative p-1">
       <Image
         src="/logo-saibatin.png"
-        alt="Logo Dinas KTT"
+        alt="Logo SAIBATIN"
         width={60}
         height={60}
         className="object-contain drop-shadow-lg"
@@ -234,7 +234,7 @@ export default function ForgotPasswordPage() {
                 <div className={`absolute inset-0 rounded-md pointer-events-none transition-opacity duration-300 ${
                   focusedField === 'nik' ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <div className="absolute inset-0 rounded-md bg-yellow-400/10" />
+                  <div className="absolute inset-0 rounded-md bg-primary/10" />
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function ForgotPasswordPage() {
           <CardFooter className="flex flex-col space-y-4 pt-2">
             <Button 
               type="submit" 
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
+              className="w-full bg-gradient-to-r from-[#1b4b72] to-[#2176bd] text-white hover:opacity-90 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={isLoading || !recaptchaReady}
             >
               {isLoading ? (

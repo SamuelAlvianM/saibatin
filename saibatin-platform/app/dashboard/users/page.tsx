@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { BackButton } from '@/components/shared/back-button';
-import { AdminKonten } from './AdminKonten';
+import { AdminUsers } from '../AdminUsers';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardKontenPage() {
+/** Manajemen Akun — daftar user (warga), operator OPD, dan staff dinas. */
+export default async function DashboardUsersPage() {
   const session = await getSession();
   if (!session) redirect('/login');
   if (session.level > 2) redirect('/dashboard');
@@ -15,13 +16,13 @@ export default async function DashboardKontenPage() {
       <div className="px-4 py-6 md:px-6">
         <BackButton href="/dashboard" />
         <div className="mb-4 mt-1">
-          <h1 className="text-2xl font-semibold text-slate-900">Konten Halaman</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Manajemen Akun</h1>
           <p className="text-sm text-slate-500">
-            Pilih halaman dari menu di kiri, lalu edit langsung pada pratinjau —
-            klik tombol <b>pensil</b> pada bagian yang ingin diubah.
+            Kelola akun <b>Warga</b>, <b>Operator OPD</b>, dan <b>Staff</b> dinas —
+            aktivasi, penonaktifan, dan pembuatan akun baru.
           </p>
         </div>
-        <AdminKonten />
+        <AdminUsers />
       </div>
     </div>
   );
