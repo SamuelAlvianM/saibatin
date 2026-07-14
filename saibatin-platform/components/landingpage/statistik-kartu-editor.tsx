@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Check, X, Search, Shapes, Pencil, TableProperties } from 'lucide-react';
 import { ICON_MAP, ICON_NAMES, getIcon } from '@/lib/icon-map';
 import { DEMOGRAFI_KATEGORI, getDemografiKategori } from '@/lib/demografi-kategori';
@@ -317,25 +324,18 @@ function CardEditor({
             <SelectBox
               value={card.kategori}
               onChange={(v) => onChange({ kategori: v, kolom: '', badgeKolom: undefined })}
-            >
-              <option value="">— Pilih kategori —</option>
-              {DEMOGRAFI_KATEGORI.map((k) => (
-                <option key={k.slug} value={k.slug}>
-                  {k.label}
-                </option>
-              ))}
-            </SelectBox>
+              placeholder="— Pilih kategori —"
+              options={DEMOGRAFI_KATEGORI.map((k) => ({ value: k.slug, label: k.label }))}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Kolom (angka)</Label>
-            <SelectBox value={card.kolom} onChange={(v) => onChange({ kolom: v })}>
-              <option value="">— Pilih kolom —</option>
-              {kolomList.map((k) => (
-                <option key={k} value={k}>
-                  {labelKolom(k)}
-                </option>
-              ))}
-            </SelectBox>
+            <SelectBox
+              value={card.kolom}
+              onChange={(v) => onChange({ kolom: v })}
+              placeholder="— Pilih kolom —"
+              options={kolomList.map((k) => ({ value: k, label: labelKolom(k) }))}
+            />
           </div>
         </div>
 
@@ -345,14 +345,9 @@ function CardEditor({
           <SelectBox
             value={card.badgeKolom ?? ''}
             onChange={(v) => onChange({ badgeKolom: v || undefined })}
-          >
-            <option value="">— Tanpa badge —</option>
-            {kolomList.map((k) => (
-              <option key={k} value={k}>
-                Persen dari {labelKolom(k)}
-              </option>
-            ))}
-          </SelectBox>
+            placeholder="— Tanpa badge —"
+            options={kolomList.map((k) => ({ value: k, label: `Persen dari ${labelKolom(k)}` }))}
+          />
           <p className="text-[0.7rem] text-slate-400">
             Menampilkan persentase = nilai kolom ÷ total kolom acuan (mis. Laki-laki dari Jumlah).
           </p>
@@ -372,24 +367,38 @@ function CardEditor({
   );
 }
 
-/** Dropdown bergaya konsisten dengan input lain. */
+/** Dropdown bergaya konsisten dengan input lain (Radix Select).
+ *  Pilihan kosong diwakili sentinel karena SelectItem tak boleh bernilai "". */
+const SELECT_NONE = '__none__';
 function SelectBox({
   value,
   onChange,
-  children,
+  placeholder,
+  options,
 }: {
   value: string;
   onChange: (v: string) => void;
-  children: ReactNode;
+  /** Label untuk pilihan kosong, mis. "— Pilih kategori —". */
+  placeholder: string;
+  options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    <Select
+      value={value || SELECT_NONE}
+      onValueChange={(v) => onChange(v === SELECT_NONE ? '' : v)}
     >
-      {children}
-    </select>
+      <SelectTrigger className="w-full bg-white">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={SELECT_NONE}>{placeholder}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 

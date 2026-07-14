@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, MessageSquareWarning, Loader2, Send, ExternalLink, FileSpreadsheet, PenLine } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
@@ -187,16 +194,19 @@ export default function PengaduanPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="jenis">Jenis Pengaduan</Label>
-                <select
-                  id="jenis"
-                  name="jenis"
+                <Select
                   value={form.jenis}
-                  onChange={handleChange}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  onValueChange={(v) => setForm((prev) => ({ ...prev, jenis: v }))}
                 >
-                  <option value="">-- Pilih jenis pengaduan --</option>
-                  {JENIS.map((j) => <option key={j} value={j}>{j}</option>)}
-                </select>
+                  <SelectTrigger id="jenis" className="w-full">
+                    <SelectValue placeholder="-- Pilih jenis pengaduan --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {JENIS.map((j) => (
+                      <SelectItem key={j} value={j}>{j}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">

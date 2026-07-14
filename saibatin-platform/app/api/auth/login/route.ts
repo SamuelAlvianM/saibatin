@@ -17,13 +17,17 @@ export async function POST(req: NextRequest) {
   if (!(await verifyRecaptcha(recaptchaToken))) {
     return fail(["Info: Verifikasi reCAPTCHA gagal (L-00)"]);
   }
-  if (!user_id || !password) {
+  // Username OPD sering tersalin dengan spasi berlebih dari catatan/WA —
+  // normalisasi dulu supaya lookup tidak gagal karena whitespace.
+  const identitas = (user_id ?? "").trim();
+
+  if (!identitas || !password) {
     return fail(["Info: NIK/Username dan Password wajib diisi (L-01)"]);
   }
 
   try {
     const user = await prisma.user.findFirst({
-      where: { userId: user_id },
+      where: { userId: identitas },
       orderBy: { id: "desc" },
     });
 

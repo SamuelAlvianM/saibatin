@@ -12,6 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { RichEditor } from '@/components/shared/rich-editor';
 import { ImagePickerField } from '@/components/media/image-picker-field';
 import { Plus, Trash2, Search, Shapes } from 'lucide-react';
@@ -171,21 +178,28 @@ export function FieldEditor({
                         onChange={(v) => setRow(idx, col.name, v)}
                       />
                     ) : col.type === 'parent' ? (
-                      <select
-                        value={row[col.name] ?? ''}
-                        onChange={(e) => setRow(idx, col.name, e.target.value)}
-                        className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        title={col.label}
+                      // SelectItem Radix tak boleh bernilai "" — pakai sentinel
+                      // untuk pilihan "Paling atas" (tanpa induk).
+                      <Select
+                        value={(row[col.name] ?? '') || '__root__'}
+                        onValueChange={(v) =>
+                          setRow(idx, col.name, v === '__root__' ? '' : v)
+                        }
                       >
-                        <option value="">— Paling atas —</option>
-                        {rows.map((r, ri) =>
-                          ri !== idx && r.jabatan ? (
-                            <option key={ri} value={r.jabatan}>
-                              {r.jabatan}
-                            </option>
-                          ) : null,
-                        )}
-                      </select>
+                        <SelectTrigger className="w-full bg-white" title={col.label}>
+                          <SelectValue placeholder="— Paling atas —" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__root__">— Paling atas —</SelectItem>
+                          {rows.map((r, ri) =>
+                            ri !== idx && r.jabatan ? (
+                              <SelectItem key={ri} value={r.jabatan}>
+                                {r.jabatan}
+                              </SelectItem>
+                            ) : null,
+                          )}
+                        </SelectContent>
+                      </Select>
                     ) : isLongText(col.name) ? (
                       <Textarea
                         rows={3}

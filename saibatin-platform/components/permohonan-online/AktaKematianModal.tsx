@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { PemohonNikField } from "@/components/permohonan-online/pemohon-nik-field";
 import { KkScanField } from "@/components/permohonan-online/kk-scan-field";
 import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1218,11 +1219,10 @@ export default function AktaKematianModal({
 
                 <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300 delay-100">
                   <Label htmlFor="jamkematian">Jam Kematian *</Label>
-                  <Input
+                  <TimePicker
                     id="jamkematian"
-                    type="time"
                     value={formData.jamkematian}
-                    onChange={(e) => handleInputChange("jamkematian", e.target.value)}
+                    onChange={(v) => handleInputChange("jamkematian", v)}
                     className={getInputClass("jamkematian")}
                   />
                   {showFieldError("jamkematian")}
