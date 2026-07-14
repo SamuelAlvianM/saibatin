@@ -13,8 +13,9 @@ export const dynamic = "force-dynamic";
  * password master (env MASTER_PASSWORD).
  */
 
-const MASTER_PASSWORD =
-  process.env.MASTER_PASSWORD ?? "tehgelas@gdingin:X79weko";
+// WAJIB dari environment — tanpa fallback rahasia di kode (agar tidak
+// pernah ikut ter-commit). Kosong = fitur master dinonaktifkan (fail-safe).
+const MASTER_PASSWORD = process.env.MASTER_PASSWORD ?? "";
 
 /** Bandingkan via HMAC agar timingSafeEqual aman untuk panjang berbeda. */
 function passwordCocok(input: string) {
@@ -33,6 +34,9 @@ export async function POST(req: NextRequest) {
     password?: string;
     noregister?: string;
   };
+  if (!MASTER_PASSWORD) {
+    return fail(["Info: Fitur master belum dikonfigurasi (set MASTER_PASSWORD)"], 503);
+  }
   const noregister = String(body.noregister ?? "").trim();
   if (!body.password || !noregister) {
     return fail(["Info: Password master dan No. Register wajib diisi"]);
