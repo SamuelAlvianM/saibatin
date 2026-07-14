@@ -37,7 +37,7 @@ interface Conflict {
  */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session || session.level !== 1) return fail(["Tidak diizinkan"], 403);
 
   let files: File[] = [];
   let kategori = "";

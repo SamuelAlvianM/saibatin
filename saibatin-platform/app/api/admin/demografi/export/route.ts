@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session || session.level !== 1) return fail(["Tidak diizinkan"], 403);
 
   const kategori = (new URL(req.url).searchParams.get("kategori") ?? "").trim();
   if (kategori && !DEMOGRAFI_SLUGS.has(kategori)) {

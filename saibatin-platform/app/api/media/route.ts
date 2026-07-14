@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 /** Daftar pustaka media untuk picker dashboard (admin/operator). */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session || session.level !== 1) return fail(["Tidak diizinkan"], 403);
 
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();

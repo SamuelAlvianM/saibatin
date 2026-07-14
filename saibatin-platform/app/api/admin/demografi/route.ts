@@ -11,7 +11,7 @@ async function cekPetugas() {
   const session = await getSession();
   if (!session)
     return { session: null, error: fail(["Sesi berakhir — silakan login ulang sebagai petugas"], 401) };
-  if (session.level > 2)
+  if (session.level !== 1)
     return { session: null, error: fail(["Akses khusus petugas dinas — akun Anda bukan petugas"], 403) };
   return { session, error: null };
 }

@@ -11,7 +11,7 @@ export async function PUT(req: NextRequest) {
   if (!session) {
     return fail(["Sesi berakhir — silakan login ulang sebagai petugas"], 401);
   }
-  if (session.level > 2) {
+  if (session.level !== 1) {
     return fail(["Akses khusus petugas dinas — akun Anda bukan petugas"], 403);
   }
 

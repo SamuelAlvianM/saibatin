@@ -44,7 +44,7 @@ function isPublicPage(pathname: string) {
 
 export function InlineEditProvider({ children }: { children: ReactNode }) {
   const auth = useAppSelector((s) => s.auth);
-  const isAdmin = !!auth.isAuthenticated && (auth.user?.level ?? 3) <= 2;
+  const isAdmin = !!auth.isAuthenticated && (auth.user?.level ?? 3) === 1;
   const pathname = usePathname();
   const onPublic = isPublicPage(pathname);
 

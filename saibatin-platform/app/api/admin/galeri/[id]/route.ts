@@ -9,7 +9,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Akses ditolak"], 403);
+  if (!session || session.level !== 1) return fail(["Akses ditolak"], 403);
 
   const { id } = await params;
   try {

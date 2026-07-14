@@ -14,7 +14,7 @@ const MAX_UPLOAD = 10 * 1024 * 1024; // 10 MB
 /** Import Excel demografi (SIAK) untuk satu kategori. Mengganti data lama kategori tsb. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  if (!session || session.level !== 1) return fail(["Tidak diizinkan"], 403);
 
   let file: File | null = null;
   let kategori = "";

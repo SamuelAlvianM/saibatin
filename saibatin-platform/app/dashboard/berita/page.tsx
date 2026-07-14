@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export default async function DashboardBeritaPage() {
   const session = await getSession();
   if (!session) redirect('/login');
-  if (session.level > 2) redirect('/dashboard');
+  if (session.level !== 1) redirect('/dashboard');
 
   return (
     <div className="min-h-screen bg-background">
