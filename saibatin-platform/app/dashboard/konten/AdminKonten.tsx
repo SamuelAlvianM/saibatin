@@ -1,132 +1,202 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { useMemo, useState } from 'react';
+import { navigationItems, type NavMenu } from '@/lib/navigation';
+import { PPID_INFORMASI_GRUP } from '@/lib/ppid-informasi';
+import { cn } from '@/lib/utils';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { FieldEditor } from '@/components/konten/field-editor';
-import { STATIC_BLOCKS, type StaticBlock } from '@/lib/static-content-registry';
-import { FileText, Loader2, Pencil } from 'lucide-react';
+  Home,
+  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
+  ChevronRight,
+  type LucideIcon,
+} from 'lucide-react';
 
-type BlockValues = Record<string, unknown>;
+/**
+ * Editor Konten Halaman gaya "site editor":
+ * - Kiri  : seluruh menu navbar publik (+ Beranda & halaman footer).
+ * - Atas  : sub-menu dari menu terpilih (kiri → kanan).
+ * - Tengah: pratinjau halaman TERSEBUT dengan Mode Edit aktif (?editmode=1) —
+ *           admin mengedit langsung lewat tombol pensil di pratinjau.
+ */
 
-/** Editor konten statis: semua blok dari registry, form dibangun dari `fields`. */
+interface Leaf {
+  title: string;
+  href: string;
+  /** Label grup (untuk item bersarang, mis. PPID → Berkala). */
+  group?: string;
+}
+
+interface MenuEntry {
+  title: string;
+  icon?: LucideIcon;
+  leaves: Leaf[];
+}
+
+/** Ratakan items + subItems sebuah menu navbar menjadi daftar link. */
+function flatten(menu: NavMenu): Leaf[] {
+  // Menu tanpa dropdown (link langsung) → satu leaf.
+  if (!menu.items?.length) {
+    return menu.href && menu.href !== '#'
+      ? [{ title: menu.title, href: menu.href }]
+      : [];
+  }
+  const out: Leaf[] = [];
+  for (const item of menu.items ?? []) {
+    if (item.subItems?.length) {
+      for (const sub of item.subItems) {
+        if (sub.href && sub.href !== '#') {
+          out.push({ title: sub.title, href: sub.href, group: item.title });
+        }
+      }
+    } else if (item.href && item.href !== '#') {
+      out.push({ title: item.title, href: item.href });
+    }
+  }
+  return out;
+}
+
 export function AdminKonten() {
-  const [values, setValues] = useState<Record<string, BlockValues>>({});
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<StaticBlock | null>(null);
-  const [draft, setDraft] = useState<BlockValues>({});
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/static-content')
-      .then((r) => r.json())
-      .then((json) => setValues(json.data?.items ?? {}))
-      .finally(() => setLoading(false));
+  const menus = useMemo<MenuEntry[]>(() => {
+    const entries: MenuEntry[] = [
+      { title: 'Beranda', icon: Home, leaves: [{ title: 'Beranda', href: '/' }] },
+      ...navigationItems.map((m) => {
+        const leaves = flatten(m);
+        // Halaman kategori PPID kini di balik halaman indeks (bukan submenu
+        // navbar) — tetap dimunculkan di editor agar bisa diedit admin.
+        if (m.title === 'PPID') {
+          for (const grup of PPID_INFORMASI_GRUP) {
+            for (const it of grup.items) {
+              leaves.push({ title: it.title, href: it.href, group: grup.judulPendek });
+            }
+          }
+        }
+        return { title: m.title, leaves };
+      }),
+      {
+        title: 'Kebijakan & Privasi',
+        icon: ShieldCheck,
+        leaves: [{ title: 'Kebijakan & Privasi', href: '/kebijakan-privasi' }],
+      },
+    ];
+    return entries.filter((e) => e.leaves.length > 0);
   }, []);
 
-  const openEditor = (block: StaticBlock) => {
-    setDraft(structuredClone(values[block.kunci] ?? block.defaults));
-    setEditing(block);
-  };
+  const [menuIdx, setMenuIdx] = useState(0);
+  const [href, setHref] = useState(menus[0].leaves[0].href);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const save = async () => {
-    if (!editing) return;
-    setSaving(true);
-    const res = await fetch('/api/admin/static-content', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kunci: editing.kunci, konten: draft }),
-    });
-    const json = await res.json();
-    setSaving(false);
-    if (json.error?.length) {
-      toast.error(json.error[0]);
-      return;
-    }
-    toast.success('Konten berhasil disimpan');
-    setValues((prev) => ({ ...prev, [editing.kunci]: draft }));
-    setEditing(null);
+  const menu = menus[menuIdx];
+  const previewSrc = `${href}${href.includes('?') ? '&' : '?'}editmode=1`;
+
+  const pilihMenu = (idx: number) => {
+    setMenuIdx(idx);
+    setHref(menus[idx].leaves[0].href);
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 md:p-6">
-      <div className="flex items-center gap-2 mb-1">
-        <FileText className="w-5 h-5 text-slate-700" />
-        <h2 className="font-semibold text-slate-900">Konten Halaman</h2>
-      </div>
-      <p className="text-sm text-muted-foreground mb-5">
-        Ubah isi teks beranda dan profil (visi, misi, motto, maklumat, dll) tanpa
-        menyentuh kode. Perubahan langsung tampil di website.
-      </p>
-
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {STATIC_BLOCKS.map((block) => (
+    <div className="grid gap-3 lg:grid-cols-[230px_1fr] lg:h-[calc(100vh-180px)] min-h-[560px]">
+      {/* ── Kiri: seluruh isi navbar ── */}
+      <aside className="rounded-2xl border border-slate-200 bg-white p-2 overflow-y-auto">
+        <p className="px-3 pb-1.5 pt-2 text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">
+          Menu Situs
+        </p>
+        {menus.map((m, i) => {
+          const active = i === menuIdx;
+          const Icon = m.icon;
+          return (
             <button
-              key={block.kunci}
+              key={m.title}
               type="button"
-              onClick={() => openEditor(block)}
-              className="group flex items-start justify-between gap-3 rounded-xl border border-slate-200 p-4 text-left hover:border-primary hover:shadow-md transition-all"
+              onClick={() => pilihMenu(i)}
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-slate-700 hover:bg-primary/5 hover:text-primary',
+              )}
             >
-              <div>
-                <p className="font-medium text-slate-800 group-hover:text-primary transition-colors">
-                  {block.judul}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                  {block.deskripsi}
-                </p>
-              </div>
-              <Pencil className="h-4 w-4 text-slate-300 group-hover:text-primary shrink-0 mt-1 transition-colors" />
+              <span className="flex min-w-0 items-center gap-2">
+                {Icon && <Icon className="h-4 w-4 shrink-0" aria-hidden />}
+                <span className="truncate">{m.title}</span>
+              </span>
+              <span
+                className={cn(
+                  'shrink-0 rounded-full px-1.5 text-[0.65rem] font-semibold',
+                  active ? 'bg-white/20' : 'bg-slate-100 text-slate-500',
+                )}
+              >
+                {m.leaves.length}
+              </span>
             </button>
-          ))}
+          );
+        })}
+      </aside>
+
+      {/* ── Kanan: submenu di atas + pratinjau editable ── */}
+      <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        {/* Sub-menu (kiri → kanan) */}
+        <div className="flex items-center gap-2 border-b border-slate-100 p-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pb-1 pt-0.5">
+            {menu.leaves.map((leaf) => {
+              const active = leaf.href === href;
+              return (
+                <button
+                  key={leaf.href}
+                  type="button"
+                  onClick={() => setHref(leaf.href)}
+                  title={leaf.group ? `${leaf.group} → ${leaf.title}` : leaf.title}
+                  className={cn(
+                    'flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                  )}
+                >
+                  {leaf.group && (
+                    <>
+                      <span className={active ? 'text-white/70' : 'text-slate-400'}>
+                        {leaf.group}
+                      </span>
+                      <ChevronRight className="h-3 w-3 opacity-60" aria-hidden />
+                    </>
+                  )}
+                  {leaf.title}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setReloadKey((k) => k + 1)}
+              title="Muat ulang pratinjau"
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Buka halaman di tab baru"
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </div>
         </div>
-      )}
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          {editing && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{editing.judul}</DialogTitle>
-                <DialogDescription>{editing.deskripsi}</DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-5">
-                {editing.fields.map((field) => (
-                  <FieldEditor
-                    key={field.name}
-                    field={field}
-                    value={draft[field.name]}
-                    onChange={(v) => setDraft((d) => ({ ...d, [field.name]: v }))}
-                  />
-                ))}
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
-                  Batal
-                </Button>
-                <Button onClick={save} disabled={saving}>
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Simpan
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* Pratinjau — Mode Edit langsung aktif, edit via tombol pensil */}
+        <iframe
+          key={`${href}-${reloadKey}`}
+          src={previewSrc}
+          title={`Pratinjau ${href}`}
+          className="h-full min-h-[480px] w-full flex-1 bg-slate-50"
+        />
+      </div>
     </div>
   );
 }

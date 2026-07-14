@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/shared/navbar";
+import { KunjunganPing } from "@/components/shared/kunjungan-ping";
 import { Providers } from "./providers";
+import { A11Y_INIT_SCRIPT } from "@/lib/a11y";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={[
         geistSans.variable,
         geistMono.variable,
@@ -47,11 +50,17 @@ export default function RootLayout({
         montserrat.variable,
       ].join(" ")}
     >
+      <head>
+        {/* Terapkan preferensi aksesibilitas tersimpan SEBELUM paint
+            (anti-flicker) — baca localStorage, set kelas/style di <html>. */}
+        <script dangerouslySetInnerHTML={{ __html: A11Y_INIT_SCRIPT }} />
+      </head>
       <body className={geistSans.className}>
         <a href="#konten-utama" className="skip-to-content">
           Lompat ke konten utama
         </a>
         <Providers>
+          <KunjunganPing />
           <Navbar />
           <main id="konten-utama">{children}</main>
         </Providers>

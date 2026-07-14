@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { SKM_ASPEK } from "@/lib/skm";
+import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /** Simpan jawaban Survei Kepuasan Masyarakat (publik). */
 export async function POST(req: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await prisma.skmJawaban.create({
+  const jawabanBaru = await prisma.skmJawaban.create({
     data: {
       nama: nama.trim(),
       jenisKel: jenisKel ?? null,
@@ -37,6 +38,18 @@ export async function POST(req: NextRequest) {
       saran: saran ?? null,
     },
   });
+
+  // Notifikasi ke petugas: ada responden survei kepuasan baru.
+  await safeNotify(() =>
+    notifyPetugas({
+      tipe: "SKM_BARU",
+      judul: "Responden SKM baru",
+      isi: `${nama.trim()} mengisi Survei Kepuasan Masyarakat${saran?.trim() ? ` — saran: "${saran.trim().slice(0, 120)}"` : ""}.`,
+      link: "/dashboard/skm",
+      refType: "SkmJawaban",
+      refId: jawabanBaru.id,
+    }),
+  );
 
   return ok(null, ["Info: Terima kasih, survei Anda berhasil dikirim"]);
 }

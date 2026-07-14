@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { Footer } from '@/components/shared/footer';
 import { RiwayatList } from '@/components/shared/riwayat-list';
-import { FilePlus2, Settings, ClipboardList } from 'lucide-react';
+import { FilePlus2, ClipboardList } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +36,9 @@ export default async function UserPengajuanPage() {
                 </p>
               </div>
             </div>
+            {/* Pengaturan Akun cukup lewat dropdown akun di navbar — tidak
+                diduplikasi di sini. Ajukan Permohonan dipertahankan karena
+                tidak ada di dropdown (satu-satunya jalur OPD ke form). */}
             <div className="flex gap-2 shrink-0">
               <Link
                 href="/permohonan-online"
@@ -43,14 +46,6 @@ export default async function UserPengajuanPage() {
               >
                 <FilePlus2 className="w-4 h-4" />
                 Ajukan Permohonan
-              </Link>
-              <Link
-                href="/profil"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-medium text-white backdrop-blur-sm hover:bg-white/20 transition-colors"
-                title="Pengaturan Akun"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Pengaturan Akun</span>
               </Link>
             </div>
           </div>

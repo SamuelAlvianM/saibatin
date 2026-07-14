@@ -7,7 +7,8 @@ import { createSession } from "@/lib/auth";
 
 /**
  * Login — port dari LoginController (Laravel data-2).
- * Identitas: user_id (NIK). Hanya akun status=1 (aktif) yang boleh masuk.
+ * Identitas: user_id (NIK warga, atau USERNAME untuk OPD/staff).
+ * Hanya akun status=1 (aktif) yang boleh masuk.
  */
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -16,17 +17,21 @@ export async function POST(req: NextRequest) {
   if (!(await verifyRecaptcha(recaptchaToken))) {
     return fail(["Info: Verifikasi reCAPTCHA gagal (L-00)"]);
   }
-  if (!user_id || !password) {
-    return fail(["Info: NIK dan Password wajib diisi (L-01)"]);
+  // Username OPD sering tersalin dengan spasi berlebih dari catatan/WA —
+  // normalisasi dulu supaya lookup tidak gagal karena whitespace.
+  const identitas = (user_id ?? "").trim();
+
+  if (!identitas || !password) {
+    return fail(["Info: NIK/Username dan Password wajib diisi (L-01)"]);
   }
 
   try {
     const user = await prisma.user.findFirst({
-      where: { userId: user_id },
+      where: { userId: identitas },
       orderBy: { id: "desc" },
     });
 
-    if (!user) return fail(["Info: NIK belum terdaftar (L-02)"]);
+    if (!user) return fail(["Info: NIK/Username belum terdaftar (L-02)"]);
     if (user.status !== 1) {
       return fail(["Info: Akun belum aktif. Silakan aktivasi terlebih dahulu (L-03)"]);
     }

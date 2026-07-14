@@ -14,10 +14,20 @@ import {
   X,
   Send,
   FileText,
-  ScanLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { KtpScanDialog, type KtpScanResult } from '@/components/permohonan-online/ktp-scan-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  OcrUploadButton,
+  type OcrUploadResult,
+} from '@/components/permohonan-online/ocr-upload-button';
 import type { LayananForm, FieldDef } from '@/lib/layanan-forms';
 
 interface Props {
@@ -54,8 +64,6 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  // Field NIK/KK yang sedang discan (dialog kamera OCR).
-  const [scanFor, setScanFor] = useState<{ name: string; type: 'nik' | 'kk' } | null>(null);
 
   const allFields = useMemo(
     () => layanan.sections.flatMap((s) => s.fields),
@@ -208,25 +216,29 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
         {fd.type === 'textarea' ? (
           <Textarea id={fd.name} rows={3} value={val} placeholder={fd.placeholder} className={errCls} onChange={(e) => setVal(fd.name, e.target.value)} />
         ) : fd.type === 'select' ? (
-          <select
+          <Select value={val} onValueChange={(v) => setVal(fd.name, v)}>
+            <SelectTrigger id={fd.name} className={cn('w-full', errCls)}>
+              <SelectValue placeholder="— Pilih —" />
+            </SelectTrigger>
+            <SelectContent>
+              {fd.options?.map((o) => (
+                <SelectItem key={o} value={o}>{o}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : fd.type === 'date' ? (
+          <DatePicker
             id={fd.name}
             value={val}
-            onChange={(e) => setVal(fd.name, e.target.value)}
-            className={cn(
-              'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              errCls
-            )}
-          >
-            <option value="">— Pilih —</option>
-            {fd.options?.map((o) => (
-              <option key={o} value={o}>{o}</option>
-            ))}
-          </select>
+            onChange={(v) => setVal(fd.name, v)}
+            placeholder={fd.placeholder ?? 'Pilih tanggal'}
+            className={errCls}
+          />
         ) : (
           <div className={cn(fd.type === 'nik' || fd.type === 'kk' ? 'flex gap-2' : undefined)}>
             <Input
               id={fd.name}
-              type={fd.type === 'date' ? 'date' : fd.type === 'number' ? 'number' : 'text'}
+              type={fd.type === 'number' ? 'number' : 'text'}
               inputMode={['nik', 'kk', 'phone'].includes(fd.type) ? 'numeric' : undefined}
               maxLength={fd.type === 'nik' || fd.type === 'kk' ? 16 : fd.type === 'phone' ? 13 : undefined}
               value={val}
@@ -239,16 +251,13 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
               }}
             />
             {(fd.type === 'nik' || fd.type === 'kk') && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setScanFor({ name: fd.name, type: fd.type as 'nik' | 'kk' })}
-                title={fd.type === 'kk' ? 'Scan Kartu Keluarga dengan kamera' : 'Scan KTP dengan kamera'}
-                className="shrink-0 px-3"
-              >
-                <ScanLine className="h-4 w-4" />
-                <span className="ml-1.5 hidden sm:inline">{fd.type === 'kk' ? 'Scan KK' : 'Scan KTP'}</span>
-              </Button>
+              <OcrUploadButton
+                docLabel={fd.type === 'kk' ? 'KK' : 'KTP'}
+                onResult={(r: OcrUploadResult) => {
+                  const v = fd.type === 'kk' ? r.nokk || r.nik : r.nik;
+                  if (v) setVal(fd.name, v);
+                }}
+              />
             )}
           </div>
         )}
@@ -298,18 +307,6 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
           {submitting ? 'Mengirim...' : 'Kirim Permohonan'}
         </Button>
       </div>
-
-      {scanFor && (
-        <KtpScanDialog
-          open
-          onOpenChange={(o) => !o && setScanFor(null)}
-          docLabel={scanFor.type === 'kk' ? 'KK' : 'KTP'}
-          onResult={(r: KtpScanResult) => {
-            const v = scanFor.type === 'kk' ? r.nokk || r.nik : r.nik;
-            if (v) setVal(scanFor.name, v);
-          }}
-        />
-      )}
     </div>
   );
 }

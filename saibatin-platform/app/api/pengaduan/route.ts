@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { getSession } from "@/lib/auth";
+import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /** Kirim pengaduan masyarakat (port pengaduan/postdata). */
 export async function POST(req: NextRequest) {
@@ -14,9 +15,21 @@ export async function POST(req: NextRequest) {
   }
   if (!nama || !isi) return fail(["Info: Nama dan isi pengaduan wajib diisi"]);
 
-  await prisma.pengaduan.create({
+  const pengaduan = await prisma.pengaduan.create({
     data: { nama, nik, email, hp, subjek, isi },
   });
+
+  await safeNotify(() =>
+    notifyPetugas({
+      tipe: "PENGADUAN_BARU",
+      judul: "Pengaduan masyarakat baru",
+      isi: `${nama}${subjek ? ` — ${subjek}` : ""}`,
+      link: "/dashboard/pengaduan",
+      refType: "Pengaduan",
+      refId: pengaduan.id,
+    }),
+  );
+
   return ok(null, ["Info: Pengaduan berhasil dikirim"]);
 }
 

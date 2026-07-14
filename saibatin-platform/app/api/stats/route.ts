@@ -1,12 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { ok } from "@/lib/api-response";
-import { demografiData } from "@/lib/demografi-data";
-
-const sum = (jenis: string) =>
-  (demografiData[jenis]?.items ?? []).reduce((a, b) => a + b.value, 0);
-
-const find = (jenis: string, label: string) =>
-  demografiData[jenis]?.items.find((i) => i.label === label)?.value ?? 0;
+import {
+  KARTU_STATISTIK_KUNCI,
+  normalizeKartu,
+  warnaPreset,
+} from "@/lib/beranda-statistik";
 
 const BULAN_PENDEK = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -24,6 +22,19 @@ export async function GET() {
   const now = new Date();
   const startBulanIni = new Date(now.getFullYear(), now.getMonth(), 1);
   const start6Bulan = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+  // Konfigurasi kartu beranda (judul, ikon, warna, kategori + kolom sumber
+  // data). Menentukan kategori demografi mana yang perlu diambil dari DB.
+  const kartuRow = await prisma.staticContent.findUnique({
+    where: { kunci: KARTU_STATISTIK_KUNCI },
+    select: { konten: true },
+  });
+  const kartuKonfig = normalizeKartu(
+    (kartuRow?.konten as { kartu?: unknown } | null)?.kartu,
+  );
+  const kategoriSet = [
+    ...new Set(kartuKonfig.map((k) => k.kategori).filter(Boolean)),
+  ];
 
   const [
     total,
@@ -50,11 +61,14 @@ export async function GET() {
       where: { createdAt: { gte: start6Bulan } },
       select: { createdAt: true },
     }),
-    // Rekap demografi hasil import Excel. Total kabupaten dihitung dari data
-    // pekon (level 5) bila ada — konsisten dengan tabel publik yang kini
-    // menjumlahkan pekon; fallback ke baris kecamatan (level 4) lalu placeholder.
+    // Rekap demografi hasil import Excel untuk kategori yang dipakai kartu.
+    // Angka per kategori dihitung dari data pekon (level 5) bila ada — konsisten
+    // dengan tabel publik yang menjumlahkan pekon; fallback ke baris kecamatan.
     prisma.demografiWilayah.findMany({
-      where: { level: { in: [4, 5] }, kategori: { in: ["jenis-kelamin", "kk", "wajib-ktp"] } },
+      where: {
+        level: { in: [4, 5] },
+        kategori: { in: kategoriSet.length ? kategoriSet : ["__none__"] },
+      },
       select: { kategori: true, level: true, data: true },
     }),
   ]);
@@ -85,10 +99,9 @@ export async function GET() {
     if (idx !== undefined) trend6[idx].count += 1;
   }
 
-  // Agregasi demografi (import Excel) → total kabupaten. Pakai baris pekon
+  // Agregasi demografi (import Excel). Angka per kategori dari baris pekon
   // (level 5) bila ada agar sama dengan tabel ringkasan; kalau belum, baris
   // kecamatan (level 4).
-  const hasKat = (kat: string) => demografiRows.some((d) => d.kategori === kat);
   const rowsFor = (kat: string) => {
     const pekon = demografiRows.filter((d) => d.kategori === kat && d.level === 5);
     return pekon.length ? pekon : demografiRows.filter((d) => d.kategori === kat);
@@ -96,24 +109,27 @@ export async function GET() {
   const sumCol = (kat: string, col: string) =>
     rowsFor(kat).reduce((a, d) => a + (Number((d.data as Record<string, unknown>)?.[col]) || 0), 0);
 
-  const lakiLaki = hasKat("jenis-kelamin")
-    ? sumCol("jenis-kelamin", "L")
-    : find("jenis-kelamin", "Laki-laki");
-  const perempuan = hasKat("jenis-kelamin")
-    ? sumCol("jenis-kelamin", "P")
-    : find("jenis-kelamin", "Perempuan");
-  const kepalaKeluarga = hasKat("kk")
-    ? sumCol("kk", "KK_JML")
-    : sum("kepala-keluarga");
-  // Wajib KTP: kolom JML (wajib) & JML_WKTP (sudah rekam). Bila belum diimport,
-  // pakai placeholder statis. Pemetaan kolom file WKTP dapat disesuaikan.
-  const wajibKtp = hasKat("wajib-ktp")
-    ? sumCol("wajib-ktp", "JML")
-    : find("wajib-ktp", "Sudah Memiliki KTP-el") + find("wajib-ktp", "Belum Memiliki KTP-el");
-  const sudahKtpEl = hasKat("wajib-ktp")
-    ? sumCol("wajib-ktp", "JML_WKTP")
-    : find("wajib-ktp", "Sudah Memiliki KTP-el");
-  const belumKtpEl = Math.max(0, wajibKtp - sudahKtpEl);
+  // Nilai tiap kartu mengikuti kolom yang dipilih admin; badge = persentase
+  // terhadap total kolom acuan (badgeKolom) bila diset.
+  const kartuDemografi = kartuKonfig.map((k) => {
+    const value = k.kategori && k.kolom ? sumCol(k.kategori, k.kolom) : 0;
+    const preset = warnaPreset(k.warna);
+    let badge: string | undefined;
+    if (k.badgeKolom) {
+      const base = sumCol(k.kategori, k.badgeKolom);
+      badge = base > 0 ? `${Math.round((value / base) * 100)}%` : undefined;
+    }
+    return {
+      title: k.title,
+      icon: k.icon,
+      kategori: k.kategori,
+      kolom: k.kolom,
+      accent: preset.accent,
+      accentBg: preset.accentBg,
+      badge,
+      value,
+    };
+  });
 
   return ok({
     // ── Pelayanan (live dari database) ──
@@ -127,14 +143,8 @@ export async function GET() {
     },
     totalBerita,
 
-    // ── Kependudukan (demografi / DKB) ──
-    jumlahPenduduk: lakiLaki + perempuan,
-    lakiLaki,
-    perempuan,
-    kepalaKeluarga,
-    wajibKtp,
-    sudahKtpEl,
-    belumKtpEl,
+    // ── Kependudukan (demografi / DKB) — kartu dinamis sesuai konfigurasi ──
+    kartuDemografi,
     periodeKependudukan:
       process.env.NEXT_PUBLIC_DKB_PERIODE ?? "DKB Semester II 2024",
   });

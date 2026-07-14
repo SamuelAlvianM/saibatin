@@ -74,6 +74,8 @@ export const registerUser = createAsyncThunk(
       pass: string;
       pass2: string;
       recaptchaToken?: string;
+      /** Bukti verifikasi OTP WhatsApp dari /api/otp/verify. */
+      otpBukti?: string;
     },
     { rejectWithValue }
   ) => {

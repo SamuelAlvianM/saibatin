@@ -394,28 +394,92 @@
 /* Leaflet control cleanup di dalam kartu */
 .leaflet-container { font-family: inherit; }
 
-/* ── Aksesibilitas (accessibility-widget) ── */
-/* Kontras tinggi: pertegas teks & border tanpa merusak layout */
-html.a11y-contrast body {
-  filter: contrast(1.15);
+/* ── Aksesibilitas (accessibility-widget, lihat lib/a11y.ts) ── */
+/* Filter halaman (kontras tinggi / skala abu / invert) dikomposisikan oleh JS
+   menjadi satu var --a11y-filter. Diterapkan di elemen root <html> — bukan
+   <body> — karena filter pada root DIKECUALIKAN dari aturan "membuat containing
+   block untuk keturunan position:fixed", sehingga FAB, toast, & modal tetap
+   melekat di viewport saat halaman di-scroll. Default "none" = tanpa efek. */
+:root {
+  filter: var(--a11y-filter, none);
 }
-html.a11y-contrast body a,
-html.a11y-contrast body button {
+html.a11y-contrast a,
+html.a11y-contrast button {
   text-decoration-thickness: 2px;
 }
 
-/* Skala abu-abu (membantu sebagian low-vision / buta warna) */
-html.a11y-grayscale body {
-  filter: grayscale(1);
-}
-html.a11y-contrast.a11y-grayscale body {
-  filter: contrast(1.15) grayscale(1);
+/* Saat invert aktif, kembalikan (re-invert) media & peta agar tidak rusak/aneh */
+html.a11y-invert img,
+html.a11y-invert video,
+html.a11y-invert svg image,
+html.a11y-invert .leaflet-container {
+  filter: invert(1) hue-rotate(180deg);
 }
 
-/* Garis bawahi semua tautan agar mudah dikenali */
+/* Sorot tautan: garis bawah tebal + latar stabilo agar mudah dikenali */
 html.a11y-underline a {
   text-decoration: underline !important;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px !important;
+  background-color: rgba(250, 204, 21, 0.3);
+  outline: 1px solid rgba(180, 83, 9, 0.45);
+  outline-offset: 1px;
+}
+
+/* Spasi teks bertingkat (keterbacaan disleksia / low vision) */
+html.a11y-spacing-1 body *:not(svg):not(path) {
+  letter-spacing: 0.05em !important;
+  word-spacing: 0.1em !important;
+  line-height: 1.7 !important;
+}
+html.a11y-spacing-2 body *:not(svg):not(path) {
+  letter-spacing: 0.1em !important;
+  word-spacing: 0.22em !important;
+  line-height: 2 !important;
+}
+
+/* Font ramah disleksia: sans legible yang sudah dimuat (Montserrat) */
+html.a11y-dyslexia body,
+html.a11y-dyslexia body *:not(svg):not(path) {
+  font-family: var(--font-montserrat), Verdana, Arial, sans-serif !important;
+}
+
+/* Latar terang: paksa skema terang (untuk yang silau di mode gelap) */
+html.a11y-lightbg {
+  color-scheme: light;
+}
+html.a11y-lightbg body {
+  background: #ffffff !important;
+}
+
+/* Kursor besar (SVG inline, hotspot 5,4) */
+html.a11y-cursor,
+html.a11y-cursor * {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 24 24'%3E%3Cpath d='M5.5 3.2 19 12.7l-6.4.9 3.6 6.6-3.1 1.7-3.6-6.6-4 3.2z' fill='%23111' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E")
+      5 4,
+    auto !important;
+}
+
+/* Sorotan blok teks yang sedang dibacakan (mode "Baca Saat Diarahkan") */
+.a11y-tts-hover {
+  outline: 2px solid #2176bd !important;
+  outline-offset: 2px;
+  background-color: rgba(33, 118, 189, 0.08) !important;
+  border-radius: 4px;
+}
+
+/* Garis bantu baca yang mengikuti kursor (elemen dirender widget) */
+.a11y-reading-guide {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+  z-index: 68;
+  pointer-events: none;
 }
 
 /* Hentikan seluruh animasi & transisi (vestibular / gangguan fokus) */
@@ -426,6 +490,18 @@ html.a11y-no-motion *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+/* Hormati preferensi reduced-motion bawaan OS */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Fokus keyboard yang selalu jelas (navigasi tanpa mouse) */

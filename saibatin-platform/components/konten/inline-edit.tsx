@@ -56,6 +56,14 @@ export function InlineEditProvider({ children }: { children: ReactNode }) {
     if (!isAdmin || !onPublic) setEditMode(false);
   }, [isAdmin, onPublic]);
 
+  // ?editmode=1 → langsung aktifkan mode edit (dipakai preview iframe di
+  // dashboard Konten Halaman). Dibaca dari window agar tidak perlu Suspense.
+  useEffect(() => {
+    if (!isAdmin || !onPublic) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('editmode') === '1') setEditMode(true);
+  }, [isAdmin, onPublic, pathname]);
+
   const active = editMode && isAdmin && onPublic;
 
   return (

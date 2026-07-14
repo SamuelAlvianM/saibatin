@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { KtpScanDialog, type KtpScanResult } from "./ktp-scan-dialog";
+import {
+  OcrUploadButton,
+  type OcrUploadResult,
+} from "./ocr-upload-button";
 import {
   Loader2,
   CheckCircle2,
   UserPlus2,
-  ScanLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +34,7 @@ type CheckStatus = "idle" | "checking" | "terdaftar" | "baru";
 
 /**
  * Input NIK pemohon dengan: deteksi otomatis terdaftar/baru ke database,
- * auto-fill data milik sendiri, dan tombol scan KTP via kamera (OCR).
+ * auto-fill data milik sendiri, dan tombol unggah foto KTP (OCR server).
  */
 export function PemohonNikField({
   id,
@@ -44,7 +45,6 @@ export function PemohonNikField({
   className,
 }: PemohonNikFieldProps) {
   const [status, setStatus] = useState<CheckStatus>("idle");
-  const [scanOpen, setScanOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export function PemohonNikField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const handleScanResult = (result: KtpScanResult) => {
+  const handleScanResult = (result: OcrUploadResult) => {
     if (result.nik) onChange(result.nik);
     if (result.nama && onAutoFill) onAutoFill({ nama: result.nama });
   };
@@ -105,16 +105,7 @@ export function PemohonNikField({
           maxLength={16}
           className={className}
         />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setScanOpen(true)}
-          title="Scan KTP dengan kamera"
-          className="shrink-0 px-3"
-        >
-          <ScanLine className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1.5">Scan KTP</span>
-        </Button>
+        <OcrUploadButton docLabel="KTP" onResult={handleScanResult} />
       </div>
 
       {status !== "idle" && (
@@ -146,12 +137,6 @@ export function PemohonNikField({
           )}
         </p>
       )}
-
-      <KtpScanDialog
-        open={scanOpen}
-        onOpenChange={setScanOpen}
-        onResult={handleScanResult}
-      />
     </div>
   );
 }

@@ -218,8 +218,10 @@ export async function POST(req: NextRequest) {
         best = parsed;
         bestScore = score;
       }
-      // NIK berlabel + minimal satu data lain → cukup yakin, hentikan.
-      if (parsed.nikLabeled && (parsed.nama || parsed.nokk)) break;
+      // NIK berlabel atau No.KK berlabel sudah tervalidasi struktur → cukup
+      // yakin, hentikan agar tidak membuang waktu mencoba orientasi lain.
+      // (Foto unggahan umumnya sudah tegak berkat auto-orient EXIF.)
+      if (parsed.nikLabeled || parsed.nokk) break;
     }
     delete best.nikLabeled;
   } catch (e) {

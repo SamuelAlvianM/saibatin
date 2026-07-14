@@ -46,6 +46,12 @@ export const DOKUMEN_KATEGORI: DokumenKategori[] = [
 
   // ── PPID / transparansi ──
   {
+    key: "PROFIL_PPID",
+    label: "Profil PPID",
+    group: "PPID / Transparansi",
+    halaman: [{ label: "PPID → Profil PPID", href: "/ppid/profil-ppid" }],
+  },
+  {
     key: "LHKPN",
     label: "LHKPN",
     group: "PPID / Transparansi",

@@ -130,7 +130,9 @@ fi
 mkdir -p storage/uploads app/uploads
 set -a; source .env; set +a
 command -v pm2 >/dev/null || npm install -g pm2
-pm2 startOrRestart ecosystem.config.cjs --env production
+# --update-env WAJIB: tanpa ini PM2 memakai ulang env dari start sebelumnya,
+# sehingga perubahan nilai di deploy/.env (mis. ganti FONNTE_TOKEN) tak terpakai.
+pm2 startOrRestart ecosystem.config.cjs --env production --update-env
 pm2 save
 pm2 status
 EOF

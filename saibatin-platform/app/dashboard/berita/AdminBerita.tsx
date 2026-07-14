@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus, Pencil, Trash2, X, Newspaper, Eye, EyeOff } from 'lucide-react';
 import { slugify } from '@/lib/slug';
@@ -239,11 +240,9 @@ export function AdminBerita() {
                 <Textarea id="ringkasan" rows={2} value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })} placeholder="Ringkasan singkat yang tampil di daftar berita" />
               </div>
               <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={form.publish}
-                  onChange={(e) => setForm({ ...form, publish: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300"
+                  onCheckedChange={(c) => setForm({ ...form, publish: c === true })}
                 />
                 Publikasikan sekarang
               </label>

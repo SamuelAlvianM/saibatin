@@ -1,8 +1,20 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logoutUser } from '@/store/slices/authSlice';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { NotificationBell } from '@/components/shared/notification-bell';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -17,7 +29,14 @@ import {
   MessagesSquare,
   Images,
   BarChart3,
-  TicketCheck,
+  Home,
+  LogOut,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  User as UserIcon,
+  X,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -59,7 +78,6 @@ const GROUPS: MenuGroup[] = [
   {
     title: 'Aspirasi Warga',
     items: [
-      { href: '/dashboard/tiket', label: 'Tiket & Chat', icon: TicketCheck },
       { href: '/dashboard/pengaduan', label: 'Pengaduan', icon: MessageSquare },
       { href: '/dashboard/kritik-saran', label: 'Kritik & Saran', icon: MessagesSquare },
       { href: '/dashboard/skm', label: 'SKM & IKM', icon: Gauge },
@@ -67,30 +85,156 @@ const GROUPS: MenuGroup[] = [
   },
   {
     title: 'Sistem',
-    items: [{ href: '/dashboard#users', label: 'Manajemen User', icon: Users }],
+    items: [{ href: '/dashboard/users', label: 'Manajemen Akun', icon: Users }],
   },
 ];
 
-export function DashboardSidebar() {
-  const pathname = usePathname();
+// Item utama di bottom-bar mobile (sisanya lewat tombol "Menu").
+const MOBILE_MAIN: MenuItem[] = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/permohonan', label: 'Permohonan', icon: ClipboardList },
+  { href: '/dashboard/konten', label: 'Konten', icon: FileText },
+  { href: '/dashboard/pengaduan', label: 'Pengaduan', icon: MessageSquare },
+];
 
-  const isActive = (href: string, exact?: boolean) => {
-    const base = href.split('#')[0];
-    if (exact || base === '/dashboard') {
-      return pathname === '/dashboard' && (href === '/dashboard' || href.includes('#'));
+const COLLAPSE_KEY = 'saibatin-dash-collapsed';
+
+function useIsActive() {
+  const pathname = usePathname();
+  return React.useCallback(
+    (href: string, exact?: boolean) => {
+      const base = href.split('#')[0];
+      if (exact || base === '/dashboard') {
+        return pathname === '/dashboard' && (href === '/dashboard' || href.includes('#'));
+      }
+      return pathname.startsWith(base);
+    },
+    [pathname],
+  );
+}
+
+/** Tombol keluar + info akun; dipakai footer sidebar & top-bar mobile. */
+function useLogout() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [loggingOut, setLoggingOut] = React.useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await dispatch(logoutUser()).unwrap();
+      toast.success('Berhasil keluar');
+      router.push('/login');
+      router.refresh();
+    } catch {
+      toast.error('Gagal keluar, coba lagi');
+    } finally {
+      setLoggingOut(false);
     }
-    return pathname.startsWith(base);
   };
 
+  return { loggingOut, handleLogout };
+}
+
+// ── Sidebar desktop (collapsible) ──────────────────────────────────────────
+
+function DesktopSidebar() {
+  const isActive = useIsActive();
+  const { user } = useAppSelector((state) => state.auth);
+  const { loggingOut, handleLogout } = useLogout();
+  const [collapsed, setCollapsed] = React.useState(false);
+
+  React.useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      localStorage.setItem(COLLAPSE_KEY, prev ? '0' : '1');
+      return !prev;
+    });
+  };
+
+  const displayName = user?.name || user?.user_id || 'Petugas';
+
   return (
-    <aside className="w-full lg:w-60 lg:flex-shrink-0 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200/60 bg-white/60 backdrop-blur-sm">
-      <nav className="flex lg:flex-col gap-1 overflow-x-auto p-3 lg:p-4">
+    <aside
+      style={{
+        width: collapsed ? '5rem' : '15rem',
+        minWidth: collapsed ? '5rem' : '15rem',
+        maxWidth: collapsed ? '5rem' : '15rem',
+      }}
+      // z-30: di atas konten halaman; TANPA overflow-hidden agar dropdown
+      // lonceng notifikasi & tombol ciutkan (-right-3) tidak terpotong/ketimpa.
+      className="hidden lg:flex flex-col flex-shrink-0 sticky top-0 z-30 h-screen border-r border-slate-200/60 bg-white/60 backdrop-blur-sm transition-[width] duration-300"
+    >
+      {/* Tombol ciutkan mengambang bundar di tepi kanan sidebar */}
+      <button
+        onClick={toggleCollapsed}
+        title={collapsed ? 'Perlebar sidebar' : 'Ciutkan sidebar'}
+        aria-label={collapsed ? 'Perlebar sidebar' : 'Ciutkan sidebar'}
+        className="absolute -right-3 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-colors hover:bg-primary hover:text-white"
+      >
+        {collapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
+
+      {/* Kepala sidebar: logo (kembali ke beranda) + lonceng notifikasi */}
+      <div
+        className={cn(
+          'flex items-center gap-2 border-b border-slate-200/60 px-3 py-3',
+          collapsed && 'flex-col px-2',
+        )}
+      >
+        <Link
+          href="/"
+          title="Kembali ke Beranda"
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100"
+        >
+          <div className="relative h-8 w-8 flex-shrink-0">
+            <Image src="/logo-saibatin.png" alt="Logo SAIBATIN" fill className="object-contain" />
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold leading-tight text-slate-900">SAIBATIN</p>
+              <p className="truncate text-[0.68rem] leading-tight text-slate-500">
+                Dashboard Petugas
+              </p>
+            </div>
+          )}
+        </Link>
+        <NotificationBell tone="onLight" align="left" />
+      </div>
+
+      {/* Tautan kembali ke beranda publik */}
+      <div className={cn('border-b border-slate-200/60 p-2', collapsed && 'px-2')}>
+        <Link
+          href="/"
+          title="Kembali ke Beranda"
+          className={cn(
+            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary',
+            collapsed && 'justify-center px-0',
+          )}
+        >
+          <Home className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && 'Kembali ke Beranda'}
+        </Link>
+      </div>
+
+      {/* Menu */}
+      <nav className={cn('flex-1 overflow-y-auto p-3', collapsed && 'px-2')}>
         {GROUPS.map((group, gi) => (
-          <div key={gi} className="flex lg:flex-col gap-1 lg:gap-0.5">
-            {group.title && (
-              <p className="hidden lg:block px-3 pt-4 pb-1.5 text-[0.62rem] font-bold uppercase tracking-widest text-slate-400">
+          <div key={gi} className="flex flex-col gap-0.5">
+            {group.title && !collapsed && (
+              <p className="px-3 pt-4 pb-1.5 text-[0.62rem] font-bold uppercase tracking-widest text-slate-400">
                 {group.title}
               </p>
+            )}
+            {group.title && collapsed && gi > 0 && (
+              <div className="mx-2 my-2 border-t border-slate-200/70" />
             )}
             {group.items.map((m) => {
               const active = isActive(m.href, m.exact);
@@ -98,20 +242,230 @@ export function DashboardSidebar() {
                 <Link
                   key={m.href}
                   href={m.href}
+                  title={collapsed ? m.label : undefined}
                   className={cn(
                     'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                     active ? 'text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100',
+                    collapsed && 'justify-center px-0',
                   )}
                   style={active ? { background: '#2176bd' } : undefined}
                 >
                   <m.icon className="h-4 w-4 flex-shrink-0" />
-                  {m.label}
+                  {!collapsed && m.label}
                 </Link>
               );
             })}
           </div>
         ))}
       </nav>
+
+      {/* Footer akun: pengganti user-menu navbar yang disembunyikan di dashboard */}
+      <div
+        className={cn(
+          'flex items-center gap-2 border-t border-slate-200/60 p-3',
+          collapsed && 'flex-col px-2',
+        )}
+      >
+        {!collapsed && (
+          <>
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <UserIcon className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
+              {displayName}
+            </span>
+          </>
+        )}
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          title="Keluar"
+          aria-label="Keluar"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+        >
+          {loggingOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+        </button>
+      </div>
     </aside>
+  );
+}
+
+// ── Top-bar mobile ──────────────────────────────────────────────────────────
+
+function MobileTopBar() {
+  const { user } = useAppSelector((state) => state.auth);
+  const { loggingOut, handleLogout } = useLogout();
+  const displayName = user?.name || user?.user_id || 'Petugas';
+
+  return (
+    <header
+      className="sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-2.5 shadow-md shadow-blue-900/10 lg:hidden"
+      style={{ background: 'linear-gradient(135deg, #1b4b72 0%, #2176bd 100%)' }}
+    >
+      <Link href="/" title="Kembali ke Beranda" className="flex min-w-0 items-center gap-2.5">
+        <div className="relative h-8 w-8 flex-shrink-0">
+          <Image src="/logo-saibatin.png" alt="Logo SAIBATIN" fill className="object-contain" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold leading-tight text-white">SAIBATIN</p>
+          <p className="truncate text-[0.68rem] leading-tight text-white/70">{displayName}</p>
+        </div>
+      </Link>
+      <div className="flex flex-shrink-0 items-center gap-1">
+        <NotificationBell tone="onDark" />
+        <Link
+          href="/"
+          title="Kembali ke Beranda"
+          aria-label="Kembali ke Beranda"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20"
+        >
+          <Home className="h-4.5 w-4.5" />
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          title="Keluar"
+          aria-label="Keluar"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20 disabled:opacity-60"
+        >
+          {loggingOut ? (
+            <Loader2 className="h-4.5 w-4.5 animate-spin" />
+          ) : (
+            <LogOut className="h-4.5 w-4.5" />
+          )}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+// ── Bottom-nav mobile ───────────────────────────────────────────────────────
+
+function MobileBottomNav() {
+  const isActive = useIsActive();
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
+  return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      aria-label="Navigasi dashboard"
+    >
+      <div className="grid grid-cols-5">
+        {MOBILE_MAIN.map((m) => {
+          const active = isActive(m.href, m.exact);
+          return (
+            <Link
+              key={m.href}
+              href={m.href}
+              className={cn(
+                'flex flex-col items-center gap-0.5 py-2 text-[0.65rem] font-medium transition-colors',
+                active ? 'text-primary' : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-6 w-10 items-center justify-center rounded-full transition-colors',
+                  active && 'bg-primary/10',
+                )}
+              >
+                <m.icon className="h-4.5 w-4.5" />
+              </span>
+              {m.label}
+            </Link>
+          );
+        })}
+
+        {/* Tombol "Menu" → sheet berisi semua menu bergrup */}
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetTrigger asChild>
+            <button
+              className="flex flex-col items-center gap-0.5 py-2 text-[0.65rem] font-medium text-slate-500 transition-colors hover:text-slate-700"
+              aria-label="Buka semua menu dashboard"
+            >
+              <span className="flex h-6 w-10 items-center justify-center rounded-full">
+                <LayoutGrid className="h-4.5 w-4.5" />
+              </span>
+              Menu
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="bottom"
+            showCloseButton={false}
+            className="max-h-[80dvh] gap-0 overflow-y-auto rounded-t-2xl p-0"
+          >
+            <SheetTitle className="sr-only">Semua menu dashboard</SheetTitle>
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur">
+              <p className="text-sm font-bold text-slate-900">Semua Menu</p>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="Tutup menu"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-4 py-3 pb-6">
+              <Link
+                href="/"
+                onClick={() => setMenuOpen(false)}
+                className="mb-2 flex items-center gap-2.5 rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+              >
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Home className="h-4 w-4" />
+                </span>
+                Kembali ke Beranda
+              </Link>
+
+              {GROUPS.map((group, gi) => (
+                <div key={gi}>
+                  {group.title && (
+                    <p className="px-1 pt-3 pb-1.5 text-[0.62rem] font-bold uppercase tracking-widest text-slate-400">
+                      {group.title}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-3 gap-2">
+                    {group.items.map((m) => {
+                      const active = isActive(m.href, m.exact);
+                      return (
+                        <Link
+                          key={m.href}
+                          href={m.href}
+                          onClick={() => setMenuOpen(false)}
+                          className={cn(
+                            'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[0.72rem] font-medium leading-tight transition-colors',
+                            active
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100',
+                          )}
+                        >
+                          <m.icon className="h-5 w-5" />
+                          {m.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </nav>
+  );
+}
+
+export function DashboardSidebar() {
+  return (
+    <>
+      <MobileTopBar />
+      <DesktopSidebar />
+      <MobileBottomNav />
+    </>
   );
 }

@@ -5,6 +5,8 @@ import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { sendMail } from "@/lib/mail";
 import { tplRegistrasiDiterima } from "@/lib/mail-templates";
+import { cekBukti, normalisasiHp, otpWajib } from "@/lib/otp";
+import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /**
  * Registrasi warga — port dari RegisterController@postDatas (Laravel data-2).
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
     pass,
     pass2,
     recaptchaToken,
+    otpBukti,
   } = body as Record<string, string>;
 
   if (!(await verifyRecaptcha(recaptchaToken))) {
@@ -44,6 +47,15 @@ export async function POST(req: NextRequest) {
   }
   if (pass !== pass2) {
     return fail(["Info: Password Konfirmasi Tidak Sama (N-09)"]);
+  }
+
+  // Nomor WhatsApp wajib lolos OTP (kecuali layanan OTP belum dikonfigurasi
+  // di production — lihat lib/otp.ts otpWajib()).
+  if (otpWajib()) {
+    const hpNormal = normalisasiHp(hp);
+    if (!hpNormal || !cekBukti(hpNormal, otpBukti ?? "")) {
+      return fail(["Info: Nomor WhatsApp belum diverifikasi OTP (N-16)"]);
+    }
   }
 
   try {
@@ -68,7 +80,7 @@ export async function POST(req: NextRequest) {
     const hashpass = await bcrypt.hash(pass, 10);
     const activationCodeUrl = await bcrypt.hash(nik + Date.now(), 10);
 
-    await prisma.user.create({
+    const userBaru = await prisma.user.create({
       data: {
         userId: nik,
         password: hashpass,
@@ -89,6 +101,18 @@ export async function POST(req: NextRequest) {
     // Email konfirmasi — kegagalan kirim tidak menggagalkan pendaftaran.
     const konfirmasi = tplRegistrasiDiterima(nama);
     await sendMail({ to: email, ...konfirmasi });
+
+    // Notifikasi ke petugas: ada akun baru yang menunggu aktivasi.
+    await safeNotify(() =>
+      notifyPetugas({
+        tipe: "AKUN_BARU",
+        judul: "Pendaftaran akun baru",
+        isi: `${nama} (NIK ${nik}) mendaftar dan menunggu aktivasi akun.`,
+        link: "/dashboard/users",
+        refType: "User",
+        refId: userBaru.id,
+      }),
+    );
 
     return ok(
       { nik, email, hp },

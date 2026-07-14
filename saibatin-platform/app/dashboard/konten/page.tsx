@@ -12,12 +12,13 @@ export default async function DashboardKontenPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 md:px-8 lg:px-16 py-10">
+      <div className="px-4 py-6 md:px-6">
         <BackButton href="/dashboard" />
-        <div className="mb-6">
+        <div className="mb-4 mt-1">
           <h1 className="text-2xl font-semibold text-slate-900">Konten Halaman</h1>
           <p className="text-sm text-slate-500">
-            Edit isi beranda &amp; profil dinas (visi, misi, motto, maklumat, dll).
+            Pilih halaman dari menu di kiri, lalu edit langsung pada pratinjau —
+            klik tombol <b>pensil</b> pada bagian yang ingin diubah.
           </p>
         </div>
         <AdminKonten />

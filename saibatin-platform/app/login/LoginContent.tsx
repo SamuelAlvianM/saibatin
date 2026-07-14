@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2, UserPlus, KeyRound, ArrowRight } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
@@ -111,7 +112,7 @@ export default function LoginPage() {
         : undefined;
 
       await dispatch(loginUser({
-        user_id: formData.user_id,
+        user_id: formData.user_id.trim(),
         password: formData.password,
         recaptchaToken,
       })).unwrap();
@@ -226,7 +227,7 @@ export default function LoginPage() {
                   id="user_id"
                   name="user_id"
                   type="text"
-                  placeholder="Masukkan NIK Anda"
+                  placeholder="NIK (warga) atau username (instansi/staff)"
                   value={formData.user_id}
                   onChange={handleInputChange}
                   onFocus={() => setFocusedField('user_id')}
@@ -297,13 +298,9 @@ export default function LoginPage() {
 
             {/* Remember Me Checkbox */}
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember"
-                className="w-4 h-4 text-primary bg-background border-input rounded focus:ring-primary focus:ring-2 transition-all duration-200"
-              />
-              <Label 
-                htmlFor="remember" 
+              <Checkbox id="remember" />
+              <Label
+                htmlFor="remember"
                 className="text-sm font-normal cursor-pointer select-none"
               >
                 Remember Me

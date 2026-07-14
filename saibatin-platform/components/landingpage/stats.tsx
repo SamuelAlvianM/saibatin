@@ -5,12 +5,6 @@ import dynamic from 'next/dynamic';
 import { animate, stagger } from 'animejs';
 import { useInView, animate as fmAnimate } from 'framer-motion';
 import {
-  Users,
-  Home,
-  User,
-  UserCircle,
-  IdCard,
-  ScanLine,
   Map as MapIcon,
   FileCheck,
   ArrowRight,
@@ -36,6 +30,13 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useInlineEdit } from '@/components/konten/inline-edit';
 import { DemografiMetric } from '@/components/landingpage/demografi-metric';
+// Editor template kartu (judul/ikon/warna) DINONAKTIFKAN sementara — mode edit
+// kini langsung membuka editor data Excel. Buka komentar untuk mengaktifkan lagi.
+// import { StatistikKartuEditor } from '@/components/landingpage/statistik-kartu-editor';
+import { DemografiEditor } from '@/components/dashboard/demografi-editor';
+import { getDemografiKategori } from '@/lib/demografi-kategori';
+import { getIcon } from '@/lib/icon-map';
+import { DEFAULT_KARTU, warnaPreset } from '@/lib/beranda-statistik';
 import {
   Dialog,
   DialogContent,
@@ -82,14 +83,20 @@ interface PelayananStat {
   trend6: TrendPoint[];
 }
 
+/** Satu kartu demografi terkonfigurasi (dihitung server dari sumber data). */
+interface KartuDemografi {
+  title: string;
+  icon: string; // nama ikon Lucide
+  kategori: string;
+  kolom: string;
+  accent: string; // kelas warna teks (badge)
+  accentBg: string; // kelas gradient latar ikon
+  badge?: string;
+  value: number;
+}
+
 interface StatsData {
-  jumlahPenduduk: number;
-  kepalaKeluarga: number;
-  lakiLaki: number;
-  perempuan: number;
-  wajibKtp: number;
-  sudahKtpEl: number;
-  belumKtpEl: number;
+  kartuDemografi: KartuDemografi[];
   pelayanan: PelayananStat;
   periodeKependudukan: string;
 }
@@ -120,18 +127,8 @@ function Divider() {
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
-interface StatCardConfig {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  accent: string;
-  accentBg: string;
-  badge?: string;
-  kategori: string; // kategori demografi yang dibuka saat kartu diklik
-  kolom: string; // kolom nilai yang difokuskan (mis. 'JML', 'L', 'KK_JML')
-}
-
-function StatCard({ title, value, icon, accent, accentBg, badge, onClick }: StatCardConfig & { onClick?: () => void }) {
+function StatCard({ title, value, icon, accent, accentBg, badge, onClick, editHint }: KartuDemografi & { onClick?: () => void; editHint?: boolean }) {
+  const Icon = getIcon(icon);
   return (
     <button
       type="button"
@@ -142,14 +139,18 @@ function StatCard({ title, value, icon, accent, accentBg, badge, onClick }: Stat
         'hover:border-primary/30 hover:shadow-md hover:shadow-primary/10 transition-[box-shadow,border-color] duration-300',
         'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
       )}
-      title={`Lihat rincian ${title} per kecamatan`}
+      title={editHint ? `Atur kartu ${title}` : `Lihat rincian ${title} per kecamatan`}
     >
-      {/* Petunjuk klik — muncul halus saat hover */}
-      <MousePointerClick className="absolute top-3 right-3 h-4 w-4 text-primary/0 transition-colors duration-300 group-hover:text-primary/40" />
+      {/* Petunjuk klik — muncul halus saat hover (pensil saat mode edit) */}
+      {editHint ? (
+        <Pencil className="absolute top-3 right-3 h-4 w-4 text-primary/40" />
+      ) : (
+        <MousePointerClick className="absolute top-3 right-3 h-4 w-4 text-primary/0 transition-colors duration-300 group-hover:text-primary/40" />
+      )}
 
       <div className="flex items-start justify-between">
         <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105', accentBg)}>
-          <span className="text-white">{icon}</span>
+          <span className="text-white"><Icon className="w-6 h-6" /></span>
         </div>
         {badge && (
           <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full bg-white border border-primary/10 shadow-sm', accent)}>
@@ -356,14 +357,21 @@ function MapCard() {
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
+// Placeholder sebelum /api/stats merespons: susunan kartu bawaan, nilai 0.
 const FALLBACK: StatsData = {
-  jumlahPenduduk: 170207,
-  kepalaKeluarga: 30200,
-  lakiLaki: 86340,
-  perempuan: 83867,
-  wajibKtp: 128020,
-  sudahKtpEl: 118400,
-  belumKtpEl: 9620,
+  kartuDemografi: DEFAULT_KARTU.map((c) => {
+    const p = warnaPreset(c.warna);
+    return {
+      title: c.title,
+      icon: c.icon,
+      kategori: c.kategori,
+      kolom: c.kolom,
+      accent: p.accent,
+      accentBg: p.accentBg,
+      badge: undefined,
+      value: 0,
+    };
+  }),
   pelayanan: { total: 0, selesai: 0, aktif: 0, bulanIni: 0, topJenis: [], trend6: [] },
   periodeKependudukan: 'DKB Semester II 2024',
 };
@@ -373,8 +381,13 @@ export default function StatsGrid() {
   const rootRef = useRef<HTMLDivElement>(null);
   const { editMode } = useInlineEdit();
 
-  // Modal demografi terfokus (dibuka saat kartu diklik).
-  const [demoCard, setDemoCard] = useState<StatCardConfig | null>(null);
+  // Modal rincian demografi (dibuka saat kartu diklik di mode biasa).
+  const [demoCard, setDemoCard] = useState<KartuDemografi | null>(null);
+  // Mode edit: klik kartu → editor data Excel kategori tsb, difokuskan ke
+  // KARTU yang diklik (kategori + kolom) agar preview & simpan tepat sasaran.
+  const [editTarget, setEditTarget] = useState<{ kategori: string; kolom: string } | null>(null);
+  // Editor template kartu (dinonaktifkan sementara):
+  // const [editorIndex, setEditorIndex] = useState<number | null>(null);
 
   const refetchStats = useCallback(() => {
     return fetch('/api/stats')
@@ -413,19 +426,7 @@ export default function StatsGrid() {
     });
   }, []);
 
-  const totalJk = stats.lakiLaki + stats.perempuan || 1;
-  const lakiPct = Math.round((stats.lakiLaki / totalJk) * 100);
-  const perempuanPct = Math.round((stats.perempuan / totalJk) * 100);
-  const ktpPct = stats.wajibKtp > 0 ? Math.round((stats.sudahKtpEl / stats.wajibKtp) * 100) : 0;
-
-  const primaryCards: StatCardConfig[] = [
-    { title: 'Jumlah Penduduk', value: stats.jumlahPenduduk, icon: <Users className="w-6 h-6" />, accent: 'text-primary', accentBg: 'bg-gradient-to-br from-[#2176bd] to-[#1b4b72]', kategori: 'jenis-kelamin', kolom: 'JML' },
-    { title: 'Kepala Keluarga', value: stats.kepalaKeluarga, icon: <Home className="w-6 h-6" />, accent: 'text-amber-600', accentBg: 'bg-gradient-to-br from-amber-400 to-amber-600', kategori: 'kk', kolom: 'KK_JML' },
-    { title: 'Laki-laki', value: stats.lakiLaki, icon: <User className="w-6 h-6" />, accent: 'text-sky-600', accentBg: 'bg-gradient-to-br from-sky-400 to-sky-600', badge: `${lakiPct}%`, kategori: 'jenis-kelamin', kolom: 'L' },
-    { title: 'Perempuan', value: stats.perempuan, icon: <UserCircle className="w-6 h-6" />, accent: 'text-rose-500', accentBg: 'bg-gradient-to-br from-rose-400 to-rose-600', badge: `${perempuanPct}%`, kategori: 'jenis-kelamin', kolom: 'P' },
-    { title: 'Wajib KTP', value: stats.wajibKtp, icon: <IdCard className="w-6 h-6" />, accent: 'text-teal-600', accentBg: 'bg-gradient-to-br from-teal-400 to-teal-600', kategori: 'wajib-ktp', kolom: 'JML' },
-    { title: 'Sudah Rekam KTP-el', value: stats.sudahKtpEl, icon: <ScanLine className="w-6 h-6" />, accent: 'text-emerald-600', accentBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600', badge: `${ktpPct}%`, kategori: 'wajib-ktp', kolom: 'JML_WKTP' },
-  ];
+  const cards = stats.kartuDemografi;
 
   return (
     <div className="space-y-4" ref={rootRef}>
@@ -442,22 +443,34 @@ export default function StatsGrid() {
         </span>
       </div>
 
-      {/* Info: kartu bisa diklik untuk rincian; admin bisa edit langsung. */}
+      {/* Info: mode biasa → klik untuk rincian; mode edit → klik untuk atur kartu. */}
       <p className="flex items-center gap-1.5 text-xs text-slate-400">
-        <MousePointerClick className="h-3.5 w-3.5" />
-        Klik kartu untuk melihat rincian per kecamatan &amp; pekon.
-        {editMode && (
+        {editMode ? (
           <span className="inline-flex items-center gap-1 font-semibold text-primary">
-            <Pencil className="h-3 w-3" /> Mode edit aktif — data dapat diubah langsung dari sini.
+            <Pencil className="h-3.5 w-3.5" /> Mode edit aktif — klik kartu untuk mengubah datanya (import Excel / isi manual).
           </span>
+        ) : (
+          <>
+            <MousePointerClick className="h-3.5 w-3.5" />
+            Klik kartu untuk melihat rincian per kecamatan &amp; pekon.
+          </>
         )}
       </p>
 
       {/* Baris atas: kiri = 6 kartu demografi, kanan = pelayanan (tinggi sama) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-stretch">
         <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 lg:grid-rows-3 gap-3">
-          {primaryCards.map((card) => (
-            <StatCard key={card.title} {...card} onClick={() => setDemoCard(card)} />
+          {cards.map((card, i) => (
+            <StatCard
+              key={`${card.title}-${i}`}
+              {...card}
+              editHint={editMode}
+              onClick={() =>
+                editMode
+                  ? setEditTarget({ kategori: card.kategori, kolom: card.kolom })
+                  : setDemoCard(card)
+              }
+            />
           ))}
         </div>
 
@@ -469,14 +482,13 @@ export default function StatsGrid() {
       {/* Peta full width di bawah */}
       <MapCard />
 
-      {/* Modal rincian demografi terfokus (klik kartu). Admin (mode edit) bisa ubah data. */}
+      {/* Modal rincian demografi terfokus (klik kartu di mode biasa). */}
       <Dialog open={!!demoCard} onOpenChange={(o) => !o && setDemoCard(null)}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{demoCard?.title ?? 'Data Demografi'}</DialogTitle>
             <DialogDescription>
               Angka per kecamatan di Kabupaten Pesisir Barat — klik “Desa/Kelurahan” untuk rincian tiap desa.
-              {editMode && ' Gunakan tombol “Edit data” untuk mengubah langsung.'}
             </DialogDescription>
           </DialogHeader>
           {demoCard && (
@@ -484,12 +496,34 @@ export default function StatsGrid() {
               kategori={demoCard.kategori}
               kolom={demoCard.kolom}
               title={demoCard.title}
-              editable={editMode}
               onDataChanged={refetchStats}
             />
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Mode edit: klik kartu → editor data Excel, difokuskan ke kartu tsb. */}
+      {editTarget && (
+        <DemografiEditor
+          kategori={editTarget.kategori}
+          label={getDemografiKategori(editTarget.kategori)?.label ?? editTarget.kategori}
+          kartuKolom={editTarget.kolom}
+          open
+          onOpenChange={(o) => !o && setEditTarget(null)}
+          onSaved={refetchStats}
+        />
+      )}
+
+      {/* Editor template kartu (judul/ikon/warna/sumber data) — DINONAKTIFKAN
+          sementara. Buka komentar (beserta import & state editorIndex) untuk
+          mengaktifkan kembali.
+      <StatistikKartuEditor
+        open={editorIndex !== null}
+        initialIndex={editorIndex ?? undefined}
+        onClose={() => setEditorIndex(null)}
+        onSaved={refetchStats}
+      />
+      */}
     </div>
   );
 }

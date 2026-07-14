@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { InfoPage, type InfoBerkas } from '@/components/shared/info-page';
+import { type InfoBerkas } from '@/components/shared/info-page';
+import { EditableInfoPage } from '@/components/shared/editable-info-page';
 import { produkContent } from '@/lib/info-content';
 import { dokumenJenisForPath } from '@/lib/dokumen-registry';
+import { infoBlockKey } from '@/lib/static-content-registry';
 
 // Dinamis: menampilkan berkas unggahan dashboard (Dokumen Publikasi).
 export const dynamic = 'force-dynamic';
@@ -33,5 +35,12 @@ export default async function ProdukPage({
       }))
     : [];
 
-  return <InfoPage content={content} berkas={berkas} />;
+  return (
+    <EditableInfoPage
+      kunci={infoBlockKey('produk', path)}
+      fallback={content}
+      berkas={berkas}
+      dokumenJenis={jenis[0]}
+    />
+  );
 }
