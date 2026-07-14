@@ -7,7 +7,7 @@ const grup = {
     { label: "Permohonan Online", href: "/permohonan-online" },
     { label: "Riwayat Permohonan", href: "/riwayat" },
     { label: "Pengaduan Masyarakat", href: "/pengaduan" },
-    { label: "Survei Kepuasan", href: "/media/survey-kepuasan" },
+    { label: "Survei Kepuasan", href: "/hubungi-kami#survei" },
   ],
   informasi: [
     { label: "Berita", href: "/media/berita" },

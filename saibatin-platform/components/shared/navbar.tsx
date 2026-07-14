@@ -22,11 +22,12 @@ import {
   LayoutDashboard,
   User as UserIcon,
   Loader2,
-  Ticket,
   Landmark,
   ShieldAlert,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { navigationItems } from "@/lib/navigation";
+import { NotificationBell } from "@/components/shared/notification-bell";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logoutUser } from "@/store/slices/authSlice";
@@ -428,11 +429,14 @@ function MobileItemIcon({
 
 function MobileMenuItem({
   title,
+  href,
   items,
   onClose,
   icon: Icon,
 }: {
   title: string;
+  /** Link langsung untuk menu tanpa dropdown. */
+  href?: string;
   items?: Array<{
     title: string;
     href: string;
@@ -450,7 +454,7 @@ function MobileMenuItem({
   if (!items) {
     return (
       <Link
-        href={`/${title.toLowerCase().replace(/\s+/g, "-")}`}
+        href={href ?? `/${title.toLowerCase().replace(/\s+/g, "-")}`}
         className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
         onClick={onClose}
       >
@@ -566,6 +570,7 @@ function MobileMenuItem({
 
 // Icon mapping for navigation items
 const navigationIcons: { [key: string]: React.ElementType } = {
+  Permohonan: FileText,
   "Pelayanan Online": Building2,
   Pengaduan: Info,
   Produk: FileText,
@@ -576,285 +581,7 @@ const navigationIcons: { [key: string]: React.ElementType } = {
   WBS: ShieldAlert,
 };
 
-const navigationItems = [
-  {
-    title: "Pelayanan Online",
-    items: [
-      {
-        title: "Permohonan Online",
-        href: "/permohonan-online",
-        description: "Ajukan permohonan dokumen kependudukan secara online",
-      },
-    ],
-  },
-  {
-    title: "Produk",
-    items: [
-      {
-        title: "Produk Disdukcapil",
-        href: "/produk/produk-disdukcapil",
-        description: "Produk dan layanan Disdukcapil",
-      },
-      {
-        title: "Formulir Persyaratan",
-        href: "/produk/formulir-persyaratan",
-        description: "Persyaratan pengurusan dokumen kependudukan",
-      },
-      {
-        title: "Hukum",
-        href: "/produk/hukum",
-        description: "Produk hukum terkait kependudukan",
-      },
-
-      {
-        title: "Standar Operasional Prosedur (SOP)",
-        href: "/produk/sop",
-        description: "Standar operasional prosedur pelayanan",
-      },
-    ],
-  },
-  {
-    title: "Media Informasi",
-    items: [
-      {
-        title: "Berita",
-        href: "/media/berita",
-        description: "Berita dan informasi terkini",
-      },
-      {
-        title: "Galeri",
-        href: "/galeri",
-        description: "Dokumentasi kegiatan Disdukcapil",
-      },
-      {
-        title: "Data Demografi",
-        href: "#",
-        description: "Data statistik kependudukan",
-        subItems: [
-          {
-            title: "Jenis Kelamin",
-            href: "/media/demografi/jenis-kelamin",
-            description: "Statistik berdasarkan jenis kelamin",
-          },
-          {
-            title: "Agama",
-            href: "/media/demografi/agama",
-            description: "Statistik berdasarkan agama",
-          },
-          {
-            title: "Golongan Darah",
-            href: "/media/demografi/gol-darah",
-            description: "Statistik berdasarkan golongan darah",
-          },
-          {
-            title: "Pekerjaan",
-            href: "/media/demografi/pekerjaan",
-            description: "Statistik berdasarkan pekerjaan",
-          },
-          {
-            title: "Kartu Keluarga",
-            href: "/media/demografi/kk",
-            description: "Statistik data kepala keluarga",
-          },
-          {
-            title: "Pendidikan Terakhir",
-            href: "/media/demografi/pendidikan",
-            description: "Statistik berdasarkan pendidikan",
-          },
-          {
-            title: "Status Perkawinan",
-            href: "/media/demografi/status-kawin",
-            description: "Statistik berdasarkan status perkawinan",
-          },
-          {
-            title: "Wajib KTP",
-            href: "/media/demografi/wajib-ktp",
-            description: "Statistik wajib KTP",
-          },
-        ],
-      },
-      {
-        title: "Peta",
-        href: "/media/peta",
-        description: "Peta wilayah administrasi",
-      },
-      {
-        title: "Survey Kepuasan Masyarakat",
-        href: "/media/survey-kepuasan",
-        description: "Survey kepuasan layanan publik",
-      },
-      {
-        title: "GIS Dukcapil — Peta Sebaran Penduduk",
-        href: "/media/gis",
-        description: "Peta sebaran jumlah penduduk per kecamatan",
-      },
-      {
-        title: "Laporan Data Demografi",
-        href: "/media/laporan-demografi",
-        description: "Laporan lengkap data demografi",
-      },
-    ],
-  },
-  {
-    title: "Pengaduan",
-    items: [
-      {
-        title: "Pengaduan Masyarakat",
-        href: "/pengaduan",
-        description: "Sampaikan pengaduan terkait layanan Disdukcapil",
-      },
-      {
-        title: "Kritik & Saran",
-        href: "/hubungi-kami/kritik-saran",
-        description: "Kritik dan saran untuk peningkatan layanan",
-      },
-      {
-        title: "Hubungi Kami",
-        href: "/hubungi-kami/kontak",
-        description: "Informasi kontak dan lokasi kantor",
-      },
-    ],
-  },
-  {
-    title: "PPID",
-    items: [
-      {
-        title: "Profil PPID",
-        href: "/ppid/profil-ppid",
-        description: "Profil PPID Disdukcapil",
-      },
-      {
-        title: "Wajib Diumumkan Setiap Saat",
-        href: "#",
-        description: "Data wajib diumumkan setiap saat",
-        subItems: [
-          {
-            title: "Laporan PPID Pelaksana",
-            href: "/ppid/laporan-ppid-pelaksana",
-            description: "Laporan PPID pelaksana",
-          },
-          {
-            title: "LKJIP (Laporan Kinerja Instansi Pemerintah)",
-            href: "/ppid/lkjip",
-            description: "Laporan kinerja instansi pemerintah",
-          },
-          {
-            title: "Survey Kepuasan Masyarakat",
-            href: "/ppid/survey-kepuasan-masyarakat",
-            description: "Survey kepuasan masyarakat terhadap pelayanan",
-          },
-          {
-            title: "Buku Profil Kependudukan",
-            href: "/ppid/buku-profil-kependudukan",
-            description: "Buku profil kependudukan",
-          },
-          {
-            title: "Dokumen Pelaksana Anggaran (DPA)",
-            href: "/ppid/dpa",
-            description: "Dokumen pelaksana anggaran",
-          },
-          {
-            title: "Indikator Kinerja Individu (IKI)",
-            href: "/ppid/iki",
-            description: "Indikator kinerja individu",
-          },
-          {
-            title: "Rencana Kinerja Tahunan (RKT)",
-            href: "/ppid/rkt",
-            description: "Rencana kinerja tahunan",
-          },
-          {
-            title: "Rencana Kerja (Renka)",
-            href: "/ppid/renka",
-            description: "Rencana kerja",
-          },
-          {
-            title: "Perjanjian Kerjasama",
-            href: "/ppid/perjanjian-kerjasama",
-            description: "Perjanjian kerjasama",
-          },
-        ],
-      },
-      {
-        title: "Wajib Diumumkan Secara Berkala",
-        href: "#",
-        description: "Data wajib diumumkan secara berkala",
-        subItems: [
-          {
-            title: "Renstra OPD",
-            href: "/ppid/renstra-opd",
-            description: "Renstra OPD",
-          },
-          {
-            title: "Standar Pelayanan",
-            href: "/ppid/standar-pelayanan",
-            description: "Standar pelayanan publik",
-          },
-          {
-            title: "Indikator Kinerja Utama (IKU)",
-            href: "/ppid/iku",
-            description: "Indikator kinerja utama",
-          },
-          {
-            title: "Perjanjian Kinerja",
-            href: "/ppid/perjanjian-kinerja",
-            description: "Perjanjian kinerja",
-          },
-          {
-            title: "Standar Operasional Prosedur (SOP)",
-            href: "/ppid/sop",
-            description: "Standar operasional prosedur",
-          },
-          {
-            title: "LHKPN",
-            href: "/ppid/lhkpn",
-            description: "Laporan Harta Kekayaan Penyelenggara Negara",
-          },
-          {
-            title: "Zona Integritas",
-            href: "/ppid/zona-integritas",
-            description: "Zona integritas",
-          },
-          {
-            title: "Pengendalian Gratifikasi",
-            href: "/ppid/pengendalian-gratifikasi",
-            description: "Pengendalian gratifikasi",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: "WBS",
-    items: [
-      {
-        title: "Tentang WBS",
-        href: "/wbs/tentang-wbs",
-        description: "Informasi tentang WBS",
-      },
-      {
-        title: "Form Pengaduan WBS",
-        href: "/wbs/form-pengaduan",
-        description: "Form pengaduan WBS",
-      },
-    ],
-  },
-  {
-    title: "Hubungi Kami",
-    items: [
-      {
-        title: "Alamat Disdukcapil",
-        href: "/hubungi-kami/alamat",
-        description: "Alamat kantor Disdukcapil",
-      },
-      {
-        title: "Pengaduan Masyarakat",
-        href: "/hubungi-kami/pengaduan-masyarakat",
-        description: "Form pengaduan masyarakat",
-      },
-    ],
-  },
-];
+// navigationItems dipindah ke lib/navigation.ts (dipakai juga oleh dashboard Konten).
 
 function AuthArea({
   mobile,
@@ -936,13 +663,6 @@ function AuthArea({
           <LayoutDashboard className="h-4 w-4" /> {areaLabel}
         </Link>
         <Link
-          href="/tiket"
-          onClick={onNavigate}
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
-        >
-          <Ticket className="h-4 w-4" /> Tiket Bantuan
-        </Link>
-        <Link
           href="/profil"
           onClick={onNavigate}
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
@@ -987,29 +707,28 @@ function AuthArea({
         />
       </button>
 
-      {open && (
-        <div
-          className="absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50"
-          style={{
-            background: "rgba(255,255,255,0.97)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(33,118,189,0.12)",
-            boxShadow: "0 8px 32px rgba(33,118,189,0.15)",
-          }}
-        >
+      {/* Panel selalu dirender agar bisa dianimasikan buka/tutup (fade + slide + scale) */}
+      <div
+        className={cn(
+          "absolute right-0 top-full mt-2 min-w-52 rounded-xl py-1 z-50 origin-top-right",
+          "transition-all duration-200 ease-out",
+          open
+            ? "visible translate-y-0 scale-100 opacity-100"
+            : "invisible pointer-events-none -translate-y-1 scale-95 opacity-0",
+        )}
+        style={{
+          background: "rgba(255,255,255,0.97)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(33,118,189,0.12)",
+          boxShadow: "0 8px 32px rgba(33,118,189,0.15)",
+        }}
+      >
           <Link
             href={areaHref}
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
           >
             <LayoutDashboard className="h-4 w-4" /> {areaLabel}
-          </Link>
-          <Link
-            href="/tiket"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-accent/50"
-          >
-            <Ticket className="h-4 w-4" /> Tiket Bantuan
           </Link>
           <Link
             href="/profil"
@@ -1031,22 +750,33 @@ function AuthArea({
             )}
             Keluar
           </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [logoHovered, setLogoHovered] = React.useState(false);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  // Akun OPD (level 4): navbar disederhanakan — hanya Permohonan; pengaturan
+  // akun tetap lewat dropdown profil.
+  const isOpd = isAuthenticated && user?.level === 4;
+  const menuItems = isOpd
+    ? [{ title: "Permohonan", href: "/user/pengajuan" } satisfies (typeof navigationItems)[number]]
+    : navigationItems;
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Dashboard petugas punya top-bar & sidebar sendiri — navbar publik disembunyikan.
+  if (pathname?.startsWith("/dashboard")) return null;
 
   return (
     <header
@@ -1117,31 +847,57 @@ export function Navbar() {
               <span>Beranda</span> */}
             </Link>
 
-            {navigationItems.map((item) => (
-              <DropdownMenu
-                key={item.title}
-                title={item.title}
-                items={item.items}
-                icon={navigationIcons[item.title]}
-              />
-            ))}
+            {menuItems.map((item) => {
+              // Menu tanpa dropdown → link langsung (mis. Pelayanan Online).
+              if (!item.items?.length && item.href) {
+                const Icon = navigationIcons[item.title];
+                return (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    className={cn(
+                      "relative px-2.5 py-2 text-sm font-medium flex items-center gap-1.5 rounded-md whitespace-nowrap text-white/90",
+                      "transition-all duration-300 ease-out",
+                      "hover:text-yellow-300 hover:bg-white/10",
+                      "before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2 before:w-0 before:h-0.5 before:bg-yellow-300",
+                      "before:transition-all before:duration-300 before:ease-out",
+                      "hover:before:w-[calc(100%-1.25rem)]",
+                    )}
+                  >
+                    {Icon && <Icon className="h-4 w-4 flex-shrink-0" strokeWidth={2} />}
+                    {item.title}
+                  </Link>
+                );
+              }
+              return (
+                <DropdownMenu
+                  key={item.title}
+                  title={item.title}
+                  items={item.items}
+                  icon={navigationIcons[item.title]}
+                />
+              );
+            })}
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
+            <NotificationBell tone="onDark" />
             <AuthArea />
           </div>
 
-          {/* Mobile Menu */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild className="lg:hidden">
-              <button
-                aria-label="Buka menu navigasi"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
-              >
-                <Menu className="h-5 w-5" strokeWidth={2} />
-              </button>
-            </SheetTrigger>
+          {/* Mobile: lonceng notifikasi + hamburger */}
+          <div className="flex items-center gap-1 lg:hidden">
+            <NotificationBell tone="onDark" />
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <button
+                  aria-label="Buka menu navigasi"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
+                >
+                  <Menu className="h-5 w-5" strokeWidth={2} />
+                </button>
+              </SheetTrigger>
             <SheetContent
               side="right"
               showCloseButton={false}
@@ -1182,33 +938,28 @@ export function Navbar() {
                 <p className="px-3 pb-1.5 text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">
                   Menu
                 </p>
-                <Link
-                  href="/"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <MobileItemIcon icon={Home} />
-                  Beranda
-                </Link>
+                {!isOpd && (
+                  <Link
+                    href="/"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <MobileItemIcon icon={Home} />
+                    Beranda
+                  </Link>
+                )}
 
-                {navigationItems.map((item) => (
+                {menuItems.map((item) => (
                   <MobileMenuItem
                     key={item.title}
                     title={item.title}
+                    href={item.href}
                     items={item.items}
                     onClose={() => setMobileOpen(false)}
                     icon={navigationIcons[item.title]}
                   />
                 ))}
 
-                <Link
-                  href="/kebijakan-privasi"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.925rem] font-medium text-slate-700 transition-colors hover:bg-primary/5 hover:text-primary"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <MobileItemIcon icon={FileText} />
-                  Kebijakan & Privasi
-                </Link>
               </nav>
 
               {/* Area akun menempel di bawah */}
@@ -1216,7 +967,8 @@ export function Navbar() {
                 <AuthArea mobile onNavigate={() => setMobileOpen(false)} />
               </div>
             </SheetContent>
-          </Sheet>
+            </Sheet>
+          </div>
         </nav>
       </div>
     </header>

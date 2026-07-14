@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, AlertCircle, MessageSquareWarning, Loader2, Send } from 'lucide-react';
+import { CheckCircle2, AlertCircle, MessageSquareWarning, Loader2, Send, ExternalLink, FileSpreadsheet, PenLine } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { cn } from '@/lib/utils';
 
 const JENIS = [
   'Pelayanan Dokumen Kependudukan',
@@ -19,8 +20,14 @@ const JENIS = [
   'Lainnya',
 ];
 
+/** Google Form "Layanan Pandap" (pengaduan & konsultasi) — dari portal lama pesbar 002. */
+const GFORM_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSe7I03TvorCYJ-_nY7WtiBROSFT_Xwd8zEgI3OtReuBf7QqYg/viewform';
+
 export default function PengaduanPage() {
   const { executeRecaptcha } = useGoogleReCaptcha();
+  // Dua kanal pengisian: Google Form (bawaan/default) atau form web internal.
+  const [kanal, setKanal] = useState<'gform' | 'web'>('gform');
   const [form, setForm] = useState({ nama: '', hp: '', email: '', jenis: '', isi: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -77,7 +84,60 @@ export default function PengaduanPage() {
       </div>
 
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 max-w-3xl">
-        {success ? (
+        {/* Pilihan kanal pengisian */}
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+          {(
+            [
+              ['gform', 'Isi lewat Google Form', FileSpreadsheet],
+              ['web', 'Isi di web langsung', PenLine],
+            ] as const
+          ).map(([key, label, Icon]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setKanal(key)}
+              className={cn(
+                'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
+                kanal === key
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-slate-600 hover:bg-primary/5 hover:text-primary',
+              )}
+            >
+              <Icon className="h-4 w-4" /> {label}
+            </button>
+          ))}
+        </div>
+
+        {kanal === 'gform' ? (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-2 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Formulir Layanan Pengaduan (Google Form)
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Pengaduan &amp; konsultasi pengguna layanan adminduk Disdukcapil Pesisir Barat.
+                </p>
+              </div>
+              <a
+                href={GFORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+              >
+                Buka di tab baru <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+            <iframe
+              src={GFORM_URL}
+              title="Formulir pengaduan masyarakat (Google Form)"
+              className="h-[720px] w-full border-0"
+              loading="lazy"
+            >
+              Memuat formulir…
+            </iframe>
+          </div>
+        ) : success ? (
           <div className="glass-card rounded-2xl p-10 text-center">
             <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-8 h-8 text-success" />
