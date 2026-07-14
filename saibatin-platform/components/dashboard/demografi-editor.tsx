@@ -237,12 +237,17 @@ function EditGrid({
 export function DemografiEditor({
   kategori,
   label,
+  kartuKolom,
   open,
   onOpenChange,
   onSaved,
 }: {
   kategori: string;
   label: string;
+  /** Kolom kartu beranda yang sedang diedit (saat dibuka dari klik kartu).
+   *  Menentukan kartu spesifik yang di-highlight & diperbarui — kartu lain
+   *  di kategori sama tidak tersentuh. Kosong (dashboard) = kartu pertama. */
+  kartuKolom?: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSaved?: () => void;
@@ -264,6 +269,9 @@ export function DemografiEditor({
   const [kartuIkon, setKartuIkon] = useState('Users');
   const [kartuWarna, setKartuWarna] = useState('biru');
   const kartuRef = useRef<KartuStatistik[]>([]);
+  // Kolom kartu yang sedang diedit (identitas kartu di config beranda) —
+  // dipakai saat simpan agar hanya kartu ini yang diperbarui/diganti.
+  const targetKolomRef = useRef<string | null>(null);
 
   const mainFileRef = useRef<HTMLInputElement | null>(null);
   const detailFileRef = useRef<HTMLInputElement | null>(null);
@@ -277,15 +285,20 @@ export function DemografiEditor({
           (j.data?.items?.[KARTU_STATISTIK_KUNCI] as { kartu?: unknown } | undefined)?.kartu,
         );
         kartuRef.current = kartu;
-        const milik = kartu.find((c) => c.kategori === kategori);
-        setHighlight(milik?.kolom ?? null);
+        // Kartu yang diedit: yang cocok kolomnya bila dibuka dari klik kartu,
+        // jika tidak (dashboard) ambil kartu pertama kategori ini.
+        const milik = kartuKolom
+          ? kartu.find((c) => c.kategori === kategori && c.kolom === kartuKolom)
+          : kartu.find((c) => c.kategori === kategori);
+        targetKolomRef.current = milik?.kolom ?? kartuKolom ?? null;
+        setHighlight(milik?.kolom ?? kartuKolom ?? null);
         setKartuIkon(milik?.icon ?? 'Users');
         setKartuWarna(milik?.warna ?? 'biru');
       })
       .catch(() => {
         /* gagal memuat konfigurasi kartu → highlight kosong, kartu lama aman */
       });
-  }, [open, kategori]);
+  }, [open, kategori, kartuKolom]);
 
   useEffect(() => {
     if (!open) return;
@@ -501,17 +514,28 @@ export function DemografiEditor({
   }, [highlight, pekonRows, kecRows]);
 
   /**
-   * Susun ulang kartu beranda: kartu kategori lain dipertahankan apa adanya;
-   * kategori ini diwakili SATU kartu dari kolom yang di-highlight — judul =
-   * nama kolom, ikon & warna sesuai pilihan di panel preview.
+   * Perbarui HANYA kartu beranda yang sedang diedit (identitas =
+   * kategori + targetKolomRef). Kartu lain — termasuk kartu lain di kategori
+   * yang sama, mis. Laki-laki vs Perempuan — dibiarkan utuh.
+   * - highlight ada: kartu target diganti kolom/ikon/warna terbaru (bila
+   *   kolomnya sama, badge & judul lama dipertahankan);
+   * - highlight kosong: kartu target dihapus.
    */
   const simpanHighlight = async () => {
     const prev = kartuRef.current;
-    const posisi = prev.findIndex((c) => c.kategori === kategori);
-    const kartu = prev.filter((c) => c.kategori !== kategori);
+    const targetKolom = targetKolomRef.current;
+    const posisi = prev.findIndex(
+      (c) => c.kategori === kategori && c.kolom === targetKolom,
+    );
+    const lama = posisi >= 0 ? prev[posisi] : undefined;
+    const kartu = prev.filter(
+      (c) => !(c.kategori === kategori && c.kolom === targetKolom),
+    );
     if (highlight) {
+      const kolomSama = lama?.kolom === highlight;
       const entri: KartuStatistik = {
-        title: labelKolom(highlight),
+        ...(kolomSama ? lama : {}),
+        title: kolomSama && lama ? lama.title : labelKolom(highlight),
         icon: kartuIkon,
         kategori,
         kolom: highlight,
@@ -519,6 +543,8 @@ export function DemografiEditor({
       };
       kartu.splice(posisi >= 0 ? Math.min(posisi, kartu.length) : kartu.length, 0, entri);
     }
+    // Setelah simpan, kartu target kini beridentitas kolom highlight terbaru.
+    targetKolomRef.current = highlight;
     const res = await fetch('/api/admin/static-content', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

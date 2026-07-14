@@ -383,8 +383,9 @@ export default function StatsGrid() {
 
   // Modal rincian demografi (dibuka saat kartu diklik di mode biasa).
   const [demoCard, setDemoCard] = useState<KartuDemografi | null>(null);
-  // Mode edit: klik kartu → langsung editor data Excel kategori tsb.
-  const [editKategori, setEditKategori] = useState<string | null>(null);
+  // Mode edit: klik kartu → editor data Excel kategori tsb, difokuskan ke
+  // KARTU yang diklik (kategori + kolom) agar preview & simpan tepat sasaran.
+  const [editTarget, setEditTarget] = useState<{ kategori: string; kolom: string } | null>(null);
   // Editor template kartu (dinonaktifkan sementara):
   // const [editorIndex, setEditorIndex] = useState<number | null>(null);
 
@@ -464,7 +465,11 @@ export default function StatsGrid() {
               key={`${card.title}-${i}`}
               {...card}
               editHint={editMode}
-              onClick={() => (editMode ? setEditKategori(card.kategori) : setDemoCard(card))}
+              onClick={() =>
+                editMode
+                  ? setEditTarget({ kategori: card.kategori, kolom: card.kolom })
+                  : setDemoCard(card)
+              }
             />
           ))}
         </div>
@@ -497,13 +502,14 @@ export default function StatsGrid() {
         </DialogContent>
       </Dialog>
 
-      {/* Mode edit: klik kartu → langsung editor data Excel kategori tsb. */}
-      {editKategori && (
+      {/* Mode edit: klik kartu → editor data Excel, difokuskan ke kartu tsb. */}
+      {editTarget && (
         <DemografiEditor
-          kategori={editKategori}
-          label={getDemografiKategori(editKategori)?.label ?? editKategori}
+          kategori={editTarget.kategori}
+          label={getDemografiKategori(editTarget.kategori)?.label ?? editTarget.kategori}
+          kartuKolom={editTarget.kolom}
           open
-          onOpenChange={(o) => !o && setEditKategori(null)}
+          onOpenChange={(o) => !o && setEditTarget(null)}
           onSaved={refetchStats}
         />
       )}
