@@ -9,10 +9,14 @@ import { prisma } from "@/lib/prisma";
  */
 
 export type NotifTipe =
-  | "PERMOHONAN_STATUS" // ke warga: status permohonannya berubah
+  | "PERMOHONAN_STATUS" // ke warga: status permohonannya berubah / terkirim
   | "PERMOHONAN_BARU" // ke petugas: ada permohonan masuk
   | "PENGADUAN_BARU" // ke petugas: ada pengaduan masuk
-  | "KRITIK_BARU"; // ke petugas: ada kritik & saran masuk
+  | "PENGADUAN_BALASAN" // ke pelapor (bila punya akun): pengaduan dibalas/diproses
+  | "KRITIK_BARU" // ke petugas: ada kritik & saran masuk
+  | "SKM_BARU" // ke petugas: ada responden survei kepuasan baru
+  | "AKUN_BARU" // ke petugas: ada pendaftaran akun menunggu aktivasi
+  | "AKUN_STATUS"; // ke pemilik akun: akunnya diaktifkan petugas
 
 /** Level pengguna yang dianggap "petugas" (menerima notifikasi kerja). */
 const PETUGAS_LEVELS = [1, 2];

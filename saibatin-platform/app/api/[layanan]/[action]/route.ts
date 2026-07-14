@@ -4,6 +4,7 @@ import { join, extname } from "path";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { createNotifikasi, notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /**
  * Catch-all kompatibilitas untuk modal permohonan (warisan struktur Laravel).
@@ -157,6 +158,39 @@ export async function POST(
         payload: (payload ?? {}) as object,
       },
     });
+
+    // Notifikasi ke petugas: ada permohonan masuk. Pembuat dikecualikan
+    // (form staf "Pengajuan Baru" juga lewat endpoint ini).
+    const namaPemohon =
+      String((payload as Record<string, unknown>)?.pemohonnama ?? "").trim() ||
+      session.nama ||
+      session.userId;
+    await safeNotify(() =>
+      notifyPetugas({
+        tipe: "PERMOHONAN_BARU",
+        judul: "Permohonan baru masuk",
+        isi: `${namaPemohon} mengajukan ${jenis.nama} (${noregister}).`,
+        link: "/dashboard/permohonan",
+        refType: "Permohonan",
+        refId: permohonan.id,
+        kecualiUserId: session.uid,
+      }),
+    );
+
+    // Konfirmasi in-app untuk warga/OPD pengaju (petugas tidak perlu).
+    if (session.level > 2) {
+      await safeNotify(() =>
+        createNotifikasi({
+          userId: session.uid,
+          tipe: "PERMOHONAN_STATUS",
+          judul: "Permohonan terkirim",
+          isi: `Permohonan ${jenis.nama} Anda terkirim dengan No. Registrasi ${noregister} dan menunggu diproses petugas.`,
+          link: "/user/pengajuan",
+          refType: "Permohonan",
+          refId: permohonan.id,
+        }),
+      );
+    }
 
     return ok({ noregister: permohonan.noregister, id: permohonan.id }, [
       `Permohonan berhasil diajukan — No. Registrasi ${permohonan.noregister}`,

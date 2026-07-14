@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { getSession } from "@/lib/auth";
 import { sendMail } from "@/lib/mail";
 import { tplAkunDisetujui, tplAkunDitolak } from "@/lib/mail-templates";
+import { createNotifikasi, safeNotify } from "@/lib/notifikasi";
 
 /** Pastikan pemanggil adalah operator/admin (level 1 atau 2). */
 async function requireAdmin() {
@@ -206,6 +207,22 @@ export async function PATCH(req: NextRequest) {
       const mail =
         status === 1 ? tplAkunDisetujui(nama) : tplAkunDitolak(nama, alasan);
       await sendMail({ to: user.userEmail, ...mail });
+    }
+
+    // Notifikasi in-app ke pemilik akun saat DIAKTIFKAN — terlihat begitu ia
+    // login pertama kali. (Nonaktif tidak dinotifkan: pemiliknya tak bisa login.)
+    if (status === 1 && sebelum && sebelum.status !== 1) {
+      await safeNotify(() =>
+        createNotifikasi({
+          userId: user.id,
+          tipe: "AKUN_STATUS",
+          judul: "Akun Anda telah diaktifkan",
+          isi: "Selamat datang! Akun Anda sudah aktif dan siap digunakan untuk mengajukan permohonan online.",
+          link: "/user/pengajuan",
+          refType: "User",
+          refId: user.id,
+        }),
+      );
     }
 
     return ok(null, [

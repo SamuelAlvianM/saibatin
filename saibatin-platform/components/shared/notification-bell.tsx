@@ -7,9 +7,13 @@ import {
   BellOff,
   CheckCheck,
   ClipboardCheck,
+  ClipboardList,
   FilePlus2,
+  MessageSquareReply,
   MessageSquareWarning,
   MessagesSquare,
+  UserCheck,
+  UserPlus,
   Volume2,
   VolumeX,
   type LucideIcon,
@@ -34,7 +38,11 @@ const TIPE_ICON: Record<string, { icon: LucideIcon; color: string }> = {
   PERMOHONAN_STATUS: { icon: ClipboardCheck, color: "text-primary bg-primary/10" },
   PERMOHONAN_BARU: { icon: FilePlus2, color: "text-emerald-600 bg-emerald-50" },
   PENGADUAN_BARU: { icon: MessageSquareWarning, color: "text-amber-600 bg-amber-50" },
+  PENGADUAN_BALASAN: { icon: MessageSquareReply, color: "text-amber-600 bg-amber-50" },
   KRITIK_BARU: { icon: MessagesSquare, color: "text-violet-600 bg-violet-50" },
+  SKM_BARU: { icon: ClipboardList, color: "text-sky-600 bg-sky-50" },
+  AKUN_BARU: { icon: UserPlus, color: "text-rose-600 bg-rose-50" },
+  AKUN_STATUS: { icon: UserCheck, color: "text-emerald-600 bg-emerald-50" },
 };
 
 function waktuRelatif(iso: string): string {
@@ -54,33 +62,75 @@ function waktuRelatif(iso: string): string {
   });
 }
 
+/**
+ * AudioContext BERSAMA yang dibuat sekali dan di-"unlock" pada interaksi
+ * pengguna pertama (klik/ketik). Kebijakan autoplay browser membuat
+ * AudioContext yang dibuat TANPA gerakan pengguna lahir dalam status
+ * "suspended" → oscillator jalan tapi tak ada suara. Inilah sebab lama
+ * bunyi notifikasi tidak pernah keluar: konteks dibuat saat polling.
+ */
+let audioCtx: AudioContext | null = null;
+
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (!audioCtx) {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    return audioCtx;
+  } catch {
+    return null;
+  }
+}
+
+/** Dipasang pada pointerdown/keydown pertama agar konteks audio aktif. */
+function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+}
+
 /** Bunyi "ding" dua nada via Web Audio API (tanpa file aset). */
 function playDing() {
-  try {
-    const Ctx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
-    const now = ctx.currentTime;
-    const notes = [
-      { f: 880, t: 0 },
-      { f: 1174.7, t: 0.12 },
-    ];
-    for (const n of notes) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = n.f;
-      gain.gain.setValueAtTime(0.0001, now + n.t);
-      gain.gain.exponentialRampToValueAtTime(0.18, now + n.t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + 0.35);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now + n.t);
-      osc.stop(now + n.t + 0.36);
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
+  const schedule = () => {
+    try {
+      const now = ctx.currentTime;
+      const notes = [
+        { f: 880, t: 0 },
+        { f: 1174.7, t: 0.12 },
+      ];
+      for (const n of notes) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = n.f;
+        gain.gain.setValueAtTime(0.0001, now + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + n.t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + 0.35);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now + n.t);
+        osc.stop(now + n.t + 0.36);
+      }
+    } catch {
+      /* abaikan */
     }
-    setTimeout(() => ctx.close().catch(() => {}), 800);
-  } catch {
-    /* AudioContext diblokir / belum ada interaksi — abaikan */
+  };
+
+  if (ctx.state === "suspended") {
+    // Coba lanjutkan — berhasil bila pengguna pernah berinteraksi dgn halaman.
+    ctx
+      .resume()
+      .then(() => {
+        if (ctx.state === "running") schedule();
+      })
+      .catch(() => {});
+  } else {
+    schedule();
   }
 }
 
@@ -115,6 +165,17 @@ export function NotificationBell({
   React.useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+
+  // Unlock audio pada interaksi pengguna pertama — setelah itu bunyi dari
+  // polling latar belakang diizinkan browser.
+  React.useEffect(() => {
+    window.addEventListener("pointerdown", unlockAudio);
+    window.addEventListener("keydown", unlockAudio);
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, []);
 
   const fetchNotif = React.useCallback(async () => {
     try {
@@ -171,11 +232,12 @@ export function NotificationBell({
   }, [open]);
 
   const toggleMute = () => {
-    setMuted((m) => {
-      const next = !m;
-      localStorage.setItem(SOUND_KEY, next ? "0" : "1");
-      return next;
-    });
+    const next = !mutedRef.current;
+    setMuted(next);
+    localStorage.setItem(SOUND_KEY, next ? "0" : "1");
+    // Saat bunyi DINYALAKAN: klik ini adalah gerakan pengguna, jadi konteks
+    // audio pasti boleh aktif — bunyikan contoh sebagai umpan balik.
+    if (!next) playDing();
   };
 
   const markAllRead = async () => {
