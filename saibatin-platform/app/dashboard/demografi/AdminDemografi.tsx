@@ -20,8 +20,10 @@ import {
   Download,
   Trash2,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { DEMOGRAFI_KATEGORI } from '@/lib/demografi-kategori';
+import { DEFAULT_KARTU, KARTU_STATISTIK_KUNCI } from '@/lib/beranda-statistik';
 import { DemografiEditor } from '@/components/dashboard/demografi-editor';
 import { DemografiView } from '@/components/landingpage/demografi-view';
 
@@ -41,6 +43,8 @@ export function AdminDemografi() {
   const [editing, setEditing] = useState<{ slug: string; label: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const refresh = (slug: string) => {
@@ -77,6 +81,32 @@ export function AdminDemografi() {
       toast.error('Gagal menghapus data');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  /** Kembalikan susunan kartu statistik beranda ke 6 kartu bawaan. */
+  const resetKartu = async () => {
+    setResetting(true);
+    try {
+      const res = await fetch('/api/admin/static-content', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kunci: KARTU_STATISTIK_KUNCI,
+          konten: { kartu: DEFAULT_KARTU },
+        }),
+      });
+      const j = await res.json();
+      if (j.error?.length) {
+        toast.error(j.error[0]);
+        return;
+      }
+      toast.success('Kartu beranda dikembalikan ke 6 kartu bawaan');
+      setConfirmReset(false);
+    } catch {
+      toast.error('Gagal mereset kartu beranda');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -119,6 +149,14 @@ export function AdminDemografi() {
             title="Unduh semua kategori dalam satu file Excel"
           >
             <Download className="mr-1.5 h-4 w-4" /> Export Semua
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmReset(true)}
+            title="Kembalikan kartu statistik beranda ke 6 kartu bawaan"
+          >
+            <RotateCcw className="mr-1.5 h-4 w-4" /> Reset Kartu Beranda
           </Button>
           <Button
             variant="outline"
@@ -257,6 +295,37 @@ export function AdminDemografi() {
                 <Trash2 className="mr-1.5 h-4 w-4" />
               )}
               Ya, hapus semua
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Konfirmasi reset kartu statistik beranda ke bawaan */}
+      <Dialog open={confirmReset} onOpenChange={(o) => !resetting && setConfirmReset(o)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-primary" /> Reset kartu beranda?
+            </DialogTitle>
+            <DialogDescription>
+              Susunan kartu <b>Statistik Demografi</b> di beranda dikembalikan ke{' '}
+              <b>6 kartu bawaan</b> (Jumlah Penduduk, Kepala Keluarga, Laki-laki,
+              Perempuan, Wajib KTP, Sudah Rekam KTP-el). Data demografi tidak
+              terpengaruh — hanya tampilan kartunya. Penyesuaian ikon/kolom yang
+              sudah Anda buat akan tergantikan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmReset(false)} disabled={resetting}>
+              Batal
+            </Button>
+            <Button onClick={resetKartu} disabled={resetting}>
+              {resetting ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="mr-1.5 h-4 w-4" />
+              )}
+              Ya, kembalikan 6 kartu
             </Button>
           </DialogFooter>
         </DialogContent>
