@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useAppSelector } from '@/store/hooks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -46,6 +47,8 @@ export function AdminDemografi() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
+  // Reset kartu beranda hanya untuk akun master (Super Admin / level 1).
+  const isMaster = useAppSelector((s) => s.auth.user?.level) === 1;
 
   const refresh = (slug: string) => {
     fetch(`/api/demografi?kategori=${encodeURIComponent(slug)}`)
@@ -150,14 +153,16 @@ export function AdminDemografi() {
           >
             <Download className="mr-1.5 h-4 w-4" /> Export Semua
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setConfirmReset(true)}
-            title="Kembalikan kartu statistik beranda ke 6 kartu bawaan"
-          >
-            <RotateCcw className="mr-1.5 h-4 w-4" /> Reset Kartu Beranda
-          </Button>
+          {isMaster && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmReset(true)}
+              title="Kembalikan kartu statistik beranda ke 6 kartu bawaan (khusus akun master)"
+            >
+              <RotateCcw className="mr-1.5 h-4 w-4" /> Reset Kartu Beranda
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
