@@ -6,10 +6,20 @@ import { DEMOGRAFI_SLUGS } from "@/lib/demografi-kategori";
 
 export const dynamic = "force-dynamic";
 
+/** Pesan akses yang jelas: bedakan sesi habis vs level akun kurang. */
+async function cekPetugas() {
+  const session = await getSession();
+  if (!session)
+    return { session: null, error: fail(["Sesi berakhir — silakan login ulang sebagai petugas"], 401) };
+  if (session.level > 2)
+    return { session: null, error: fail(["Akses khusus petugas dinas — akun Anda bukan petugas"], 403) };
+  return { session, error: null };
+}
+
 /** Ambil seluruh baris (kecamatan + pekon) satu kategori untuk editor manual. */
 export async function GET(req: NextRequest) {
-  const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  const { error } = await cekPetugas();
+  if (error) return error;
 
   const kategori = (new URL(req.url).searchParams.get("kategori") ?? "").trim();
   if (!DEMOGRAFI_SLUGS.has(kategori)) return fail(["Kategori tidak dikenal"]);
@@ -36,8 +46,8 @@ interface SaveRow {
 
 /** Simpan (ganti total) data satu kategori dari editor manual. */
 export async function PUT(req: NextRequest) {
-  const session = await getSession();
-  if (!session || session.level > 2) return fail(["Tidak diizinkan"], 403);
+  const { error } = await cekPetugas();
+  if (error) return error;
 
   const body = await req.json().catch(() => ({}));
   const kategori = String((body as { kategori?: string }).kategori ?? "").trim();
@@ -76,4 +86,28 @@ export async function PUT(req: NextRequest) {
   ]);
 
   return ok({ tersimpan: rows.length }, ["Data demografi disimpan"]);
+}
+
+/**
+ * Hapus data demografi. Tanpa `?kategori` → hapus SEMUA kategori (reset total);
+ * dengan `?kategori=slug` → hapus satu kategori saja.
+ */
+export async function DELETE(req: NextRequest) {
+  const { error } = await cekPetugas();
+  if (error) return error;
+
+  const kategori = (new URL(req.url).searchParams.get("kategori") ?? "").trim();
+  if (kategori && !DEMOGRAFI_SLUGS.has(kategori)) {
+    return fail(["Kategori tidak dikenal"]);
+  }
+
+  const res = await prisma.demografiWilayah.deleteMany({
+    where: kategori ? { kategori } : {},
+  });
+
+  return ok({ dihapus: res.count }, [
+    kategori
+      ? `Data kategori dihapus (${res.count} baris)`
+      : `Semua data demografi dihapus (${res.count} baris)`,
+  ]);
 }

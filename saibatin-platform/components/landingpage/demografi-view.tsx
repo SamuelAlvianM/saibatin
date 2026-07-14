@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, BarChart3, ChevronRight, Pencil } from 'lucide-react';
+import { Loader2, BarChart3, ChevronRight, Pencil, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DEMOGRAFI_KATEGORI, getDemografiKategori } from '@/lib/demografi-kategori';
@@ -140,16 +140,29 @@ export function DemografiView({
             );
           })}
         </div>
-        {editable && (
+        <div className="ml-auto flex items-center gap-2">
           <Button
             size="sm"
-            onClick={() => setEditorOpen(true)}
-            className="ml-auto gap-1.5"
-            title="Ubah data langsung dari sini"
+            variant="outline"
+            asChild
+            className="gap-1.5"
+            title={`Unduh data ${getDemografiKategori(kategori)?.label ?? ''} sebagai Excel`}
           >
-            <Pencil className="h-4 w-4" /> Edit data {getDemografiKategori(kategori)?.label}
+            <a href={`/api/demografi/export?kategori=${encodeURIComponent(kategori)}`} download>
+              <Download className="h-4 w-4" /> Export Excel
+            </a>
           </Button>
-        )}
+          {editable && (
+            <Button
+              size="sm"
+              onClick={() => setEditorOpen(true)}
+              className="gap-1.5"
+              title="Ubah data langsung dari sini"
+            >
+              <Pencil className="h-4 w-4" /> Edit data {getDemografiKategori(kategori)?.label}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabel kecamatan */}

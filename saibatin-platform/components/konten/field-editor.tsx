@@ -113,9 +113,15 @@ export function FieldEditor({
     );
   }
 
-  // items — daftar baris dengan kolom dinamis
+  // items — tiap baris jadi KARTU: gambar/ikon di kiri, kolom teks bertumpuk
+  // lebar penuh di kanan (bukan lagi grid sempit sejajar), supaya area ketik
+  // lega — termasuk saat diedit langsung dari halaman utama (mode edit).
   const rows = Array.isArray(value) ? (value as Record<string, string>[]) : [];
   const cols = field.itemFields ?? [];
+  const imageCol = cols.find((c) => c.type === 'image');
+  const textCols = cols.filter((c) => c.type !== 'image');
+  // Kolom bernuansa deskripsi → textarea yang bisa memanjang.
+  const isLongText = (name: string) => /desc|ket|penjelasan|subtitle|isi/i.test(name);
   const setRow = (idx: number, name: string, v: string) => {
     const next = rows.map((r, i) => (i === idx ? { ...r, [name]: v } : r));
     onChange(next);
@@ -123,61 +129,83 @@ export function FieldEditor({
   return (
     <div className="space-y-2">
       <Label>{field.label}</Label>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows.map((row, idx) => (
-          <div key={idx} className="flex items-start gap-2">
-            <div className="grid flex-1 gap-2" style={{ gridTemplateColumns: `repeat(${cols.length}, 1fr)` }}>
-              {cols.map((col) =>
-                col.type === 'image' ? (
-                  <ImageColumnInput
-                    key={col.name}
-                    label={col.label}
-                    value={row[col.name] ?? ''}
-                    onChange={(v) => setRow(idx, col.name, v)}
-                  />
-                ) : col.type === 'icon' ? (
-                  <IconColumnInput
-                    key={col.name}
-                    value={row[col.name] ?? ''}
-                    onChange={(v) => setRow(idx, col.name, v)}
-                  />
-                ) : col.type === 'parent' ? (
-                  <select
-                    key={col.name}
-                    value={row[col.name] ?? ''}
-                    onChange={(e) => setRow(idx, col.name, e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    title={col.label}
-                  >
-                    <option value="">— Paling atas —</option>
-                    {rows.map((r, ri) =>
-                      ri !== idx && r.jabatan ? (
-                        <option key={ri} value={r.jabatan}>
-                          {r.jabatan}
-                        </option>
-                      ) : null,
-                    )}
-                  </select>
-                ) : (
-                  <Input
-                    key={col.name}
-                    value={row[col.name] ?? ''}
-                    onChange={(e) => setRow(idx, col.name, e.target.value)}
-                    placeholder={col.label}
-                  />
-                ),
-              )}
+          <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.68rem] font-bold text-primary">
+                Baris {idx + 1}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-destructive hover:text-destructive"
+                onClick={() => onChange(rows.filter((_, i) => i !== idx))}
+                title="Hapus baris"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive shrink-0"
-              onClick={() => onChange(rows.filter((_, i) => i !== idx))}
-              title="Hapus baris"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {imageCol && (
+                <div className="w-full shrink-0 sm:w-36">
+                  <ImageColumnInput
+                    label={imageCol.label}
+                    value={row[imageCol.name] ?? ''}
+                    onChange={(v) => setRow(idx, imageCol.name, v)}
+                  />
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1 space-y-2.5">
+                {textCols.map((col) => (
+                  <div key={col.name} className="space-y-1">
+                    <p className="text-[0.7rem] font-medium uppercase tracking-wide text-slate-400">
+                      {col.label}
+                    </p>
+                    {col.type === 'icon' ? (
+                      <IconColumnInput
+                        value={row[col.name] ?? ''}
+                        onChange={(v) => setRow(idx, col.name, v)}
+                      />
+                    ) : col.type === 'parent' ? (
+                      <select
+                        value={row[col.name] ?? ''}
+                        onChange={(e) => setRow(idx, col.name, e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        title={col.label}
+                      >
+                        <option value="">— Paling atas —</option>
+                        {rows.map((r, ri) =>
+                          ri !== idx && r.jabatan ? (
+                            <option key={ri} value={r.jabatan}>
+                              {r.jabatan}
+                            </option>
+                          ) : null,
+                        )}
+                      </select>
+                    ) : isLongText(col.name) ? (
+                      <Textarea
+                        rows={3}
+                        value={row[col.name] ?? ''}
+                        onChange={(e) => setRow(idx, col.name, e.target.value)}
+                        placeholder={col.label}
+                        className="bg-white"
+                      />
+                    ) : (
+                      <Input
+                        value={row[col.name] ?? ''}
+                        onChange={(e) => setRow(idx, col.name, e.target.value)}
+                        placeholder={col.label}
+                        className="bg-white"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -216,13 +244,18 @@ function ImageColumnInput({
   );
 }
 
-/** Kolom pemilih ikon: tombol menampilkan ikon terpilih + dialog grid ikon. */
-function IconColumnInput({
+/** Kolom pemilih ikon: tombol menampilkan ikon terpilih + dialog grid ikon.
+ * Diekspor — dipakai juga editor demografi (ikon kartu statistik beranda). */
+export function IconColumnInput({
   value,
   onChange,
+  /** true → dialog dibuka di atas panel/portal ber-z-index tinggi
+   *  (mis. editor demografi layar penuh di z-[120]). */
+  elevated = false,
 }: {
   value: string;
   onChange: (v: string) => void;
+  elevated?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
@@ -249,7 +282,10 @@ function IconColumnInput({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className={cn('sm:max-w-md', elevated && 'z-[130]')}
+          overlayClassName={elevated ? 'z-[130]' : undefined}
+        >
           <DialogHeader>
             <DialogTitle>Pilih Ikon</DialogTitle>
             <DialogDescription>
