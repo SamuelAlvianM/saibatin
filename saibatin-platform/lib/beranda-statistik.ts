@@ -60,7 +60,7 @@ export const labelKolom = (k: string) => KOLOM_LABEL[k] ?? k;
 /** Susunan kartu bawaan — sama dengan tampilan lama sebelum bisa diatur. */
 export const DEFAULT_KARTU: KartuStatistik[] = [
   { title: "Jumlah Penduduk", icon: "Users", kategori: "jenis-kelamin", kolom: "JML", warna: "biru" },
-  { title: "Kepala Keluarga", icon: "Home", kategori: "kk", kolom: "KK_JML", warna: "amber" },
+  { title: "Kepala Keluarga", icon: "Home", kategori: "kk", kolom: "JML", warna: "amber" },
   { title: "Laki-laki", icon: "User", kategori: "jenis-kelamin", kolom: "L", warna: "sky", badgeKolom: "JML" },
   { title: "Perempuan", icon: "UserCircle", kategori: "jenis-kelamin", kolom: "P", warna: "rose", badgeKolom: "JML" },
   { title: "Wajib KTP", icon: "IdCard", kategori: "wajib-ktp", kolom: "JML", warna: "teal" },
