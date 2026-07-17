@@ -1,30 +1,44 @@
 import { NextRequest } from "next/server";
 import { ok, fail } from "@/lib/api-response";
-import { buatBukti, normalisasiHp, verifikasiOtp } from "@/lib/otp";
+import {
+  buatBukti,
+  normalisasiEmail,
+  normalisasiHp,
+  otpChannel,
+  verifikasiOtp,
+} from "@/lib/otp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Verifikasi kode OTP.
- * POST /api/otp/verify { hp, kode, challenge } → { bukti }
- * `bukti` dilampirkan ke /api/auth/register sebagai tanda nomor terverifikasi.
+ * Verifikasi kode OTP (identifier mengikuti kanal aktif: email atau HP).
+ * POST /api/otp/verify { email, hp, kode, challenge } → { bukti }
+ * `bukti` dilampirkan ke /api/auth/register sebagai tanda identifier terverifikasi.
  */
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as {
+    email?: string;
     hp?: string;
     kode?: string;
     challenge?: string;
   };
-  const hp = normalisasiHp(body.hp ?? "");
+  const kanal = otpChannel() ?? "email";
+  const id =
+    kanal === "email"
+      ? normalisasiEmail(body.email ?? "")
+      : normalisasiHp(body.hp ?? "");
   const kode = String(body.kode ?? "").replace(/\D/g, "");
-  if (!hp || kode.length !== 6 || !body.challenge) {
+  if (!id || kode.length !== 6 || !body.challenge) {
     return fail(["Kode OTP tidak valid"]);
   }
 
-  if (!verifikasiOtp(hp, kode, body.challenge)) {
+  if (!verifikasiOtp(id, kode, body.challenge)) {
     return fail(["Kode OTP salah atau sudah kedaluwarsa"]);
   }
 
-  return ok({ bukti: buatBukti(hp) }, ["Nomor WhatsApp terverifikasi"]);
+  return ok(
+    { bukti: buatBukti(id) },
+    [kanal === "email" ? "Alamat email terverifikasi" : "Nomor WhatsApp terverifikasi"],
+  );
 }

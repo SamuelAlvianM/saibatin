@@ -5,7 +5,7 @@ import { ok, fail } from "@/lib/api-response";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { sendMail } from "@/lib/mail";
 import { tplRegistrasiDiterima } from "@/lib/mail-templates";
-import { cekBukti, normalisasiHp, otpWajib } from "@/lib/otp";
+import { cekBukti, normalisasiEmail, normalisasiHp, otpChannel, otpWajib } from "@/lib/otp";
 import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /**
@@ -49,12 +49,18 @@ export async function POST(req: NextRequest) {
     return fail(["Info: Password Konfirmasi Tidak Sama (N-09)"]);
   }
 
-  // Nomor WhatsApp wajib lolos OTP (kecuali layanan OTP belum dikonfigurasi
-  // di production — lihat lib/otp.ts otpWajib()).
+  // Identifier (email/nomor WA sesuai kanal aktif) wajib lolos OTP — kecuali
+  // layanan OTP belum dikonfigurasi di production (lihat lib/otp.ts otpWajib()).
   if (otpWajib()) {
-    const hpNormal = normalisasiHp(hp);
-    if (!hpNormal || !cekBukti(hpNormal, otpBukti ?? "")) {
-      return fail(["Info: Nomor WhatsApp belum diverifikasi OTP (N-16)"]);
+    const kanal = otpChannel() ?? "email";
+    const idNormal =
+      kanal === "email" ? normalisasiEmail(email) : normalisasiHp(hp);
+    if (!idNormal || !cekBukti(idNormal, otpBukti ?? "")) {
+      return fail([
+        kanal === "email"
+          ? "Info: Alamat email belum diverifikasi OTP (N-16)"
+          : "Info: Nomor WhatsApp belum diverifikasi OTP (N-16)",
+      ]);
     }
   }
 

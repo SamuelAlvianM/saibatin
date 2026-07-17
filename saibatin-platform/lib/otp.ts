@@ -1,15 +1,18 @@
 import { createHmac, randomInt, timingSafeEqual } from "crypto";
+import { mailEnabled } from "./mail";
+import { fonnteAktif } from "./fonnte";
 
 /**
- * OTP WhatsApp stateless (tanpa tabel DB): kode tidak disimpan di server,
- * melainkan dibuktikan lewat HMAC.
+ * OTP stateless (tanpa tabel DB): kode tidak disimpan di server, melainkan
+ * dibuktikan lewat HMAC. Identifier bisa alamat email ATAU nomor HP —
+ * kanal pengiriman ditentukan otpChannel().
  *
  * Alur:
- * 1. /api/otp/send   → buatOtp(hp): kode dikirim via WA, klien menerima
+ * 1. /api/otp/send   → buatOtp(id): kode dikirim via email/WA, klien menerima
  *    `challenge` (exp.signature — kode TIDAK terbaca dari challenge).
- * 2. /api/otp/verify → verifikasiOtp(hp, kode, challenge): cocok → server
+ * 2. /api/otp/verify → verifikasiOtp(id, kode, challenge): cocok → server
  *    menerbitkan `bukti` verifikasi (berlaku 30 menit).
- * 3. /api/auth/register → cekBukti(hp, bukti) sebelum akun dibuat.
+ * 3. /api/auth/register → cekBukti(id, bukti) sebelum akun dibuat.
  */
 
 const SECRET =
@@ -32,6 +35,28 @@ export function normalisasiHp(raw: string): string | null {
   const inti = d.startsWith("62") ? d : d.startsWith("0") ? `62${d.slice(1)}` : null;
   if (!inti || inti.length < 10 || inti.length > 15) return null;
   return inti;
+}
+
+/** Normalisasi alamat email (trim + lowercase); null bila tidak valid. */
+export function normalisasiEmail(raw: string): string | null {
+  const e = String(raw ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || e.length > 254) return null;
+  return e;
+}
+
+/**
+ * Kanal pengiriman OTP aktif.
+ * - `OTP_CHANNEL=email|wa` memaksa kanal tertentu.
+ * - Tanpa env: email bila MAIL_* terkonfigurasi, WA bila FONNTE_TOKEN ada,
+ *   null bila keduanya kosong (OTP nonaktif di production / mode dev).
+ */
+export function otpChannel(): "email" | "wa" | null {
+  const forced = (process.env.OTP_CHANNEL ?? "").toLowerCase();
+  if (forced === "email") return "email";
+  if (forced === "wa") return "wa";
+  if (mailEnabled()) return "email";
+  if (fonnteAktif()) return "wa";
+  return null;
 }
 
 /** Buat kode OTP 6 digit + challenge terikat nomor HP. */
@@ -64,11 +89,11 @@ export function cekBukti(hp: string, bukti: string) {
 
 /**
  * Apakah verifikasi OTP diwajibkan saat register?
- * - FONNTE_TOKEN terpasang → wajib.
- * - Development tanpa token → tetap wajib (kode dev dikembalikan API send).
- * - Production tanpa token → dilewati, agar pendaftaran tidak terkunci
+ * - Ada kanal aktif (email/WA) → wajib.
+ * - Development tanpa kanal → tetap wajib (kode dev dikembalikan API send).
+ * - Production tanpa kanal → dilewati, agar pendaftaran tidak terkunci
  *   sebelum layanan OTP dikonfigurasi.
  */
 export function otpWajib() {
-  return !!process.env.FONNTE_TOKEN || process.env.NODE_ENV !== "production";
+  return otpChannel() !== null || process.env.NODE_ENV !== "production";
 }

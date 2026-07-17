@@ -63,6 +63,24 @@ export interface MailContent {
   html: string;
 }
 
+/** Kode OTP verifikasi email saat pendaftaran (berlaku 5 menit). */
+export function tplOtpEmail(kode: string): MailContent {
+  return {
+    subject: `${kode} — Kode Verifikasi Pendaftaran SAIBATIN`,
+    html: layout(
+      "Kode verifikasi email Anda",
+      `<p>Gunakan kode berikut untuk memverifikasi alamat email Anda di ${PORTAL}:</p>
+       <p style="text-align:center;margin:20px 0;">
+         <span style="display:inline-block;padding:14px 28px;background:#eef4fa;border:1px dashed #2176bd;border-radius:12px;color:#1b4b72;font-size:28px;font-weight:700;letter-spacing:8px;">${esc(kode)}</span>
+       </p>
+       <p>Kode berlaku <strong>5 menit</strong>. <strong>JANGAN</strong> berikan
+       kode ini kepada siapa pun, termasuk yang mengaku petugas.</p>
+       <p style="color:#94a3b8;font-size:12px;">Abaikan email ini jika Anda tidak
+       merasa mendaftar di ${PORTAL}.</p>`,
+    ),
+  };
+}
+
 /** Konfirmasi pendaftaran diterima — menunggu verifikasi petugas. */
 export function tplRegistrasiDiterima(nama: string): MailContent {
   return {

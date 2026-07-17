@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2, UserPlus, Mail, Phone, CreditCard, Users, ArrowRight, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, CheckCircle2, UserPlus, Mail, Phone, CreditCard, Users, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import Image from 'next/image';
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hp: formData.hp }),
+        body: JSON.stringify({ email: formData.email, hp: formData.hp }),
       });
       const j = await res.json();
       if (j.error?.length) {
@@ -81,7 +81,11 @@ export default function RegisterPage() {
       setOtpKode('');
       setOtpCountdown(60);
       setOtpDevKode(j.data?.devKode ?? '');
-      toast.success('Kode OTP dikirim ke WhatsApp Anda');
+      toast.success(
+        j.data?.kanal === 'wa'
+          ? 'Kode OTP dikirim ke WhatsApp Anda'
+          : 'Kode OTP dikirim — cek kotak masuk/spam email Anda',
+      );
     } catch {
       toast.error('Gagal mengirim OTP. Coba lagi.');
     } finally {
@@ -103,7 +107,12 @@ export default function RegisterPage() {
       const res = await fetch('/api/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hp: formData.hp, kode: otpKode, challenge: otpChallenge }),
+        body: JSON.stringify({
+          email: formData.email,
+          hp: formData.hp,
+          kode: otpKode,
+          challenge: otpChallenge,
+        }),
       });
       const j = await res.json();
       if (j.error?.length) {
@@ -112,7 +121,7 @@ export default function RegisterPage() {
         return;
       }
       setOtpBukti(j.data?.bukti ?? '');
-      toast.success('Nomor WhatsApp terverifikasi');
+      toast.success(j.success?.[0] ?? 'Verifikasi berhasil');
     } catch {
       toast.error('Gagal memverifikasi OTP. Coba lagi.');
       setOtpKode('');
@@ -154,8 +163,8 @@ export default function RegisterPage() {
     if (validationErrors.length > 0) {
       setValidationErrors([]);
     }
-    // Nomor HP berubah → verifikasi OTP sebelumnya tidak berlaku.
-    if (name === 'hp') {
+    // Email/nomor HP berubah → verifikasi OTP sebelumnya tidak berlaku.
+    if (name === 'email' || name === 'hp') {
       setOtpChallenge('');
       setOtpKode('');
       setOtpBukti('');
@@ -187,14 +196,14 @@ export default function RegisterPage() {
       errors.push('Nomor HP/WhatsApp harus diisi');
     } else if (!/^(\+62|62|0)[0-9]{9,12}$/.test(formData.hp)) {
       errors.push('Format nomor HP tidak valid');
-    } else if (!otpNonaktif && !otpBukti) {
-      errors.push('Verifikasi nomor WhatsApp dengan kode OTP terlebih dahulu');
     }
-    
+
     if (!formData.email.trim()) {
       errors.push('Email harus diisi');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.push('Format email tidak valid');
+    } else if (!otpNonaktif && !otpBukti) {
+      errors.push('Verifikasi alamat email dengan kode OTP terlebih dahulu');
     }
     
     if (!formData.pass.trim()) {
@@ -520,64 +529,6 @@ export default function RegisterPage() {
                         } ${formData.hp ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                       />
                     </div>
-
-                    {/* Verifikasi OTP WhatsApp */}
-                    {!otpNonaktif && (
-                      otpBukti ? (
-                        <p className="flex items-center gap-1.5 text-xs font-medium text-success">
-                          <ShieldCheck className="h-4 w-4" /> Nomor WhatsApp terverifikasi
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={kirimOtp}
-                              disabled={
-                                otpSending ||
-                                otpCountdown > 0 ||
-                                !/^(\+62|62|0)[0-9]{9,12}$/.test(formData.hp)
-                              }
-                              className="border-primary/40 text-primary hover:bg-primary/5"
-                            >
-                              {otpSending ? (
-                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-                              )}
-                              {otpCountdown > 0
-                                ? `Kirim ulang (${otpCountdown}s)`
-                                : otpChallenge
-                                  ? 'Kirim ulang OTP'
-                                  : 'Kirim OTP WhatsApp'}
-                            </Button>
-                            {otpChallenge && (
-                              <div className="relative flex-1">
-                                <Input
-                                  value={otpKode}
-                                  onChange={(e) =>
-                                    setOtpKode(e.target.value.replace(/\D/g, '').slice(0, 6))
-                                  }
-                                  inputMode="numeric"
-                                  placeholder="Masukkan 6 digit kode OTP"
-                                  className="h-9 w-full pr-9 text-center tracking-widest"
-                                />
-                                {otpVerifying && (
-                                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary" />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          {otpDevKode && (
-                            <p className="text-[0.7rem] text-slate-400">
-                              Mode pengembangan — kode OTP: <b>{otpDevKode}</b>
-                            </p>
-                          )}
-                        </div>
-                      )
-                    )}
                   </div>
 
                   {/* Email */}
@@ -604,6 +555,64 @@ export default function RegisterPage() {
                         } ${formData.email ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                       />
                     </div>
+
+                    {/* Verifikasi OTP via email */}
+                    {!otpNonaktif && (
+                      otpBukti ? (
+                        <p className="flex items-center gap-1.5 text-xs font-medium text-success">
+                          <ShieldCheck className="h-4 w-4" /> Alamat email terverifikasi
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={kirimOtp}
+                              disabled={
+                                otpSending ||
+                                otpCountdown > 0 ||
+                                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+                              }
+                              className="border-primary/40 text-primary hover:bg-primary/5"
+                            >
+                              {otpSending ? (
+                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Mail className="mr-1.5 h-3.5 w-3.5" />
+                              )}
+                              {otpCountdown > 0
+                                ? `Kirim ulang (${otpCountdown}s)`
+                                : otpChallenge
+                                  ? 'Kirim ulang kode'
+                                  : 'Kirim kode ke email'}
+                            </Button>
+                            {otpChallenge && (
+                              <div className="relative flex-1">
+                                <Input
+                                  value={otpKode}
+                                  onChange={(e) =>
+                                    setOtpKode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                                  }
+                                  inputMode="numeric"
+                                  placeholder="6 digit kode"
+                                  className="h-9 w-full pr-9 text-center tracking-widest"
+                                />
+                                {otpVerifying && (
+                                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {otpDevKode && (
+                            <p className="text-[0.7rem] text-slate-400">
+                              Mode pengembangan — kode OTP: <b>{otpDevKode}</b>
+                            </p>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
