@@ -178,7 +178,10 @@ model Gallery {
 model Produk {
   id        Int      @id @default(autoincrement())
   jenis     String   // HUKUM | PERSYARATAN | SOP | STANDAR_PELAYANAN | DAFDUK
-  judul     String
+  /// Judul dokumen. Nama resmi produk hukum bisa sangat panjang (Permendagri
+  /// dengan klausul "perubahan atas ..." menembus 200 karakter), jadi tidak
+  /// muat di varchar(191) bawaan Prisma.
+  judul     String   @db.VarChar(255)
   konten    String?  @db.LongText
   file      String?
   createdAt DateTime @default(now()) @map("created_at")

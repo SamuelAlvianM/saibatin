@@ -91,7 +91,8 @@ export const navigationItems: NavMenu[] = [
       {
         title: "Pengaduan Masyarakat",
         href: "/pengaduan",
-        description: "Sampaikan pengaduan terkait layanan Disdukcapil",
+        description:
+          "Sampaikan pengaduan layanan maupun laporan dugaan pelanggaran (WBS) — identitas pelapor dijaga kerahasiaannya",
       },
       {
         title: "Kritik & Saran",
@@ -126,21 +127,9 @@ export const navigationItems: NavMenu[] = [
       },
     ],
   },
-  {
-    title: "WBS",
-    items: [
-      {
-        title: "Tentang WBS",
-        href: "/wbs/tentang-wbs",
-        description: "Informasi tentang WBS",
-      },
-      {
-        title: "Form Pengaduan WBS",
-        href: "/wbs/form-pengaduan",
-        description: "Form pengaduan WBS",
-      },
-    ],
-  },
+  // Menu "WBS" dilebur ke menu Pengaduan — satu kanal untuk pengaduan layanan
+  // sekaligus Whistle Blowing System. Halaman /wbs/tentang-wbs dan
+  // /wbs/form-pengaduan tetap dapat diakses (tercantum di peta situs).
   {
     // Tanpa dropdown — langsung ke halaman info kontak (alamat, jam kerja,
     // peta, tombol pengaduan).

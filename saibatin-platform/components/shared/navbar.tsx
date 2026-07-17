@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Home,
   FileText,
-  Info,
   Building2,
   Newspaper,
   Image as ImageIcon,
@@ -572,13 +571,12 @@ function MobileMenuItem({
 const navigationIcons: { [key: string]: React.ElementType } = {
   Permohonan: FileText,
   "Pelayanan Online": Building2,
-  Pengaduan: Info,
+  Pengaduan: ShieldAlert,
   Produk: FileText,
   "Media Informasi": Newspaper,
   Gallery: ImageIcon,
   "Hubungi Kami": Phone,
   PPID: Landmark,
-  WBS: ShieldAlert,
 };
 
 // navigationItems dipindah ke lib/navigation.ts (dipakai juga oleh dashboard Konten).

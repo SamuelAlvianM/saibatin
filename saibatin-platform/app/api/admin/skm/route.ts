@@ -34,7 +34,7 @@ export async function GET() {
   const rataKeseluruhan = rataPerAspek.length
     ? rataPerAspek.reduce((a, b) => a + b.rata, 0) / rataPerAspek.length
     : 0;
-  // Konversi ke skala 0-100 (Nilai IKM) dari skala 1-5.
+  // Konversi rata-rata ke Nilai IKM skala 0-100 (Permenpan RB 14/2017).
   const nilaiIKM = Number(((rataKeseluruhan / SKM_SKALA_MAX) * 100).toFixed(2));
 
   const respondenTerbaru = rows.slice(0, 15).map((r) => {

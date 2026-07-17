@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
-import { SKM_ASPEK } from "@/lib/skm";
+import { SKM_ASPEK, SKM_SKALA_MAX } from "@/lib/skm";
 import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
 
 /** Simpan jawaban Survei Kepuasan Masyarakat (publik). */
@@ -20,11 +20,11 @@ export async function POST(req: NextRequest) {
   if (!jawaban || typeof jawaban !== "object") {
     return fail(["Info: Jawaban tidak valid"]);
   }
-  // Pastikan semua aspek dinilai 1-5.
+  // Pastikan semua unsur dinilai pada skala yang berlaku (lihat lib/skm.ts).
   for (let i = 0; i < SKM_ASPEK.length; i++) {
     const v = Number(jawaban[String(i)]);
-    if (!v || v < 1 || v > 5) {
-      return fail(["Info: Mohon nilai semua aspek penilaian (1-5)"]);
+    if (!v || v < 1 || v > SKM_SKALA_MAX) {
+      return fail([`Info: Mohon nilai semua unsur pelayanan (1-${SKM_SKALA_MAX})`]);
     }
   }
 

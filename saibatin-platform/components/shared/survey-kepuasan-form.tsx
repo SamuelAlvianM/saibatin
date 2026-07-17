@@ -7,20 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { SKM_ASPEK, SKM_SKALA_MAX, SKM_SKALA_LABEL } from '@/lib/skm';
 
 /**
  * Form Survey Kepuasan Masyarakat (SKM) internal — data tersimpan di DB
  * sendiri via /api/skm. Dipakai di halaman Hubungi Kami (seksi #survei).
+ *
+ * Aspek & skala WAJIB berasal dari lib/skm.ts (satu sumber kebenaran bersama
+ * /api/skm dan dashboard); jangan menyalin daftarnya ke sini lagi.
  */
 
-const ASPEK = [
-  'Kemudahan prosedur pelayanan',
-  'Kesesuaian persyaratan',
-  'Kecepatan waktu pelayanan',
-  'Kewajaran biaya/tarif',
-  'Kompetensi & sikap petugas',
-  'Kenyamanan & keamanan lingkungan',
-];
+const ASPEK = SKM_ASPEK;
+const NILAI = Array.from({ length: SKM_SKALA_MAX }, (_, i) => i + 1);
 
 export function SurveyKepuasanForm() {
   const [nama, setNama] = useState('');
@@ -84,7 +82,8 @@ export function SurveyKepuasanForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <p className="text-sm text-slate-500">
-        Berikan nilai 1 (sangat kurang) - 5 (sangat baik) untuk setiap aspek.
+        Berikan nilai 1 ({SKM_SKALA_LABEL[0].toLowerCase()}) sampai {SKM_SKALA_MAX} (
+        {SKM_SKALA_LABEL[SKM_SKALA_MAX - 1].toLowerCase()}) untuk setiap unsur pelayanan.
         Penilaian Anda membantu kami meningkatkan kualitas pelayanan.
       </p>
 
@@ -115,19 +114,25 @@ export function SurveyKepuasanForm() {
         {ASPEK.map((aspek) => (
           <div key={aspek}>
             <Label className="text-sm">{aspek}</Label>
-            <div className="flex gap-2 mt-1.5">
-              {[1, 2, 3, 4, 5].map((v) => (
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              {NILAI.map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => setRating(aspek, v)}
-                  className={`w-9 h-9 rounded-lg text-sm font-medium border transition-colors ${
+                  title={SKM_SKALA_LABEL[v - 1]}
+                  aria-label={`${aspek}: ${v} — ${SKM_SKALA_LABEL[v - 1]}`}
+                  aria-pressed={ratings[aspek] === v}
+                  className={`flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-sm font-medium transition-colors ${
                     ratings[aspek] === v
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40'
                   }`}
                 >
-                  {v}
+                  <span>{v}</span>
+                  <span className="hidden text-xs font-normal opacity-80 sm:inline">
+                    {SKM_SKALA_LABEL[v - 1]}
+                  </span>
                 </button>
               ))}
             </div>

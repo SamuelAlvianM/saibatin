@@ -200,6 +200,12 @@ export function FieldEditor({
                           )}
                         </SelectContent>
                       </Select>
+                    ) : col.type === 'richtext' ? (
+                      <RichEditor
+                        value={row[col.name] ?? ''}
+                        onChange={(v) => setRow(idx, col.name, v)}
+                        placeholder={col.label}
+                      />
                     ) : isLongText(col.name) ? (
                       <Textarea
                         rows={3}

@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, AlertCircle, MessageSquareWarning, Loader2, Send, ExternalLink, FileSpreadsheet, PenLine } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ShieldAlert, Loader2, Send, ExternalLink, FileSpreadsheet, PenLine } from 'lucide-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { cn } from '@/lib/utils';
 
@@ -80,17 +80,31 @@ export default function PengaduanPage() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl glass-card-blue flex items-center justify-center">
-              <MessageSquareWarning className="w-7 h-7 text-white" />
+              <ShieldAlert className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Pengaduan Masyarakat</h1>
-              <p className="text-primary-foreground/80 mt-1">Sampaikan pengaduan Anda terkait layanan Disdukcapil Pesisir Barat</p>
+              <p className="text-primary-foreground/80 mt-1">Sampaikan pengaduan layanan maupun laporan dugaan pelanggaran (WBS) kepada Disdukcapil Pesisir Barat</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 max-w-3xl">
+        {/* Penjelasan kanal — pengaduan layanan sekaligus WBS (whistle blowing) */}
+        <div className="mb-6 flex gap-3 rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="text-sm text-slate-700">
+            <p className="font-semibold text-slate-900">Kanal Pengaduan &amp; Whistle Blowing System (WBS)</p>
+            <p className="mt-1">
+              Kanal ini melayani pengaduan pelayanan administrasi kependudukan sekaligus berfungsi sebagai{' '}
+              <b>Whistle Blowing System (WBS)</b> — sarana pelaporan dugaan pelanggaran/tindak pidana korupsi di
+              lingkungan Disdukcapil Kabupaten Pesisir Barat. <b>Identitas pelapor dijamin kerahasiaannya</b> dan setiap
+              laporan ditindaklanjuti sesuai ketentuan.
+            </p>
+          </div>
+        </div>
+
         {/* Pilihan kanal pengisian */}
         <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
           {(

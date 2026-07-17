@@ -121,9 +121,17 @@ export function ProdukDisdukcapilView() {
                               />
                             </div>
                           )}
-                          <p className="text-sm leading-relaxed text-slate-600">
-                            {p.desc}
-                          </p>
+                          {/* `desc` = HTML dari editor richtext (hasil migrasi
+                              portal lama: penjelasan + daftar persyaratan).
+                              Sumbernya hanya admin level 1 / skrip migrasi —
+                              pola render sama dengan halaman berita. */}
+                          <div
+                            className="prose prose-sm max-w-none text-slate-600
+                                       prose-headings:text-slate-900 prose-strong:text-slate-900
+                                       prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                                       prose-li:my-0.5 prose-ol:my-2 prose-ul:my-2"
+                            dangerouslySetInnerHTML={{ __html: p.desc ?? "" }}
+                          />
                         </div>
                       </div>
                     </div>

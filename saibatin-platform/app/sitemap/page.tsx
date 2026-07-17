@@ -40,11 +40,17 @@ const sections: { title: string; links: { label: string; href: string }[] }[] = 
     })),
   },
   {
-    title: 'WBS',
-    links: Object.entries(wbsContent).map(([slug, c]) => ({
-      label: c.title,
-      href: `/wbs/${slug}`,
-    })),
+    // Menu navbar "WBS" sudah dilebur ke Pengaduan; halamannya tetap ada dan
+    // didaftarkan di sini agar tetap dapat ditemukan.
+    title: 'Pengaduan',
+    links: [
+      { label: 'Pengaduan Masyarakat & WBS', href: '/pengaduan' },
+      { label: 'Kritik & Saran', href: '/hubungi-kami/kritik-saran' },
+      ...Object.entries(wbsContent).map(([slug, c]) => ({
+        label: c.title,
+        href: `/wbs/${slug}`,
+      })),
+    ],
   },
   {
     title: 'Hubungi Kami',

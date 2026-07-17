@@ -27,11 +27,12 @@ export interface StaticField {
   type: StaticFieldType;
   /** Untuk type "items": definisi kolom tiap baris.
    *  `image` = pemilih gambar; `icon` = pemilih ikon; `parent` = pilih atasan
-   *  (dropdown jabatan lain pada baris yang sama). */
+   *  (dropdown jabatan lain pada baris yang sama); `richtext` = editor teks
+   *  berformat, nilainya HTML dan dirender apa adanya di halaman publik. */
   itemFields?: {
     name: string;
     label: string;
-    type?: "text" | "image" | "icon" | "parent";
+    type?: "text" | "image" | "icon" | "parent" | "richtext";
   }[];
   placeholder?: string;
 }
@@ -245,7 +246,9 @@ STATIC_BLOCKS.push({
       itemFields: [
         { name: "image", label: "Gambar", type: "image" },
         { name: "nama", label: "Nama Produk" },
-        { name: "desc", label: "Penjelasan" },
+        // Penjelasan berisi persyaratan berformat (daftar bernomor) hasil
+        // migrasi portal lama — perlu richtext, bukan teks polos.
+        { name: "desc", label: "Penjelasan & Persyaratan", type: "richtext" },
       ],
     },
   ],

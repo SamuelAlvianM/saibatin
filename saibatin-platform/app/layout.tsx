@@ -29,9 +29,33 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
   title: "SAIBATIN - Disdukcapil Pesisir Barat",
   description:
     "Portal layanan administrasi kependudukan & pencatatan sipil Kabupaten Pesisir Barat (SAIBATIN).",
+  openGraph: {
+    title: "SAIBATIN - Disdukcapil Pesisir Barat",
+    description:
+      "Portal layanan administrasi kependudukan & pencatatan sipil Kabupaten Pesisir Barat (SAIBATIN).",
+    siteName: "Portal SAIBATIN",
+    locale: "id_ID",
+    type: "website",
+    images: [
+      {
+        url: "/og-saibatin.png",
+        width: 1200,
+        height: 630,
+        alt: "Logo Disdukcapil Kabupaten Pesisir Barat",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAIBATIN - Disdukcapil Pesisir Barat",
+    images: ["/og-saibatin.png"],
+  },
 };
 
 export default function RootLayout({

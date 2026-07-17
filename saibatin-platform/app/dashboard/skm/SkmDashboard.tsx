@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Users, Gauge, Star, ClipboardCheck } from 'lucide-react';
+import { SKM_SKALA_LABEL } from '@/lib/skm';
 
 interface AspekRata {
   aspek: string;
@@ -74,7 +75,10 @@ export function SkmDashboard() {
       {/* Bar chart per aspek */}
       <div className="glass-card rounded-2xl p-6">
         <h2 className="font-semibold text-slate-900 mb-1">Rata-rata Nilai per Aspek</h2>
-        <p className="text-xs text-slate-500 mb-5">Skala 1 (sangat kurang) - {data.skalaMax} (sangat baik)</p>
+        <p className="text-xs text-slate-500 mb-5">
+          Skala Permenpan RB 14/2017 — 1 ({SKM_SKALA_LABEL[0].toLowerCase()}) sampai {data.skalaMax} (
+          {SKM_SKALA_LABEL[data.skalaMax - 1]?.toLowerCase() ?? 'sangat baik'})
+        </p>
         {data.totalResponden === 0 ? (
           <p className="text-sm text-slate-500 py-6 text-center">Belum ada responden.</p>
         ) : (

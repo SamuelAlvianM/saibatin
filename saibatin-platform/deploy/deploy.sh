@@ -41,6 +41,13 @@ err()  { echo -e "${RED}[error]${NC} $*"; exit 1; }
 
 # ============================================================ BUILD
 if [[ "$SKIP_BUILD" == false ]]; then
+  # NEXT_PUBLIC_* di-BAKE saat build. Tanpa ini Next memungutnya dari .env.local
+  # (nilai dev, mis. domain resmi yang belum hidup) sehingga metadataBase &
+  # Open Graph di produksi menunjuk URL yang salah. process.env menang atas
+  # berkas .env, jadi muat deploy/.env lebih dulu.
+  set -a; source deploy/.env; set +a
+  log "NEXT_PUBLIC_APP_URL untuk build: ${NEXT_PUBLIC_APP_URL:-(tidak diset)}"
+
   log "prisma generate (sertakan engine Linux)..."
   npx prisma generate || err "prisma generate gagal (stop dev server dulu bila EPERM)."
   # WAJIB --webpack: build Turbopack + serverExternalPackages + standalone menghasilkan
