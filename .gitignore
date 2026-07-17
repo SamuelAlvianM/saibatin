@@ -53,3 +53,17 @@ Thumbs.db
 .vscode/
 *.pem
 saibatinpesibar_db_pesbar_002.sql
+
+# Berkas lampiran permohonan warga (dokumen pribadi — jangan pernah di-commit;
+# transfer ke server via scp/tar, lihat scripts/migrasi-berkas-db-lama.sql)
+saibatin-platform/public/uploads/kedatangan/
+saibatin-platform/public/uploads/kelahiran_1/
+saibatin-platform/public/uploads/kelahiran_2/
+saibatin-platform/public/uploads/kematian/
+saibatin-platform/public/uploads/kia/
+saibatin-platform/public/uploads/kkcetakulang/
+saibatin-platform/public/uploads/kknumpang/
+saibatin-platform/public/uploads/kkperubahanbiodata/
+saibatin-platform/public/uploads/kkpisahkk/
+saibatin-platform/public/uploads/kktambahanak/
+saibatin-platform/public/uploads/konsolidasiupdatedata/

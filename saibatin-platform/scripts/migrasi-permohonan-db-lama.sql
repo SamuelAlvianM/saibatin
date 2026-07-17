@@ -16,8 +16,9 @@
 --   Yang tidak terpetakan (Â± 200) dimiliki akun arsip 'arsip-portal-lama'
 --   (nonaktif, password invalid â€” tidak bisa login).
 -- * catatan = catatan_admin lama (+ alasan penolakan bila ada).
--- * Berkas lampiran lama TIDAK dibawa (file fisik tidak tersedia); nama file
---   persyaratan tetap tercatat di payload (syaratDok_*).
+-- * Kolom syaratDok_* TIDAK ikut payload â€” berkas lampiran dimigrasi terpisah
+--   ke t_berkas oleh scripts/migrasi-berkas-db-lama.sql (jalankan SESUDAH
+--   skrip ini, karena skrip ini mengosongkan t_permohonan + t_berkas).
 --
 -- Jalankan dari DB target (server: awali SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci):
 --   mysql saibatin -e "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci; SOURCE scripts/migrasi-permohonan-db-lama.sql;"
@@ -75,20 +76,7 @@ SELECT
       'saksi2_nik', s.`saksi2_nik`,
       'saksi2_nama', s.`saksi2_nama`,
       'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_bukuNikah', s.`syaratDok_bukuNikah`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_keteranganLahir', s.`syaratDok_keteranganLahir`,
-      'syaratDok_ktpsaksi1', s.`syaratDok_ktpsaksi1`,
-      'syaratDok_ktpsaksi2', s.`syaratDok_ktpsaksi2`,
-      'syaratDok_ktpayah', s.`syaratDok_ktpayah`,
-      'syaratDok_ktpibu', s.`syaratDok_ktpibu`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`,
-      'syaratDok_pendukung2', s.`syaratDok_pendukung2`,
-      'syaratDok_pendukung3', s.`syaratDok_pendukung3`,
-      'syaratDok_pendukung4', s.`syaratDok_pendukung4`,
-      'syaratDok_pendukung5', s.`syaratDok_pendukung5`,
-      'syaratDok_pendukung6', s.`syaratDok_pendukung6`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -135,20 +123,7 @@ SELECT
       'saksi2_nik', s.`saksi2_nik`,
       'saksi2_nama', s.`saksi2_nama`,
       'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_bukuNikah', s.`syaratDok_bukuNikah`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_keteranganLahir', s.`syaratDok_keteranganLahir`,
-      'syaratDok_ktpsaksi1', s.`syaratDok_ktpsaksi1`,
-      'syaratDok_ktpsaksi2', s.`syaratDok_ktpsaksi2`,
-      'syaratDok_ktpayah', s.`syaratDok_ktpayah`,
-      'syaratDok_ktpibu', s.`syaratDok_ktpibu`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`,
-      'syaratDok_pendukung2', s.`syaratDok_pendukung2`,
-      'syaratDok_pendukung3', s.`syaratDok_pendukung3`,
-      'syaratDok_pendukung4', s.`syaratDok_pendukung4`,
-      'syaratDok_pendukung5', s.`syaratDok_pendukung5`,
-      'syaratDok_pendukung6', s.`syaratDok_pendukung6`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -193,17 +168,7 @@ SELECT
       'saksi2_nik', s.`saksi2_nik`,
       'saksi2_nama', s.`saksi2_nama`,
       'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_keteranganKematian', s.`syaratDok_keteranganKematian`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_KTPPelapor', s.`syaratDok_KTPPelapor`,
-      'syaratDok_KTPJenazah', s.`syaratDok_KTPJenazah`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`,
-      'syaratDok_pendukung2', s.`syaratDok_pendukung2`,
-      'syaratDok_pendukung3', s.`syaratDok_pendukung3`,
-      'syaratDok_pendukung4', s.`syaratDok_pendukung4`,
-      'syaratDok_pendukung5', s.`syaratDok_pendukung5`,
-      'syaratDok_pendukung6', s.`syaratDok_pendukung6`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -238,16 +203,7 @@ SELECT
       'biodata_ibuNik', s.`biodata_ibuNik`,
       'biodata_ibuNama', s.`biodata_ibuNama`,
       'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_aktaKelahiran', s.`syaratDok_aktaKelahiran`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_PassFoto', s.`syaratDok_PassFoto`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`,
-      'syaratDok_pendukung2', s.`syaratDok_pendukung2`,
-      'syaratDok_pendukung3', s.`syaratDok_pendukung3`,
-      'syaratDok_pendukung4', s.`syaratDok_pendukung4`,
-      'syaratDok_pendukung5', s.`syaratDok_pendukung5`,
-      'syaratDok_pendukung6', s.`syaratDok_pendukung6`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -282,16 +238,7 @@ SELECT
       'dataKedatangan_desaTujuan', s.`dataKedatangan_desaTujuan`,
       'dataKedatangan_dusunTujuan', s.`dataKedatangan_dusunTujuan`,
       'dataKedatangan_catatan', s.`dataKedatangan_catatan`,
-      'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`,
-      'syaratDok_suratPindah', s.`syaratDok_suratPindah`,
-      'syaratDok_bukunikah', s.`syaratDok_bukunikah`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`,
-      'syaratDok_pendukung2', s.`syaratDok_pendukung2`,
-      'syaratDok_pendukung3', s.`syaratDok_pendukung3`,
-      'syaratDok_pendukung4', s.`syaratDok_pendukung4`,
-      'syaratDok_pendukung5', s.`syaratDok_pendukung5`,
-      'syaratDok_pendukung6', s.`syaratDok_pendukung6`,
-      'syaratDok_pendukung7', s.`syaratDok_pendukung7`
+      'pengambilanDok_tmptSerahDanAmbil', s.`pengambilanDok_tmptSerahDanAmbil`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -317,10 +264,7 @@ SELECT
       'pemohon_kk', s.`pemohon_kk`,
       'dataKonsolidasi_namakepalakeluarga', s.`dataKonsolidasi_namakepalakeluarga`,
       'dataKonsolidasi_alasankonsolidasidata', s.`dataKonsolidasi_alasankonsolidasidata`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_KTP', s.`syaratDok_KTP`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_pendukung1', s.`syaratDok_pendukung1`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -348,10 +292,7 @@ SELECT
       'kk_tempatlahir', s.`kk_tempatlahir`,
       'kk_tanggallahir', s.`kk_tanggallahir`,
       'kk_jeniskelamin', s.`kk_jeniskelamin`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_Akta', s.`syaratDok_Akta`,
-      'syaratDok_Bukunikah', s.`syaratDok_Bukunikah`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -384,11 +325,6 @@ SELECT
       'kk_norwtujuan', s.`kk_norwtujuan`,
       'kk_norttujuan', s.`kk_norttujuan`,
       'kk_alamattujuan', s.`kk_alamattujuan`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_KKPasangan', s.`syaratDok_KKPasangan`,
-      'syaratDok_BukuNikah', s.`syaratDok_BukuNikah`,
-      'syaratDok_SuratCerai', s.`syaratDok_SuratCerai`,
-      'syaratDok_AktaMati', s.`syaratDok_AktaMati`,
       'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
@@ -417,10 +353,7 @@ SELECT
       'kk_kkygditempati', s.`kk_kkygditempati`,
       'kk_nikygnumpangkk', s.`kk_nikygnumpangkk`,
       'kk_alasannumpangkk', s.`kk_alasannumpangkk`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_KKLama', s.`syaratDok_KKLama`,
-      'syaratDok_KKYgDitempati', s.`syaratDok_KKYgDitempati`,
-      'syaratDok_Pendukung1', s.`syaratDok_Pendukung1`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -458,12 +391,7 @@ SELECT
       'kk_namaayah', s.`kk_namaayah`,
       'kk_namaibu', s.`kk_namaibu`,
       'kk_statusperkawinan', s.`kk_statusperkawinan`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_AktaLahir', s.`syaratDok_AktaLahir`,
-      'syaratDok_Ijazah', s.`syaratDok_Ijazah`,
-      'syaratDok_BukuNikah', s.`syaratDok_BukuNikah`,
-      'syaratDok_Pendukung1', s.`syaratDok_Pendukung1`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
@@ -490,9 +418,7 @@ SELECT
       'kk_namakepalakeluarga', s.`kk_namakepalakeluarga`,
       'kk_alasancetakulang', s.`kk_alasancetakulang`,
       'kk_alamatkepalakeluarga', s.`kk_alamatkepalakeluarga`,
-      'catatan_detail', s.`catatan_detail`,
-      'syaratDok_KK', s.`syaratDok_KK`,
-      'syaratDok_SuratKehilangan', s.`syaratDok_SuratKehilangan`
+      'catatan_detail', s.`catatan_detail`
   )),
   NULLIF(CONCAT_WS(' | ', s.catatan_admin, s.alasan_detail), ''),
   COALESCE(s.created_at, NOW(3)),
