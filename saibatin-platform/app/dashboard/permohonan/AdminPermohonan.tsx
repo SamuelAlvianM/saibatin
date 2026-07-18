@@ -45,6 +45,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export function AdminPermohonan() {
   const [items, setItems] = useState<Item[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [statusFilter, setStatusFilter] = useState('');
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,7 @@ export function AdminPermohonan() {
     const res = await fetch(`/api/admin/permohonan?${params.toString()}`);
     const json = await res.json();
     setItems(json.data?.items ?? []);
+    if (json.data?.counts) setCounts(json.data.counts);
     setLoading(false);
   }, [statusFilter, q]);
 
@@ -135,6 +137,15 @@ export function AdminPermohonan() {
               }`}
             >
               {label}
+              {counts[val] !== undefined && (
+                <span
+                  className={`ml-1.5 inline-flex items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
+                    statusFilter === val ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {counts[val]}
+                </span>
+              )}
             </button>
           ))}
         </div>

@@ -49,5 +49,18 @@ export async function GET(req: NextRequest) {
     jumlahBerkas: i._count.berkas,
   }));
 
-  return ok({ items });
+  // Jumlah per status (global, untuk chip filter) — independen dari filter aktif.
+  const grouped = await prisma.permohonan.groupBy({
+    by: ["status"],
+    _count: { _all: true },
+  });
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const g of grouped) {
+    counts[g.status] = g._count._all;
+    total += g._count._all;
+  }
+  counts[""] = total; // "Semua"
+
+  return ok({ items, counts });
 }
