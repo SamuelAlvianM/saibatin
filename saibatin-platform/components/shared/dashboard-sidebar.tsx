@@ -19,7 +19,6 @@ import {
   LayoutDashboard,
   ClipboardList,
   Newspaper,
-  Image as ImageIcon,
   MessageSquare,
   FolderOpen,
   Gauge,
@@ -69,7 +68,6 @@ const GROUPS: MenuGroup[] = [
     items: [
       { href: '/dashboard/konten', label: 'Konten Halaman', icon: FileText },
       { href: '/dashboard/berita', label: 'Berita', icon: Newspaper },
-      { href: '/dashboard/galeri', label: 'Galeri', icon: ImageIcon },
       { href: '/dashboard/media', label: 'Pustaka Media', icon: Images },
       { href: '/dashboard/produk', label: 'Dokumen Publikasi', icon: FolderOpen },
       { href: '/dashboard/demografi', label: 'Data Demografi', icon: BarChart3 },
@@ -102,7 +100,6 @@ const ADMIN_ONLY_GROUPS = new Set(['Konten & Media']);
 const ADMIN_ONLY_HREFS = new Set([
   '/dashboard/konten',
   '/dashboard/berita',
-  '/dashboard/galeri',
   '/dashboard/media',
   '/dashboard/produk',
   '/dashboard/demografi',

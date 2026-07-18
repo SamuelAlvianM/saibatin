@@ -21,6 +21,7 @@ const EMPTY_FORM = {
   nama: '',
   userId: '',
   nik: '', // NIK perwakilan instansi (khusus OPD)
+  kk: '', // No. KK (khusus warga)
   hp: '',
   email: '',
   level: 3,
@@ -370,6 +371,20 @@ export function AdminUsers() {
                 </p>
               )}
             </div>
+
+            {form.level === 3 && (
+              <div className="space-y-1.5">
+                <Label>No. Kartu Keluarga (16 digit)</Label>
+                <Input
+                  value={form.kk}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, kk: e.target.value.replace(/\D/g, '') }))
+                  }
+                  maxLength={16}
+                  placeholder="16 digit No. KK sesuai Kartu Keluarga"
+                />
+              </div>
+            )}
 
             {form.level === 4 && (
               <div className="space-y-1.5">
