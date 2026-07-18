@@ -181,6 +181,34 @@ export default async function DashboardPage() {
   }
   const maxTrend = Math.max(1, ...trend.map((t) => t.count));
 
+  // ── Agregasi per tanggal (30 hari terakhir) ──
+  const HARI = 30;
+  const daily = Array.from({ length: HARI }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (HARI - 1 - i));
+    return {
+      key: `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`,
+      label: `${d.getDate()} ${BULAN_PENDEK[d.getMonth()]}`,
+      count: 0,
+    };
+  });
+  const dailyIndex = new Map(daily.map((t, i) => [t.key, i]));
+  for (const r of permohonanRecent) {
+    const d = new Date(r.createdAt);
+    const idx = dailyIndex.get(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    if (idx !== undefined) daily[idx].count += 1;
+  }
+  const maxDaily = Math.max(1, ...daily.map((t) => t.count));
+  const totalDaily = daily.reduce((a, t) => a + t.count, 0);
+  // Koordinat SVG (viewBox 600×150): garis + area di bawahnya.
+  const CW = 600;
+  const CH = 150;
+  const dailyPts = daily.map((t, i) => ({
+    x: (i / (HARI - 1)) * CW,
+    y: CH - 10 - (t.count / maxDaily) * (CH - 30),
+  }));
+  const dailyLine = dailyPts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const dailyArea = `M0,${CH} L${dailyLine.replace(/ /g, ' L')} L${CW},${CH} Z`;
+
   // ── Layanan terpopuler (nama jenis) ──
   const jenisIds = topJenisGrouped.map((g) => g.jenisId);
   const jenisList = jenisIds.length
@@ -328,6 +356,86 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        {/* ── Grafik permohonan per tanggal (30 hari) ── */}
+        <div className="mb-4">
+          <SectionCard
+            title="Permohonan per Tanggal · 30 Hari Terakhir"
+            icon={CalendarDays}
+            action={
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-slate-500">
+                {fmt(totalDaily)} permohonan
+              </span>
+            }
+          >
+            {totalDaily === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">
+                Belum ada permohonan dalam 30 hari terakhir.
+              </p>
+            ) : (
+              <div>
+                <svg
+                  viewBox={`0 0 ${CW} ${CH}`}
+                  preserveAspectRatio="none"
+                  className="h-40 w-full"
+                  role="img"
+                  aria-label="Grafik jumlah permohonan per tanggal, 30 hari terakhir"
+                >
+                  <defs>
+                    <linearGradient id="areaPermohonan" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#2176bd" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#2176bd" stopOpacity="0.03" />
+                    </linearGradient>
+                  </defs>
+                  {/* Garis bantu horizontal */}
+                  {[0.25, 0.5, 0.75].map((f) => (
+                    <line
+                      key={f}
+                      x1="0"
+                      x2={CW}
+                      y1={CH - 10 - f * (CH - 30)}
+                      y2={CH - 10 - f * (CH - 30)}
+                      stroke="#e2e8f0"
+                      strokeWidth="1"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
+                  <path d={dailyArea} fill="url(#areaPermohonan)" />
+                  <polyline
+                    points={dailyLine}
+                    fill="none"
+                    stroke="#2176bd"
+                    strokeWidth="2"
+                    vectorEffect="non-scaling-stroke"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                  {/* Kolom hover: tooltip jumlah per tanggal */}
+                  {daily.map((t, i) => (
+                    <rect
+                      key={t.key}
+                      x={(i - 0.5) * (CW / (HARI - 1))}
+                      y="0"
+                      width={CW / (HARI - 1)}
+                      height={CH}
+                      fill="transparent"
+                    >
+                      <title>{`${t.label}: ${t.count} permohonan`}</title>
+                    </rect>
+                  ))}
+                </svg>
+                {/* Label tanggal (tiap ±5 hari) */}
+                <div className="mt-1 flex justify-between text-[0.62rem] font-medium text-slate-400">
+                  {daily
+                    .filter((_, i) => i % 5 === 0 || i === HARI - 1)
+                    .map((t) => (
+                      <span key={t.key}>{t.label}</span>
+                    ))}
+                </div>
               </div>
             )}
           </SectionCard>
