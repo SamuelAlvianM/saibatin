@@ -342,12 +342,13 @@ export default function LoginPage() {
 
             {/* Daftar and Lupa Password Links */}
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a 
-                href="/register" 
+              <a
+                href="/register"
                 className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
+                title={process.env.NEXT_PUBLIC_REGISTER_OPEN === 'true' ? undefined : 'Segera hadir'}
               >
                 <UserPlus className="h-4 w-4" />
-                DAFTAR
+                {process.env.NEXT_PUBLIC_REGISTER_OPEN === 'true' ? 'DAFTAR' : 'DAFTAR (SEGERA HADIR)'}
               </a>
               <span className="text-slate-300 dark:text-slate-700">|</span>
               <a
