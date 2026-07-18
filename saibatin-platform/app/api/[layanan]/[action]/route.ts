@@ -6,6 +6,7 @@ import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { createNotifikasi, notifyPetugas, safeNotify } from "@/lib/notifikasi";
 import { cekJamLayananSekarang } from "@/lib/jam-layanan-server";
+import { payloadBerkasEntries } from "@/lib/permohonan-display";
 
 /**
  * Catch-all kompatibilitas untuk modal permohonan (warisan struktur Laravel).
@@ -163,6 +164,19 @@ export async function POST(
         payload: (payload ?? {}) as object,
       },
     });
+
+    // Daftarkan berkas upload (field file* di payload) ke t_berkas agar
+    // tampil sebagai lampiran di detail warga maupun dashboard petugas.
+    const berkasBaru = payloadBerkasEntries(payload as Record<string, unknown>);
+    if (berkasBaru.length > 0) {
+      await prisma.berkas.createMany({
+        data: berkasBaru.map((b) => ({
+          permohonanId: permohonan.id,
+          namaFile: b.label,
+          path: b.path,
+        })),
+      });
+    }
 
     // Notifikasi ke petugas: ada permohonan masuk. Pembuat dikecualikan
     // (form staf "Pengajuan Baru" juga lewat endpoint ini).

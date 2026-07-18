@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText,
-  Eye, Lock, AlertTriangle, ArrowLeft, Paperclip, Download, User, Phone, Mail,
-  ZoomIn,
+  Eye, Lock, AlertTriangle, ArrowLeft, Download, User, Phone, Mail,
 } from 'lucide-react';
+import { BerkasGallery, PermohonanJourney } from '@/components/shared/permohonan-detail';
+import { labelField, payloadDataEntries, payloadBerkasEntries } from '@/lib/permohonan-display';
 
 /** Status final — data terkunci, hanya bisa dibuka lewat halaman Master. */
 const FINAL_STATUS = ['SELESAI', 'DITOLAK'];
@@ -79,12 +80,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/** Berkas upload warga berupa gambar — deteksi dari mime atau ekstensi path. */
-function isImageBerkas(b: BerkasItem) {
-  if (b.mimeType?.startsWith('image/')) return true;
-  return /\.(png|jpe?g|webp|gif)$/i.test(b.path);
-}
-
 export function AdminPermohonan() {
   const [items, setItems] = useState<Item[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -94,8 +89,6 @@ export function AdminPermohonan() {
   // Panel detail inline (menggantikan tabel — bukan pindah halaman).
   const [detail, setDetail] = useState<Detail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  // Lightbox perbesar gambar berkas.
-  const [lightbox, setLightbox] = useState<BerkasItem | null>(null);
   const [editing, setEditing] = useState<Item | null>(null);
   const [editStatus, setEditStatus] = useState('');
   const [editCatatan, setEditCatatan] = useState('');
@@ -136,7 +129,6 @@ export function AdminPermohonan() {
 
   const closeDetail = () => {
     setDetail(null);
-    setLightbox(null);
   };
 
   const openEdit = (it: { id: number; noregister: string; status: string; catatan: string | null; pemohon: string; jenisNama: string }) => {
@@ -195,9 +187,14 @@ export function AdminPermohonan() {
 
   const payload: Record<string, unknown> =
     detail?.payload && typeof detail.payload === 'object' ? (detail.payload as Record<string, unknown>) : {};
-  const payloadEntries = Object.entries(payload).filter(
-    ([, v]) => v !== null && v !== undefined && typeof v !== 'object' && String(v).trim() !== ''
-  );
+  // Semua isian form (tanpa field berkas/internal), berlabel bahasa manusia.
+  const payloadEntries = payloadDataEntries(payload);
+  // Berkas: gabungan t_berkas + berkas yang hanya tercatat di payload.
+  const berkasPaths = new Set((detail?.berkas ?? []).map((b) => b.path));
+  const berkasView = [
+    ...(detail?.berkas ?? []).map((b) => ({ label: b.namaFile, path: b.path })),
+    ...payloadBerkasEntries(payload).filter((b) => !berkasPaths.has(b.path)),
+  ];
   const detailFinal = detail ? FINAL_STATUS.includes(detail.status) : false;
 
   return (
@@ -228,6 +225,16 @@ export function AdminPermohonan() {
                 </p>
               </div>
 
+              {/* Journey status */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <PermohonanJourney
+                  status={detail.status}
+                  createdAt={detail.createdAt}
+                  prosesAt={detail.prosesAt}
+                  updatedAt={detail.updatedAt}
+                />
+              </div>
+
               {/* Pemohon */}
               <div className="rounded-xl border border-slate-200 p-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Pemohon</h4>
@@ -255,59 +262,20 @@ export function AdminPermohonan() {
                   <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {payloadEntries.map(([k, v]) => (
                       <div key={k} className="bg-slate-50/80 rounded-lg px-3 py-2">
-                        <dt className="text-xs text-slate-400 capitalize">{k.replace(/_/g, ' ')}</dt>
-                        <dd className="text-sm font-medium text-slate-800 mt-0.5 break-words">{String(v)}</dd>
+                        <dt className="text-xs text-slate-400">{labelField(k)}</dt>
+                        <dd className="text-sm font-medium text-slate-800 mt-0.5 break-words">{v}</dd>
                       </div>
                     ))}
                   </dl>
                 </div>
               )}
 
-              {/* Berkas lampiran — preview gambar */}
+              {/* Berkas lampiran — preview gambar (t_berkas ∪ payload) */}
               <div className="rounded-xl border border-slate-200 p-4">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
-                  Berkas Lampiran ({detail.berkas.length})
+                  Berkas Lampiran ({berkasView.length})
                 </h4>
-                {detail.berkas.length === 0 ? (
-                  <p className="text-sm text-slate-400">Tidak ada berkas.</p>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {detail.berkas.map((b) =>
-                      isImageBerkas(b) ? (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => setLightbox(b)}
-                          className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-left hover:border-primary/50 transition-colors"
-                          title="Klik untuk perbesar"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={b.path}
-                            alt={b.namaFile}
-                            loading="lazy"
-                            className="h-32 w-full object-cover transition-transform group-hover:scale-105"
-                          />
-                          <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-                            <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </span>
-                          <span className="block truncate px-2 py-1.5 text-xs text-slate-600 bg-white">{b.namaFile}</span>
-                        </button>
-                      ) : (
-                        <a
-                          key={b.id}
-                          href={b.path}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-primary/50 transition-colors"
-                        >
-                          <Paperclip className="h-6 w-6 text-primary" />
-                          <span className="w-full truncate text-center text-xs text-slate-600">{b.namaFile}</span>
-                        </a>
-                      )
-                    )}
-                  </div>
-                )}
+                <BerkasGallery items={berkasView} />
               </div>
 
               {/* Catatan petugas + jejak pemroses */}
@@ -476,30 +444,6 @@ export function AdminPermohonan() {
             </div>
           )}
         </>
-      )}
-
-      {/* Lightbox perbesar gambar berkas */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white"
-            onClick={() => setLightbox(null)}
-            aria-label="Tutup"
-          >
-            <X className="h-7 w-7" />
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox.path}
-            alt={lightbox.namaFile}
-            className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <p className="mt-3 text-sm text-white/80">{lightbox.namaFile}</p>
-        </div>
       )}
 
       {/* Modal edit status */}

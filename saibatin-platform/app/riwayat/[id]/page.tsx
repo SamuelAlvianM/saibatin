@@ -3,7 +3,11 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Footer } from '@/components/shared/footer';
-import { ArrowLeft, Clock, CheckCircle2, XCircle, FileText, Paperclip, Download } from 'lucide-react';
+import { BerkasGallery, PermohonanJourney } from '@/components/shared/permohonan-detail';
+import { labelField, payloadDataEntries, payloadBerkasEntries } from '@/lib/permohonan-display';
+import {
+  ArrowLeft, Clock, CheckCircle2, XCircle, FileText, Download, AlertTriangle,
+} from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,19 +32,20 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
 
   const cfg = STATUS_CONFIG[item.status] ?? STATUS_CONFIG['MENUNGGU'];
   const Icon = cfg.icon;
-  // payload bertipe Json di Prisma — sudah berupa objek (bukan string).
   const payload: Record<string, unknown> =
     item.payload && typeof item.payload === 'object'
       ? (item.payload as Record<string, unknown>)
-      : typeof item.payload === 'string'
-      ? (() => {
-          try {
-            return JSON.parse(item.payload as string);
-          } catch {
-            return {};
-          }
-        })()
       : {};
+
+  // Semua isi form yang pernah diisi pemohon — tampil apa pun statusnya.
+  const dataEntries = payloadDataEntries(payload);
+
+  // Berkas: gabungan t_berkas + berkas yang hanya tercatat di payload.
+  const berkasPaths = new Set(item.berkas.map((b) => b.path));
+  const berkasView = [
+    ...item.berkas.map((b) => ({ label: b.namaFile, path: b.path })),
+    ...payloadBerkasEntries(payload).filter((b) => !berkasPaths.has(b.path)),
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,74 +61,85 @@ export default async function RiwayatDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-10 max-w-3xl space-y-5">
-        {/* Status */}
+        {/* Status + journey */}
         <div className="glass-card rounded-2xl p-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Status Permohonan</h2>
-          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-medium text-sm ${cfg.color}`}>
-            <Icon className="w-4 h-4" />
-            {cfg.label}
-          </span>
-          {item.catatan && (
-            <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
-              <p className="text-xs font-semibold text-slate-500 mb-1">Catatan dari petugas:</p>
-              <p className="text-sm text-slate-700">{item.catatan}</p>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4 mt-4 text-xs text-slate-500">
-            <div>
-              <span className="font-medium block text-slate-700">Tanggal Pengajuan</span>
-              {new Date(item.createdAt).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}
-            </div>
-            <div>
-              <span className="font-medium block text-slate-700">Terakhir Diperbarui</span>
-              {new Date(item.updatedAt).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}
-            </div>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Perjalanan Permohonan</h2>
+            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border font-medium text-xs ${cfg.color}`}>
+              <Icon className="w-3.5 h-3.5" />
+              {cfg.label}
+            </span>
           </div>
+          <PermohonanJourney
+            status={item.status}
+            createdAt={item.createdAt}
+            prosesAt={item.prosesAt}
+            updatedAt={item.updatedAt}
+          />
         </div>
 
-        {/* Data permohonan dari payload */}
-        {Object.keys(payload).length > 0 && (
+        {/* Alasan penolakan / catatan petugas */}
+        {item.status === 'DITOLAK' && (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+            <div className="flex items-center gap-2 text-destructive mb-2">
+              <AlertTriangle className="w-4 h-4" />
+              <h2 className="text-sm font-semibold">Permohonan Ditolak</h2>
+            </div>
+            <p className="text-sm text-slate-700">
+              {item.catatan?.trim()
+                ? item.catatan
+                : 'Silakan hubungi petugas Disdukcapil untuk informasi alasan penolakan.'}
+            </p>
+            <p className="mt-3 text-xs text-slate-500">
+              Anda dapat memperbaiki data/berkas sesuai catatan di atas lalu mengajukan permohonan baru.
+            </p>
+          </div>
+        )}
+        {item.status !== 'DITOLAK' && item.catatan && (
           <div className="glass-card rounded-2xl p-5">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Data Permohonan</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Catatan dari Petugas</h2>
+            <p className="text-sm text-slate-700">{item.catatan}</p>
+          </div>
+        )}
+
+        {/* Data permohonan — SEMUA isian form, apa pun statusnya */}
+        <div className="glass-card rounded-2xl p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">
+            Data Permohonan ({dataEntries.length} isian)
+          </h2>
+          {dataEntries.length === 0 ? (
+            <p className="text-sm text-slate-400">Tidak ada data isian.</p>
+          ) : (
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(payload).map(([k, v]) => (
+              {dataEntries.map(([k, v]) => (
                 <div key={k} className="bg-slate-50/80 rounded-lg px-3 py-2">
-                  <dt className="text-xs text-slate-400 capitalize">{k.replace(/_/g, ' ')}</dt>
-                  <dd className="text-sm font-medium text-slate-800 mt-0.5">{String(v)}</dd>
+                  <dt className="text-xs text-slate-400">{labelField(k)}</dt>
+                  <dd className="text-sm font-medium text-slate-800 mt-0.5 break-words">{v}</dd>
                 </div>
               ))}
             </dl>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Berkas lampiran */}
-        {item.berkas.length > 0 && (
-          <div className="glass-card rounded-2xl p-5">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">Berkas Lampiran</h2>
-            <div className="space-y-2">
-              {item.berkas.map((b) => (
-                <a
-                  key={b.id}
-                  href={b.path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
-                >
-                  <Paperclip className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-sm text-slate-700 group-hover:text-primary truncate">{b.namaFile}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Berkas lampiran — preview gambar */}
+        <div className="glass-card rounded-2xl p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">
+            Berkas Lampiran ({berkasView.length})
+          </h2>
+          <BerkasGallery items={berkasView} />
+        </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <a
             href={`/api/permohonan/${item.id}/pdf`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 px-5 py-2.5 rounded-xl border border-slate-300 bg-white shadow-sm hover:bg-slate-50"
+            className={
+              item.status === 'SELESAI'
+                ? 'inline-flex items-center gap-2 text-sm font-medium text-white px-5 py-2.5 rounded-xl shadow-md bg-success hover:bg-success/90'
+                : 'inline-flex items-center gap-2 text-sm font-medium text-slate-700 px-5 py-2.5 rounded-xl border border-slate-300 bg-white shadow-sm hover:bg-slate-50'
+            }
           >
             <Download className="w-4 h-4" />
-            Download Bukti
+            {item.status === 'SELESAI' ? 'Unduh Dokumen (PDF)' : 'Download Bukti Pengajuan'}
           </a>
           <Link
             href="/permohonan-online"
