@@ -67,11 +67,20 @@ export async function PATCH(
       ], 423);
     }
 
+    // Jejak petugas pemroses — dicatat saat status berubah.
+    const gantiStatus = !!status && status !== sebelum.status;
     const updated = await prisma.permohonan.update({
       where: { id: Number(id) },
       data: {
         ...(status ? { status } : {}),
         ...(catatan !== undefined ? { catatan } : {}),
+        ...(gantiStatus
+          ? {
+              prosesById: session.uid,
+              prosesByName: session.nama ?? session.userId,
+              prosesAt: new Date(),
+            }
+          : {}),
       },
       include: {
         jenis: { select: { nama: true } },

@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
       judul: judul.trim(),
       file: file ?? null,
       konten: konten ?? null,
+      uploadedBy: session.uid,
+      uploadedByName: session.nama ?? session.userId,
     },
   });
   return ok({ item }, ["Info: Dokumen berhasil ditambahkan"]);

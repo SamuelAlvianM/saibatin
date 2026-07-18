@@ -24,6 +24,7 @@ interface Produk {
   file: string | null;
   konten: string | null;
   createdAt: string;
+  uploadedByName?: string | null;
 }
 
 const GROUPS = ['Produk Layanan', 'PPID / Transparansi'] as const;
@@ -188,6 +189,7 @@ export function AdminProduk() {
               <tr className="text-left text-slate-500 border-b border-slate-200">
                 <th className="py-2 pr-4 font-medium">Nama Dokumen</th>
                 <th className="py-2 pr-4 font-medium">File</th>
+                <th className="py-2 pr-4 font-medium">Diunggah oleh</th>
                 <th className="py-2 pr-4 font-medium">Tanggal</th>
                 <th className="py-2 pr-4 font-medium text-right">Aksi</th>
               </tr>
@@ -208,6 +210,9 @@ export function AdminProduk() {
                     ) : (
                       '-'
                     )}
+                  </td>
+                  <td className="py-2.5 pr-4 text-xs text-slate-500">
+                    {p.uploadedByName ?? <span className="text-slate-300">—</span>}
                   </td>
                   <td className="py-2.5 pr-4 text-xs text-slate-500">
                     {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}

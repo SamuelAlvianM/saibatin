@@ -88,6 +88,11 @@ model Permohonan {
   status      String    @default("MENUNGGU") // MENUNGGU | DIPROSES | SELESAI | DITOLAK
   payload     Json?     // field dinamis per jenis permohonan
   catatan     String?   @db.Text
+  // Petugas yang terakhir mengubah status (jejak audit). Nama disimpan
+  // denormalized agar tetap terbaca walau akun berubah/dihapus.
+  prosesById   Int?      @map("proses_by")
+  prosesByName String?   @map("proses_by_name")
+  prosesAt     DateTime? @map("proses_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -184,7 +189,11 @@ model Produk {
   judul     String   @db.VarChar(255)
   konten    String?  @db.LongText
   file      String?
+  // Admin pengunggah (bisa >1 admin) — jejak siapa memasukkan dokumen.
+  uploadedBy     Int?     @map("uploaded_by")
+  uploadedByName String?  @map("uploaded_by_name")
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@index([jenis])
   @@map("t_produk")

@@ -78,9 +78,9 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
   const handleFile = async (fd: FieldDef, file: File | undefined) => {
     if (!file) return;
     const maxSize = 5 * 1024 * 1024;
-    const okType = ['image/jpeg', 'image/png', 'application/pdf'].includes(file.type);
+    const okType = ['image/jpeg', 'image/png'].includes(file.type);
     if (!okType) {
-      toast.error(`${fd.label}: format harus JPG, PNG, atau PDF`);
+      toast.error(`${fd.label}: format harus JPG atau PNG`);
       return;
     }
     if (file.size > maxSize) {
@@ -174,7 +174,7 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
         <div id={`fld-${fd.name}`} className={cn('space-y-1.5', fd.half ? '' : 'sm:col-span-2')}>
           <Label>
             {fd.label} {fd.required && <span className="text-destructive">*</span>}
-            <span className="ml-1 text-xs font-normal text-slate-400">(JPG/PNG/PDF, maks 5MB)</span>
+            <span className="ml-1 text-xs font-normal text-slate-400">(JPG/PNG, maks 5MB)</span>
           </Label>
           {uploaded ? (
             <div className="flex items-center justify-between rounded-lg border-2 border-success/40 bg-success/5 p-3">
@@ -196,7 +196,7 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
               <span>{uploading === fd.name ? 'Mengunggah...' : 'Pilih file'}</span>
               <input
                 type="file"
-                accept=".jpg,.jpeg,.png,.pdf"
+                accept=".jpg,.jpeg,.png"
                 className="hidden"
                 disabled={uploading === fd.name}
                 onChange={(e) => handleFile(fd, e.target.files?.[0])}

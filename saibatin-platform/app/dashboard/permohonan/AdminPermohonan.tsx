@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Loader2, Search, ClipboardList, X, Clock, CheckCircle2, XCircle, FileText,
   Eye, Lock, AlertTriangle, ArrowLeft, Paperclip, Download, User, Phone, Mail,
@@ -42,11 +43,23 @@ interface Detail {
   catatan: string | null;
   createdAt: string;
   updatedAt: string;
+  prosesByName?: string | null;
+  prosesAt?: string | null;
   payload: Record<string, unknown> | null;
   jenis: { nama: string; kategori: string } | null;
   user: { userId: string; userFullname: string | null; userHp: string | null; userEmail: string | null } | null;
   berkas: BerkasItem[];
 }
+
+/** Pilihan alasan penolakan yang lazim; "Lainnya" -> alasan diketik bebas. */
+const ALASAN_TOLAK = [
+  'Berkas tidak lengkap',
+  'Berkas tidak jelas / buram',
+  'Data tidak sesuai dengan dokumen',
+  'NIK / dokumen tidak valid',
+  'Persyaratan belum terpenuhi',
+  'Lainnya',
+];
 
 const STATUS: Record<string, { label: string; cls: string; icon: React.ElementType }> = {
   MENUNGGU: { label: 'Menunggu', cls: 'text-warning bg-warning/10 border-warning/20', icon: Clock },
@@ -86,6 +99,8 @@ export function AdminPermohonan() {
   const [editing, setEditing] = useState<Item | null>(null);
   const [editStatus, setEditStatus] = useState('');
   const [editCatatan, setEditCatatan] = useState('');
+  // Alasan penolakan terpilih (dropdown). '' = belum pilih; 'Lainnya' = ketik bebas.
+  const [rejectPreset, setRejectPreset] = useState('');
   const [saving, setSaving] = useState(false);
   // Konfirmasi ekstra sebelum status dijadikan final (Selesai/Ditolak).
   const [confirmFinal, setConfirmFinal] = useState(false);
@@ -128,6 +143,7 @@ export function AdminPermohonan() {
     setEditing(it as Item);
     setEditStatus(it.status);
     setEditCatatan(it.catatan ?? '');
+    setRejectPreset('');
     setConfirmFinal(false);
   };
 
@@ -139,6 +155,15 @@ export function AdminPermohonan() {
   /** Klik Simpan: status final butuh konfirmasi ekstra dulu. */
   const save = async () => {
     if (!editing) return;
+    // Penolakan wajib disertai alasan (pilih dari dropdown atau ketik bila "Lainnya").
+    if (editStatus === 'DITOLAK' && !editCatatan.trim()) {
+      toast.error(
+        rejectPreset === 'Lainnya'
+          ? 'Tulis alasan penolakan'
+          : 'Pilih alasan penolakan'
+      );
+      return;
+    }
     if (FINAL_STATUS.includes(editStatus) && !confirmFinal) {
       setConfirmFinal(true);
       return;
@@ -285,11 +310,24 @@ export function AdminPermohonan() {
                 )}
               </div>
 
-              {/* Catatan petugas */}
-              {detail.catatan && (
+              {/* Catatan petugas + jejak pemroses */}
+              {(detail.catatan || detail.prosesByName) && (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">Catatan Petugas</h4>
-                  <p className="text-sm text-slate-700">{detail.catatan}</p>
+                  {detail.catatan && (
+                    <>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">Catatan Petugas</h4>
+                      <p className="text-sm text-slate-700">{detail.catatan}</p>
+                    </>
+                  )}
+                  {detail.prosesByName && (
+                    <p className={`flex items-center gap-1.5 text-xs text-slate-500 ${detail.catatan ? 'mt-2 pt-2 border-t border-slate-200' : ''}`}>
+                      <User className="h-3.5 w-3.5 text-slate-400" />
+                      Diproses oleh <b className="text-slate-700">{detail.prosesByName}</b>
+                      {detail.prosesAt && (
+                        <> &middot; {new Date(detail.prosesAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -497,7 +535,11 @@ export function AdminPermohonan() {
                     <button
                       key={k}
                       type="button"
-                      onClick={() => setEditStatus(k)}
+                      onClick={() => {
+                        setEditStatus(k);
+                        // Keluar dari DITOLAK -> reset pilihan alasan.
+                        if (k !== 'DITOLAK') setRejectPreset('');
+                      }}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         editStatus === k ? STATUS[k].cls : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                       }`}
@@ -508,16 +550,52 @@ export function AdminPermohonan() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-slate-700">Catatan Petugas</label>
-                <Textarea
-                  className="mt-1.5"
-                  rows={3}
-                  value={editCatatan}
-                  onChange={(e) => setEditCatatan(e.target.value)}
-                  placeholder="Catatan untuk pemohon (opsional)..."
-                />
-              </div>
+              {editStatus === 'DITOLAK' ? (
+                <div>
+                  <label className="text-sm font-medium text-slate-700">
+                    Alasan Penolakan <span className="text-destructive">*</span>
+                  </label>
+                  <Select
+                    value={rejectPreset}
+                    onValueChange={(v) => {
+                      setRejectPreset(v);
+                      // Preset langsung jadi catatan; "Lainnya" -> kosongkan utk diketik.
+                      setEditCatatan(v === 'Lainnya' ? '' : v);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue placeholder="Pilih alasan penolakan..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ALASAN_TOLAK.map((a) => (
+                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {rejectPreset === 'Lainnya' && (
+                    <Textarea
+                      className="mt-2"
+                      rows={3}
+                      value={editCatatan}
+                      onChange={(e) => setEditCatatan(e.target.value)}
+                      placeholder="Tulis alasan penolakan..."
+                      autoFocus
+                    />
+                  )}
+                  <p className="mt-1.5 text-xs text-slate-400">Alasan ini dikirim ke pemohon sebagai catatan.</p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-sm font-medium text-slate-700">Catatan Petugas</label>
+                  <Textarea
+                    className="mt-1.5"
+                    rows={3}
+                    value={editCatatan}
+                    onChange={(e) => setEditCatatan(e.target.value)}
+                    placeholder="Catatan untuk pemohon (opsional)..."
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={closeEdit}>Batal</Button>

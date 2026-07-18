@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Phone, Mail, Clock, MapPin } from "lucide-react";
+import { VisitorCount } from "@/components/shared/visitor-count";
 
 const grup = {
   layanan: [
@@ -124,6 +125,9 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
+        <div className="container mx-auto px-4 md:px-8 lg:px-16 py-4 flex justify-center border-b border-white/5">
+          <VisitorCount />
+        </div>
         <div className="container mx-auto px-4 md:px-8 lg:px-16 py-5">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-slate-500">
             <p>
