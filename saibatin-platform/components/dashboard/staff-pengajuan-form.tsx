@@ -65,6 +65,8 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  // Field yang sedang di-hover saat seret berkas (untuk sorot drop zone).
+  const [dragField, setDragField] = useState<string | null>(null);
 
   const allFields = useMemo(
     () => layanan.sections.flatMap((s) => s.fields),
@@ -172,29 +174,49 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
     if (fd.type === 'file') {
       const uploaded = !!val;
       return (
-        <div id={`fld-${fd.name}`} className={cn('space-y-1.5', fd.half ? '' : 'sm:col-span-2')}>
-          <Label>
+        <div id={`fld-${fd.name}`} className="space-y-1.5">
+          <Label className="text-xs">
             {fd.label} {fd.required && <span className="text-destructive">*</span>}
-            <span className="ml-1 text-xs font-normal text-slate-400">(JPG/PNG, maks 5MB)</span>
           </Label>
           {uploaded ? (
-            <div className="flex items-center justify-between rounded-lg border-2 border-success/40 bg-success/5 p-3">
-              <span className="flex items-center gap-2 text-sm text-success">
-                <CheckCircle2 className="h-4 w-4" /> {fileNames[fd.name] ?? 'Terunggah'}
-              </span>
-              <button type="button" onClick={() => removeFile(fd.name)} className="text-slate-400 hover:text-destructive">
-                <X className="h-4 w-4" />
-              </button>
+            // Pratinjau gambar + tombol batal.
+            <div className="overflow-hidden rounded-lg border-2 border-success/40 bg-success/5">
+              <div className="group relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={val} alt={fd.label} className="h-28 w-full bg-slate-100 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removeFile(fd.name)}
+                  title="Batalkan / ganti"
+                  className="absolute right-1.5 top-1.5 rounded-full bg-black/55 p-1 text-white transition-colors hover:bg-destructive"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <p className="flex items-center gap-1 truncate px-2 py-1.5 text-xs text-success">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{fileNames[fd.name] ?? 'Terunggah'}</span>
+              </p>
             </div>
           ) : (
+            // Drop zone: klik atau seret berkas ke sini.
             <label
+              onDragOver={(e) => { e.preventDefault(); setDragField(fd.name); }}
+              onDragLeave={() => setDragField((d) => (d === fd.name ? null : d))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragField(null);
+                handleFile(fd, e.dataTransfer.files?.[0]);
+              }}
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-sm text-slate-400 transition-colors hover:border-primary/40 hover:text-primary',
+                'flex min-h-[7rem] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed py-4 text-center text-xs text-slate-400 transition-colors hover:border-primary/40 hover:text-primary',
+                dragField === fd.name && 'border-primary bg-primary/5 text-primary',
                 err ? 'border-destructive/50 text-destructive' : 'border-slate-200'
               )}
             >
-              {uploading === fd.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span>{uploading === fd.name ? 'Mengunggah...' : 'Pilih file'}</span>
+              {uploading === fd.name ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+              <span>{uploading === fd.name ? 'Mengunggah...' : 'Pilih atau seret berkas'}</span>
+              <span className="text-[0.65rem] text-slate-400">JPG/PNG, maks 5MB</span>
               <input
                 type="file"
                 accept=".jpg,.jpeg,.png"
@@ -210,7 +232,7 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
     }
 
     return (
-      <div id={`fld-${fd.name}`} className={cn('space-y-1.5', fd.half ? '' : 'sm:col-span-2')}>
+      <div id={`fld-${fd.name}`} className="space-y-1.5">
         <Label htmlFor={fd.name}>
           {fd.label} {fd.required && <span className="text-destructive">*</span>}
         </Label>
@@ -293,19 +315,28 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
         Anda mengisi permohonan <b>atas nama warga</b>. Pastikan data sesuai dokumen asli sebelum dikirim.
       </div>
 
-      <div className="space-y-6">
-        {layanan.sections.map((section) => (
-          <div key={section.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">{section.title}</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {section.fields.map((fd) => (
-                <div key={fd.name} className={fd.half ? '' : 'sm:col-span-2'}>
-                  {renderField(fd)}
-                </div>
-              ))}
+      <div className="space-y-5">
+        {layanan.sections.map((section, idx) => {
+          // Section dokumen (semua field bertipe file) tampil grid 3 kolom.
+          const isDoc = section.fields.length > 0 && section.fields.every((fd) => fd.type === 'file');
+          return (
+            <div key={section.title} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="mb-4 flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+                  {idx + 1}
+                </span>
+                <h3 className="text-sm font-semibold text-slate-700">{section.title}</h3>
+              </div>
+              <div className={cn('grid grid-cols-1 gap-4', isDoc ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2')}>
+                {section.fields.map((fd) => (
+                  <div key={fd.name} className={cn(fd.half || fd.type === 'file' ? '' : 'sm:col-span-2')}>
+                    {renderField(fd)}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mt-6 flex justify-end gap-3">

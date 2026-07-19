@@ -96,28 +96,50 @@ const OPT_JENIS_BIODATA = [
 ];
 
 // Blok data anak + kelahiran + saksi — dipakai kedua form akta kelahiran.
-const kelahiranFields = (withNikBayi: boolean): FieldDef[] => [
-  ...(withNikBayi ? [f('nikbayi', 'NIK Bayi', 'nik', { required: true, half: true })] : []),
-  f('namalengkap', 'Nama Lengkap', 'text', { required: true, half: !withNikBayi ? false : true }),
-  f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
-  f('tgllahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
-  f('nikayah', 'NIK Ayah', 'nik', { required: true, half: true }),
-  f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
-  f('pekerjaan', 'Pekerjaan', 'text', { required: true, half: true }),
-  f('nikibu', 'NIK Ibu', 'nik', { required: true, half: true }),
-  f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
-  f('anakke', 'Anak Ke', 'number', { required: true, half: true }),
-  f('tempatdilahirkan', 'Tempat Dilahirkan', 'select', { required: true, half: true, options: OPT_TEMPAT_DILAHIRKAN }),
-  f('tempatkelahiran', 'Tempat Kelahiran', 'text', { required: true, half: true }),
-  f('jamkelahiran', 'Jam Kelahiran', 'time', { required: true, half: true }),
-  f('jeniskelahiran', 'Jenis Kelahiran', 'select', { required: true, half: true, options: OPT_JENIS_KELAHIRAN }),
-  f('berat', 'Berat (kg)', 'text', { required: true, half: true }),
-  f('panjang', 'Panjang (cm)', 'text', { required: true, half: true }),
-  f('penolong', 'Penolong', 'select', { required: true, half: true, options: OPT_PENOLONG }),
-  f('niksaksi1', 'NIK Saksi I', 'nik', { required: true, half: true }),
-  f('namasaksi1', 'Nama Lengkap Saksi I', 'text', { required: true, half: true }),
-  f('niksaksi2', 'NIK Saksi II', 'nik', { required: true, half: true }),
-  f('namasaksi2', 'Nama Lengkap Saksi II', 'text', { required: true, half: true }),
+// Dipecah jadi sub-section (Biodata Kelahiran, Data Kelahiran, Saksi I, Saksi II)
+// mengikuti segmentasi form asli portal lama agar lebih rapi & mudah dibaca.
+const kelahiranSections = (withNikBayi: boolean): SectionDef[] => [
+  {
+    title: 'Biodata Kelahiran',
+    fields: [
+      ...(withNikBayi ? [f('nikbayi', 'NIK Bayi', 'nik', { required: true, half: true })] : []),
+      f('namalengkap', 'Nama Lengkap', 'text', { required: true, half: true }),
+      f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
+      f('tgllahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
+      f('nikayah', 'NIK Ayah', 'nik', { required: true, half: true }),
+      f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
+      f('pekerjaan', 'Pekerjaan', 'text', { required: true, half: true }),
+      f('nikibu', 'NIK Ibu', 'nik', { required: true, half: true }),
+      f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
+    ],
+  },
+  {
+    title: 'Data Kelahiran',
+    fields: [
+      f('anakke', 'Anak Ke', 'number', { required: true, half: true }),
+      f('tempatdilahirkan', 'Tempat Dilahirkan', 'select', { required: true, half: true, options: OPT_TEMPAT_DILAHIRKAN }),
+      f('tempatkelahiran', 'Tempat Kelahiran', 'text', { required: true, half: true }),
+      f('jamkelahiran', 'Jam Kelahiran', 'time', { required: true, half: true }),
+      f('jeniskelahiran', 'Jenis Kelahiran', 'select', { required: true, half: true, options: OPT_JENIS_KELAHIRAN }),
+      f('berat', 'Berat (kg)', 'text', { required: true, half: true }),
+      f('panjang', 'Panjang (cm)', 'text', { required: true, half: true }),
+      f('penolong', 'Penolong', 'select', { required: true, half: true, options: OPT_PENOLONG }),
+    ],
+  },
+  {
+    title: 'Saksi I',
+    fields: [
+      f('niksaksi1', 'NIK Saksi I', 'nik', { required: true, half: true }),
+      f('namasaksi1', 'Nama Lengkap Saksi I', 'text', { required: true, half: true }),
+    ],
+  },
+  {
+    title: 'Saksi II',
+    fields: [
+      f('niksaksi2', 'NIK Saksi II', 'nik', { required: true, half: true }),
+      f('namasaksi2', 'Nama Lengkap Saksi II', 'text', { required: true, half: true }),
+    ],
+  },
 ];
 
 const kelahiranDokumen: SectionDef = {
@@ -172,7 +194,7 @@ export const LAYANAN_FORMS: LayananForm[] = [
     icon: 'Baby',
     sections: [
       pemohon,
-      { title: 'Kelengkapan Data', fields: kelahiranFields(false) },
+      ...kelahiranSections(false),
       kelahiranDokumen,
       catatanSection,
     ],
@@ -184,7 +206,7 @@ export const LAYANAN_FORMS: LayananForm[] = [
     icon: 'Baby',
     sections: [
       pemohon,
-      { title: 'Kelengkapan Data', fields: kelahiranFields(true) },
+      ...kelahiranSections(true),
       kelahiranDokumen,
       catatanSection,
     ],
