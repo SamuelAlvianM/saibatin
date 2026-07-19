@@ -2,6 +2,11 @@
  * Skema formulir permohonan untuk mode "Pengajuan Baru" (dibantu petugas).
  * Setiap layanan memetakan ke slug catch-all /api/<slug>/(upload|create)
  * yang sudah ada di app/api/[layanan]/[action]/route.ts.
+ *
+ * SUMBER KEBENARAN: form asli portal lama app.pesbar.002
+ * (resources/views/fronts/permohonans/*.blade.php + validasi controller-nya).
+ * Nama field & dokumen mengikuti form lama agar payload konsisten dengan
+ * data migrasi dan kamus label lib/permohonan-display.ts.
  */
 
 export type FieldType =
@@ -11,6 +16,7 @@ export type FieldType =
   | 'phone'
   | 'email'
   | 'date'
+  | 'time'
   | 'number'
   | 'textarea'
   | 'select'
@@ -39,23 +45,29 @@ export interface LayananForm {
   sections: SectionDef[];
 }
 
-// Blok data pemohon dipakai hampir di semua layanan
+// Blok data pemohon — sama untuk semua layanan (persis form lama).
 const pemohon: SectionDef = {
   title: 'Data Pemohon',
   fields: [
     { name: 'pemohonnik', label: 'NIK Pemohon', type: 'nik', required: true, half: true },
     { name: 'pemohonnama', label: 'Nama Pemohon', type: 'text', required: true, half: true },
-    { name: 'pemohonkk', label: 'Nomor Kartu Keluarga', type: 'kk', required: true, half: true },
-    { name: 'pemohonhp', label: 'Nomor HP', type: 'phone', required: true, half: true },
-    { name: 'pemohonemail', label: 'Email', type: 'email', required: true },
+    { name: 'pemohonkk', label: 'KK Pemohon', type: 'kk', required: true, half: true },
+    { name: 'pemohonhp', label: 'No. Telp Pemohon', type: 'phone', required: true, half: true },
+    { name: 'pemohonemail', label: 'Email Pemohon', type: 'email', required: true },
   ],
 };
 
-const catatan: FieldDef = {
-  name: 'catatan',
-  label: 'Catatan Petugas (opsional)',
-  type: 'textarea',
-  placeholder: 'Catatan tambahan terkait permohonan ini...',
+const catatanSection: SectionDef = {
+  title: 'Catatan',
+  fields: [
+    {
+      name: 'catatan',
+      label: 'Catatan (opsional)',
+      type: 'textarea',
+      placeholder:
+        'Silahkan isi catatan disini kalau ada pesan yang akan disampaikan ke petugas...',
+    },
+  ],
 };
 
 const f = (name: string, label: string, type: FieldType = 'text', opts: Partial<FieldDef> = {}): FieldDef => ({
@@ -64,6 +76,64 @@ const f = (name: string, label: string, type: FieldType = 'text', opts: Partial<
   type,
   ...opts,
 });
+
+// ── Opsi dropdown (mengikuti m_options / form lama) ──
+const OPT_JENIS_KELAMIN = ['Laki-laki', 'Perempuan'];
+const OPT_TEMPAT_DILAHIRKAN = ['Rumah Sakit/Bersalin', 'Puskesmas', 'Polindes', 'Rumah', 'Lainnya'];
+const OPT_JENIS_KELAHIRAN = ['Tunggal', 'Kembar Dua', 'Kembar Tiga', 'Kembar Empat', 'Kembar Banyak/Lainnya'];
+const OPT_PENOLONG = ['Dokter', 'Bidan/Perawat', 'Dukun', 'Lainnya'];
+const OPT_AGAMA = ['Islam', 'Kristen', 'Katholik', 'Hindu', 'Budha', 'Konghuchu', 'Kepercayaan'];
+const OPT_GOLDAR = ['A', 'A+', 'A-', 'B', 'B+', 'B-', 'AB', 'AB+', 'AB-', 'O', 'O+', 'O-', 'Tidak Tahu'];
+const OPT_PENDIDIKAN = [
+  'Tidak/Belum Sekolah', 'Belum Tamat SD/Sederajat', 'Tamat SD/Sederajat',
+  'SLTP/Sederajat', 'SLTA/Sederajat', 'Diploma I/II',
+  'Akademi/Diploma III/Sarjana Muda', 'Diploma IV/Strata I', 'Strata II', 'Strata III',
+];
+const OPT_STATUS_KAWIN = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
+const OPT_JENIS_BIODATA = [
+  'Nama Lengkap', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Golongan Darah',
+  'Agama', 'Pendidikan', 'Pekerjaan', 'Nama Ayah', 'Nama Ibu', 'Status Perkawinan',
+];
+
+// Blok data anak + kelahiran + saksi — dipakai kedua form akta kelahiran.
+const kelahiranFields = (withNikBayi: boolean): FieldDef[] => [
+  ...(withNikBayi ? [f('nikbayi', 'NIK Bayi', 'nik', { required: true, half: true })] : []),
+  f('namalengkap', 'Nama Lengkap', 'text', { required: true, half: !withNikBayi ? false : true }),
+  f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
+  f('tgllahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
+  f('nikayah', 'NIK Ayah', 'nik', { required: true, half: true }),
+  f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
+  f('pekerjaan', 'Pekerjaan', 'text', { required: true, half: true }),
+  f('nikibu', 'NIK Ibu', 'nik', { required: true, half: true }),
+  f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
+  f('anakke', 'Anak Ke', 'number', { required: true, half: true }),
+  f('tempatdilahirkan', 'Tempat Dilahirkan', 'select', { required: true, half: true, options: OPT_TEMPAT_DILAHIRKAN }),
+  f('tempatkelahiran', 'Tempat Kelahiran', 'text', { required: true, half: true }),
+  f('jamkelahiran', 'Jam Kelahiran', 'time', { required: true, half: true }),
+  f('jeniskelahiran', 'Jenis Kelahiran', 'select', { required: true, half: true, options: OPT_JENIS_KELAHIRAN }),
+  f('berat', 'Berat (kg)', 'text', { required: true, half: true }),
+  f('panjang', 'Panjang (cm)', 'text', { required: true, half: true }),
+  f('penolong', 'Penolong', 'select', { required: true, half: true, options: OPT_PENOLONG }),
+  f('niksaksi1', 'NIK Saksi I', 'nik', { required: true, half: true }),
+  f('namasaksi1', 'Nama Lengkap Saksi I', 'text', { required: true, half: true }),
+  f('niksaksi2', 'NIK Saksi II', 'nik', { required: true, half: true }),
+  f('namasaksi2', 'Nama Lengkap Saksi II', 'text', { required: true, half: true }),
+];
+
+const kelahiranDokumen: SectionDef = {
+  title: 'Dokumen Syarat',
+  fields: [
+    f('filebukunikah', 'File Buku Nikah/SPTJM Asli', 'file', { required: true }),
+    f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+    f('fileketeranganlahir', 'File Keterangan Lahir/SPTJM Asli', 'file', { required: true }),
+    f('filektpsaksi1', 'File KTP Saksi I', 'file', { required: true }),
+    f('filektpsaksi2', 'File KTP Saksi II', 'file', { required: true }),
+    f('filektpayah', 'File KTP Ayah', 'file'),
+    f('filektpibu', 'File KTP Ibu', 'file'),
+    f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+    f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+  ],
+};
 
 export const LAYANAN_FORMS: LayananForm[] = [
   {
@@ -74,13 +144,25 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Detail Konsolidasi',
+        title: 'Kelengkapan Data',
         fields: [
-          f('jenisdata', 'Jenis Data yang Disesuaikan', 'text', { required: true, placeholder: 'mis. Alamat, Status Perkawinan' }),
-          f('keterangan', 'Keterangan Perubahan', 'textarea', { required: true }),
+          f('namakepalakeluarga', 'Nama Kepala Keluarga', 'text', { required: true, half: true }),
+          f('alasankonsolidasidata', 'Alasan Konsolidasi Data', 'select', {
+            required: true,
+            half: true,
+            options: ['BPJS', 'Imigrasi', 'Kartu Pra-Kerja', 'Kepolisian', 'Perbankan', 'Telekomunikasi', 'Vaksin', 'Lainnya'],
+          }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filependukung', 'Dokumen Pendukung', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filektp', 'File KTP', 'file', { required: true }),
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filependukung1', 'File Pendukung', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -90,18 +172,9 @@ export const LAYANAN_FORMS: LayananForm[] = [
     icon: 'Baby',
     sections: [
       pemohon,
-      {
-        title: 'Data Anak',
-        fields: [
-          f('namaanak', 'Nama Anak', 'text', { required: true }),
-          f('tempatlahir', 'Tempat Lahir', 'text', { required: true, half: true }),
-          f('tanggallahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
-          f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: ['Laki-laki', 'Perempuan'] }),
-          f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
-          f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
-        ],
-      },
-      { title: 'Dokumen', fields: [f('filesuratlahir', 'Surat Keterangan Lahir', 'file', { required: true }), f('filekk', 'Kartu Keluarga', 'file'), catatan] },
+      { title: 'Kelengkapan Data', fields: kelahiranFields(false) },
+      kelahiranDokumen,
+      catatanSection,
     ],
   },
   {
@@ -111,16 +184,9 @@ export const LAYANAN_FORMS: LayananForm[] = [
     icon: 'Baby',
     sections: [
       pemohon,
-      {
-        title: 'Data Anak',
-        fields: [
-          f('nikanak', 'NIK Anak', 'nik', { required: true }),
-          f('namaanak', 'Nama Anak', 'text', { required: true }),
-          f('tempatlahir', 'Tempat Lahir', 'text', { required: true, half: true }),
-          f('tanggallahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
-        ],
-      },
-      { title: 'Dokumen', fields: [f('filesuratlahir', 'Surat Keterangan Lahir', 'file', { required: true }), f('filekk', 'Kartu Keluarga', 'file'), catatan] },
+      { title: 'Kelengkapan Data', fields: kelahiranFields(true) },
+      kelahiranDokumen,
+      catatanSection,
     ],
   },
   {
@@ -131,13 +197,35 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Detail Perubahan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('elemenubah', 'Elemen yang Diubah', 'text', { required: true, placeholder: 'mis. Pekerjaan, Pendidikan' }),
-          f('nilaibaru', 'Nilai Baru', 'text', { required: true }),
+          f('kk', 'Nomor KK', 'kk', { required: true, half: true }),
+          f('nik', 'Nomor NIK', 'nik', { required: true, half: true }),
+          f('jenisbiodata', 'Jenis Biodata yang Diubah', 'select', { required: true, options: OPT_JENIS_BIODATA }),
+          f('namalengkap', 'Nama Lengkap', 'text', { half: true }),
+          f('jeniskelamin', 'Jenis Kelamin', 'select', { half: true, options: OPT_JENIS_KELAMIN }),
+          f('tempatlahir', 'Tempat Lahir', 'text', { half: true }),
+          f('tanggallahir', 'Tanggal Lahir', 'date', { half: true }),
+          f('golongandarah', 'Golongan Darah', 'select', { half: true, options: OPT_GOLDAR }),
+          f('agama', 'Agama', 'select', { half: true, options: OPT_AGAMA }),
+          f('pendidikan', 'Pendidikan', 'select', { half: true, options: OPT_PENDIDIKAN }),
+          f('pekerjaan', 'Pekerjaan', 'text', { half: true }),
+          f('namaayah', 'Nama Ayah', 'text', { half: true }),
+          f('namaibu', 'Nama Ibu', 'text', { half: true }),
+          f('statusperkawinan', 'Status Perkawinan', 'select', { half: true, options: OPT_STATUS_KAWIN }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekk', 'Kartu Keluarga', 'file', { required: true }), f('filependukung', 'Dokumen Pendukung', 'file'), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('fileaktalahir', 'File Akta Lahir', 'file'),
+          f('fileijazah', 'File Ijazah', 'file'),
+          f('filebukunikah', 'File Buku Nikah', 'file'),
+          f('filependukung1', 'File Pendukung', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -148,13 +236,43 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Pemisahan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('namakkbaru', 'Nama Kepala Keluarga Baru', 'text', { required: true }),
-          f('alamatbaru', 'Alamat KK Baru', 'textarea', { required: true }),
+          f('jenispisah', 'Jenis Pisah', 'select', {
+            required: true,
+            half: true,
+            options: ['Pisah KK dengan Pasangan', 'Pisah KK dengan Anggota Keluarga'],
+          }),
+          f('alasanpisah', 'Alasan Pisah', 'select', {
+            required: true,
+            half: true,
+            options: [
+              'Menikah', 'Menikah & Pindah Alamat', 'Cerai', 'Cerai & Pindah Alamat',
+              'Cerai Mati', 'Cerai Mati & Pindah Alamat', 'Kepala Keluarga Meninggal',
+              'Kepala Keluarga Meninggal & Pindah Alamat', 'Anak Keluarga Meninggal',
+              'Anak Keluarga Meninggal & Pindah Alamat',
+            ],
+          }),
+          f('nikygpisah', 'NIK Yang Pisah', 'textarea', { required: true, placeholder: 'Tulis NIK yang pisah — satu NIK per baris' }),
+          f('nikpasangan', 'Nomor NIK Pasangan', 'nik', { half: true }),
+          f('kecamatantujuan', 'Kecamatan Tujuan', 'text', { half: true }),
+          f('kelurahantujuan', 'Kelurahan Tujuan', 'text', { half: true }),
+          f('norwtujuan', 'Nomor RW Tujuan', 'text', { half: true }),
+          f('norttujuan', 'Nomor RT Tujuan', 'text', { half: true }),
+          f('alamattujuan', 'Alamat Tujuan', 'textarea'),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekk', 'Kartu Keluarga Lama', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filekkpasangan', 'File KK Pasangan', 'file'),
+          f('filebukunikah', 'File Buku Nikah', 'file'),
+          f('filesuratcerai', 'File Surat Cerai', 'file'),
+          f('fileaktamati', 'File Akta Mati', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -165,13 +283,26 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Numpang',
+        title: 'Kelengkapan Data',
         fields: [
-          f('kktujuan', 'Nomor KK Tujuan', 'kk', { required: true }),
-          f('namakepalatujuan', 'Nama Kepala Keluarga Tujuan', 'text', { required: true }),
+          f('kklama', 'Nomor KK Lama', 'kk', { required: true, half: true }),
+          f('kkygditempati', 'Nomor KK Yang Ditempati', 'kk', { required: true, half: true }),
+          f('nikygnumpangkk', 'NIK Yang Numpang KK', 'textarea', { required: true, placeholder: 'Tulis NIK yang menumpang — satu NIK per baris' }),
+          f('alasannumpangkk', 'Alasan Numpang KK', 'select', {
+            required: true,
+            options: ['Pekerjaan', 'Pendidikan', 'Perawatan Kesehatan', 'Lainnya'],
+          }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekkasal', 'KK Asal', 'file', { required: true }), f('filekktujuan', 'KK Tujuan', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekklama', 'File Kartu Keluarga Lama', 'file', { required: true }),
+          f('filekkygditempati', 'File KK Yang Ditempati', 'file', { required: true }),
+          f('filependukung1', 'File Pendukung', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -182,14 +313,23 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Anak',
+        title: 'Kelengkapan Data',
         fields: [
-          f('namaanak', 'Nama Anak', 'text', { required: true }),
+          f('namaanggotakeluarga', 'Nama Anggota Keluarga', 'text', { required: true, half: true }),
           f('tempatlahir', 'Tempat Lahir', 'text', { required: true, half: true }),
           f('tanggallahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
+          f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekk', 'Kartu Keluarga', 'file', { required: true }), f('fileakta', 'Akta Kelahiran Anak', 'file'), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('fileakta', 'File Akta / Surat Ket. Lahir', 'file', { required: true }),
+          f('filebukunikah', 'File Buku Nikah', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -199,8 +339,26 @@ export const LAYANAN_FORMS: LayananForm[] = [
     icon: 'Printer',
     sections: [
       pemohon,
-      { title: 'Alasan', fields: [f('alasan', 'Alasan Cetak Ulang', 'select', { required: true, options: ['Rusak', 'Hilang', 'Perubahan Data'] })] },
-      { title: 'Dokumen', fields: [f('filependukung', 'Dokumen Pendukung', 'file'), catatan] },
+      {
+        title: 'Kelengkapan Data',
+        fields: [
+          f('namakepalakeluarga', 'Nomor Kepala Keluarga', 'kk', { required: true, half: true }),
+          f('alasancetakulang', 'Alasan Cetak Ulang', 'select', {
+            required: true,
+            half: true,
+            options: ['Hilang', 'Perubahan KK', 'Rusak'],
+          }),
+          f('alamatkepalakeluarga', 'Alamat Kepala Keluarga', 'textarea', { required: true }),
+        ],
+      },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file'),
+          f('filesuratkehilangan', 'File Surat Kehilangan', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -211,14 +369,43 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Perceraian',
+        title: 'Kelengkapan Data',
         fields: [
-          f('nikpasangan', 'NIK Mantan Pasangan', 'nik', { required: true }),
-          f('nomorputusan', 'Nomor Putusan Pengadilan', 'text', { required: true }),
-          f('tanggalputusan', 'Tanggal Putusan', 'date', { required: true }),
+          f('nokk', 'Nomor KK', 'kk', { required: true, half: true }),
+          f('niksuami', 'Nomor NIK Suami', 'nik', { required: true, half: true }),
+          f('nikistri', 'Nomor NIK Istri', 'nik', { required: true, half: true }),
+          f('yangmengajukan', 'Yang Mengajukan', 'select', { required: true, half: true, options: ['Suami', 'Istri'] }),
+          f('alasancerai', 'Alasan Cerai', 'select', {
+            required: true,
+            options: [
+              'Berbuat Zina', 'Pemabuk/Pemadat', 'Penjudi',
+              'Meninggalkan Pasangan Lebih dari 2 Tahun Tanpa Alasan',
+              'Hukuman Penjara di Atas 5 Tahun/Lebih Berat',
+              'Melakukan Kekejaman/Kekerasan dalam Rumah Tangga',
+              'Mendapat Cacat Badan/Penyakit',
+              'Perselisihan/Pertengkaran Terus Menerus', 'Lainnya',
+            ],
+          }),
+          f('noputusanpengadilan', 'Nomor Putusan Pengadilan', 'text', { required: true, half: true }),
+          f('tglputusan', 'Tanggal Putusan', 'date', { required: true, half: true }),
+          f('instansipemberiputusan', 'Instansi Pemberi Putusan', 'select', {
+            required: true,
+            options: ['Pengadilan Negeri', 'Pengadilan Agama', 'Pengadilan Tinggi Negeri', 'Pengadilan Tinggi Agama', 'Mahkamah Agung'],
+          }),
         ],
       },
-      { title: 'Dokumen', fields: [f('fileputusan', 'Akta/Putusan Pengadilan', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filektpsuami', 'File KTP Suami', 'file', { required: true }),
+          f('filektpistri', 'File KTP Istri', 'file', { required: true }),
+          f('fileputusan', 'File Putusan', 'file', { required: true }),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -229,15 +416,49 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Almarhum',
+        title: 'Kelengkapan Data',
         fields: [
-          f('nikalmarhum', 'NIK Almarhum', 'nik', { required: true }),
-          f('namaalmarhum', 'Nama Almarhum', 'text', { required: true }),
-          f('tanggalmeninggal', 'Tanggal Meninggal', 'date', { required: true, half: true }),
-          f('tempatmeninggal', 'Tempat Meninggal', 'text', { required: true, half: true }),
+          f('nikjenazah', 'NIK Jenazah', 'nik', { required: true, half: true }),
+          f('namalengkap', 'Nama Lengkap', 'text', { required: true, half: true }),
+          f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
+          f('tgllahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
+          f('nikayah', 'NIK Ayah', 'nik', { required: true, half: true }),
+          f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
+          f('pekerjaan', 'Pekerjaan', 'text', { required: true, half: true }),
+          f('nikibu', 'NIK Ibu', 'nik', { required: true, half: true }),
+          f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
+          f('anakke', 'Anak Ke', 'number', { required: true, half: true }),
+          f('tglkematian', 'Tanggal Kematian', 'date', { required: true, half: true }),
+          f('jamkematian', 'Jam Kematian', 'time', { required: true, half: true }),
+          f('tempatkematian', 'Tempat Kematian', 'text', { required: true, half: true }),
+          f('sebabkematian', 'Sebab Kematian', 'select', {
+            required: true,
+            half: true,
+            options: ['Sakit Biasa / Tua', 'Pandemi / Wabah Penyakit', 'Kecelakaan', 'Kriminalitas', 'Bunuh Diri', 'Lainnya'],
+          }),
+          f('menerangkankematian', 'Menerangkan', 'select', {
+            required: true,
+            half: true,
+            options: ['Dokter', 'Tenaga Kesehatan', 'Kepolisian', 'Lainnya'],
+          }),
+          f('niksaksi1', 'NIK Saksi I', 'nik', { required: true, half: true }),
+          f('namasaksi1', 'Nama Lengkap Saksi I', 'text', { required: true, half: true }),
+          f('niksaksi2', 'NIK Saksi II', 'nik', { required: true, half: true }),
+          f('namasaksi2', 'Nama Lengkap Saksi II', 'text', { required: true, half: true }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filesuratkematian', 'Surat Keterangan Kematian', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('fileketkematian', 'File Ket. Kematian Asli', 'file', { required: true }),
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filektppelapor', 'File KTP Pelapor', 'file', { required: true }),
+          f('filektpjenazah', 'File KTP Jenazah', 'file', { required: true }),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -248,14 +469,34 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Pasangan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('nikpasangan', 'NIK Pasangan', 'nik', { required: true }),
-          f('namapasangan', 'Nama Pasangan', 'text', { required: true }),
-          f('tanggalnikah', 'Tanggal Perkawinan', 'date', { required: true }),
+          f('nokksuami', 'Nomor KK Suami', 'kk', { required: true, half: true }),
+          f('niksuami', 'Nomor NIK Suami', 'nik', { required: true, half: true }),
+          f('suamianakke', 'Suami Anak Ke', 'number', { required: true, half: true }),
+          f('nokkistri', 'Nomor KK Istri', 'kk', { required: true, half: true }),
+          f('nikistri', 'Nomor NIK Istri', 'nik', { required: true, half: true }),
+          f('istrianakke', 'Istri Anak Ke', 'number', { required: true, half: true }),
+          f('niksaksi1', 'Nomor NIK Saksi 1', 'nik', { required: true, half: true }),
+          f('niksaksi2', 'Nomor NIK Saksi 2', 'nik', { required: true, half: true }),
+          f('tglpemberkatan', 'Tanggal Pemberkatan', 'date', { required: true, half: true }),
+          f('tmptpemberkatan', 'Tempat Pemberkatan', 'text', { required: true, half: true }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filenikah', 'Surat Nikah / Buku Nikah', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekksuami', 'File Kartu Keluarga Suami', 'file', { required: true }),
+          f('filektpsuami', 'File KTP Suami', 'file', { required: true }),
+          f('filekkistri', 'File Kartu Keluarga Istri', 'file', { required: true }),
+          f('filektpistri', 'File KTP Istri', 'file', { required: true }),
+          f('filesuamiistri', 'File Foto Suami & Istri', 'file', { required: true }),
+          f('filebukunikahagama', 'File Foto Buku Nikah Agama', 'file', { required: true }),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -266,14 +507,30 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Anak',
+        title: 'Kelengkapan Data',
         fields: [
-          f('nikanak', 'NIK Anak', 'nik', { required: true }),
-          f('namaanak', 'Nama Anak', 'text', { required: true }),
-          f('tanggallahir', 'Tanggal Lahir Anak', 'date', { required: true }),
+          f('nikanak', 'NIK Anak', 'nik', { required: true, half: true }),
+          f('namalengkap', 'Nama Lengkap', 'text', { required: true, half: true }),
+          f('tgllahir', 'Tanggal Lahir', 'date', { required: true, half: true }),
+          f('tempatlahir', 'Tempat Lahir', 'text', { required: true, half: true }),
+          f('jeniskelamin', 'Jenis Kelamin', 'select', { required: true, half: true, options: OPT_JENIS_KELAMIN }),
+          f('nikayah', 'NIK Ayah', 'nik', { required: true, half: true }),
+          f('namaayah', 'Nama Ayah', 'text', { required: true, half: true }),
+          f('nikibu', 'NIK Ibu', 'nik', { required: true, half: true }),
+          f('namaibu', 'Nama Ibu', 'text', { required: true, half: true }),
         ],
       },
-      { title: 'Dokumen', fields: [f('fileakta', 'Akta Kelahiran', 'file', { required: true }), f('filekk', 'Kartu Keluarga', 'file'), f('filefoto', 'Pas Foto Anak', 'file'), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('fileaktakelahiran', 'File Akta Kelahiran', 'file', { required: true }),
+          f('filepassfoto', 'File Photo Anak Terbaru', 'file', { required: true }),
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -284,14 +541,38 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Alamat Tujuan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('kecamatantujuan', 'Kecamatan Tujuan', 'text', { required: true, half: true }),
-          f('desatujuan', 'Desa/Pekon Tujuan', 'text', { required: true, half: true }),
-          f('alamattujuan', 'Alamat Lengkap Tujuan', 'textarea', { required: true }),
+          f('klasifikasikepindahan', 'Klasifikasi Kepindahan', 'select', {
+            required: true,
+            half: true,
+            options: ['Dalam Satu Desa/Kelurahan', 'Antar Desa/Kelurahan', 'Antar Kecamatan', 'Antar Kabupaten/Kota', 'Provinsi'],
+          }),
+          f('jeniskepindahan', 'Jenis Kepindahan', 'select', {
+            required: true,
+            half: true,
+            options: ['Kepala Keluarga', 'KK & Sebagian Anggota Keluarga', 'KK & Seluruh Anggota Keluarga', 'Anggota Keluarga'],
+          }),
+          f('nikygpindah', 'NIK Yang Pindah', 'textarea', { required: true, placeholder: 'Tulis NIK yang pindah — satu NIK per baris' }),
+          f('alasanpindah', 'Alasan Pindah', 'textarea', { required: true }),
+          f('alamat', 'Alamat Tujuan', 'textarea', { required: true }),
+          f('provinsi', 'Provinsi Tujuan', 'text', { required: true, half: true }),
+          f('kabupaten', 'Kabupaten Tujuan', 'text', { required: true, half: true }),
+          f('kecamatan', 'Kecamatan Tujuan', 'text', { required: true, half: true }),
+          f('kelurahan', 'Kelurahan Tujuan', 'text', { required: true, half: true }),
+          f('rt', 'RT Tujuan', 'number', { required: true, half: true }),
+          f('rw', 'RW Tujuan', 'number', { required: true, half: true }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekk', 'Kartu Keluarga', 'file', { required: true }), f('filependukung', 'Dokumen Pendukung', 'file'), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -302,14 +583,28 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Data Kedatangan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('skpwni', 'Nomor SKPWNI', 'text', { required: true }),
-          f('daerahasal', 'Daerah Asal', 'text', { required: true, half: true }),
-          f('alamattujuan', 'Alamat Tujuan', 'text', { required: true, half: true }),
+          f('skpwni', 'No Surat Pindah / SKPWNI', 'text', { required: true }),
+          f('namapemohon', 'Nama Yang Pindah', 'text', { required: true, half: true }),
+          f('nikpemohon', 'NIK Yang Pindah', 'nik', { required: true, half: true }),
+          f('nohp', 'No. HP', 'phone', { required: true, half: true }),
+          f('email', 'Email', 'email', { required: true, half: true }),
+          f('kecamatantujuan', 'Kecamatan Tujuan', 'text', { required: true, half: true }),
+          f('desatujuan', 'Desa Tujuan', 'text', { required: true, half: true }),
+          f('dusuntujuan', 'Dusun Tujuan', 'text', { required: true, half: true }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filesuratpindah', 'Surat Pindah (SKPWNI)', 'file', { required: true }), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filesuratpindah', 'File Surat Pindah', 'file', { required: true }),
+          f('filebukunikah', 'File Buku Nikah/SPTJM (kalau ada)', 'file'),
+          f('filependukung1', 'File Dokumen Pendukung I', 'file'),
+          f('filependukung2', 'File Dokumen Pendukung II', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
   {
@@ -320,12 +615,28 @@ export const LAYANAN_FORMS: LayananForm[] = [
     sections: [
       pemohon,
       {
-        title: 'Detail Permohonan',
+        title: 'Kelengkapan Data',
         fields: [
-          f('jenispermohonan', 'Jenis Permohonan', 'select', { required: true, options: ['Baru', 'Perpanjangan', 'Perubahan Data', 'Hilang/Rusak'] }),
+          f('nokk', 'Nomor KK', 'kk', { required: true, half: true }),
+          f('nik', 'Nomor NIK', 'nik', { required: true, half: true }),
+          f('nama', 'Nama Lengkap', 'text', { required: true, half: true }),
+          f('alasancetak', 'Alasan Cetak', 'select', {
+            required: true,
+            half: true,
+            options: ['Baru (Pemula)', 'Hilang', 'Rusak', 'Pindah Datang', 'Perubahan Data', 'Cetak Ulang'],
+          }),
         ],
       },
-      { title: 'Dokumen', fields: [f('filekk', 'Kartu Keluarga', 'file', { required: true }), f('filependukung', 'Dokumen Pendukung', 'file'), catatan] },
+      {
+        title: 'Dokumen Syarat',
+        fields: [
+          f('filekk', 'File Kartu Keluarga', 'file', { required: true }),
+          f('filektplama', 'File KTP Lama', 'file'),
+          f('filesuratkehilangan', 'File Surat Kehilangan', 'file'),
+          f('fileketerangan', 'File Surat Keterangan', 'file'),
+        ],
+      },
+      catatanSection,
     ],
   },
 ];

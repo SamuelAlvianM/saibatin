@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
 import {
   OcrUploadButton,
   type OcrUploadResult,
@@ -232,6 +233,13 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
             value={val}
             onChange={(v) => setVal(fd.name, v)}
             placeholder={fd.placeholder ?? 'Pilih tanggal'}
+            className={errCls}
+          />
+        ) : fd.type === 'time' ? (
+          <TimePicker
+            id={fd.name}
+            value={val}
+            onChange={(v) => setVal(fd.name, v)}
             className={errCls}
           />
         ) : (
