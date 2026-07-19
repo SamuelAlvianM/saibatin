@@ -7,12 +7,13 @@
 
 generator client {
   provider = "prisma-client-js"
-  // "native"              = Windows (dev lokal)
-  // "debian-openssl-3.0.x" = VPS Ubuntu 22.04 (deploy PM2)
-  // "rhel-openssl-3.0.x"   = cPanel/CloudLinux (deploy Passenger) — WAJIB ada,
-  //   kalau tidak, query engine tidak ditemukan di server cPanel → DB gagal.
-  //   Bila server cPanel masih OpenSSL 1.0.x, tambah juga "rhel-openssl-1.0.x".
-  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
+  // "native"               = mesin tempat `prisma generate` dijalankan
+  // "debian-openssl-1.1.x" = server cPanel "damar" (Debian, OpenSSL 1.1) — WAJIB,
+  //   tanpa ini query engine tak ditemukan di cPanel → DB gagal.
+  // "debian-openssl-3.0.x" = VPS Ubuntu 22.04 (deploy PM2, SIDAKO/dukcapil).
+  // Catatan: paling andal tetap jalankan `prisma generate` DI server target,
+  //   karena "native" otomatis menghasilkan engine yang cocok.
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
