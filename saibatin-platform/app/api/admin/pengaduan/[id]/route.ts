@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { createNotifikasi, safeNotify } from "@/lib/notifikasi";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 const STATUS_VALID = ["BARU", "DIPROSES", "SELESAI"];
 
@@ -81,6 +82,16 @@ export async function PATCH(
         });
       });
     }
+
+    await catatAktivitas(
+      session,
+      "UBAH",
+      "Pengaduan",
+      balasanBaru
+        ? `Membalas pengaduan #${pengaduan.id}`
+        : `Mengubah status pengaduan #${pengaduan.id}${status ? ` menjadi ${status}` : ""}`,
+      { entitasId: pengaduan.id, req },
+    );
 
     return ok(null, ["Info: Pengaduan berhasil diperbarui"]);
   } catch {

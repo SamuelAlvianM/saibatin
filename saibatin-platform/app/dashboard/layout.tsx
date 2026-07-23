@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   if (session.level > 2) return <>{children}</>;
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
+    <div className="min-h-screen bg-dashboard lg:flex">
       <DashboardSidebar />
       {/* pb-20: ruang untuk bottom-nav mobile */}
       <div className="flex-1 min-w-0 pb-20 lg:pb-0">{children}</div>

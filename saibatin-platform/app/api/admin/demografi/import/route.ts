@@ -4,6 +4,7 @@ import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { parseDemografiExcel } from "@/lib/demografi-import";
 import { DEMOGRAFI_SLUGS } from "@/lib/demografi-kategori";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (parsed.rows.length === 0) {
-    return fail(["Tidak ada baris kecamatan/pekon yang terbaca dari file"]);
+    return fail(["Tidak ada baris kecamatan/desa yang terbaca dari file"]);
   }
 
   // Ganti total data kategori ini (import = sumber kebenaran terbaru).
@@ -59,8 +60,16 @@ export async function POST(req: NextRequest) {
     }),
   ]);
 
+  await catatAktivitas(
+    session,
+    "IMPOR",
+    "Demografi",
+    `Impor Excel demografi kategori ${kategori}: ${parsed.kecamatan} kecamatan, ${parsed.pekon} desa`,
+    { entitasId: kategori, req },
+  );
+
   return ok(
     { kecamatan: parsed.kecamatan, pekon: parsed.pekon, kolom: parsed.kolom },
-    [`Import berhasil: ${parsed.kecamatan} kecamatan, ${parsed.pekon} pekon`],
+    [`Import berhasil: ${parsed.kecamatan} kecamatan, ${parsed.pekon} desa`],
   );
 }

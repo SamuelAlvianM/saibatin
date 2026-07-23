@@ -41,7 +41,7 @@ export default async function UserPengajuanPage() {
                 tidak ada di dropdown (satu-satunya jalur OPD ke form). */}
             <div className="flex gap-2 shrink-0">
               <Link
-                href="/permohonan-online"
+                href="/user/pengajuan/baru"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#1b4b72] shadow-lg hover:bg-slate-100 transition-colors"
               >
                 <FilePlus2 className="w-4 h-4" />

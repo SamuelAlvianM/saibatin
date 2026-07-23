@@ -35,7 +35,7 @@ function addSheet(wb: ExcelJS.Workbook, label: string, rows: DbRow[]) {
     ws.addRow([
       r.kode,
       r.wilayah,
-      r.level === 5 ? "Pekon" : "Kecamatan",
+      r.level === 5 ? "Desa" : "Kecamatan",
       ...kolom.map((k) => d[k] ?? 0),
     ]);
   }

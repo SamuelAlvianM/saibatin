@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { statsKunjungan } from '@/lib/kunjungan';
+import ChartHarian from '@/components/dashboard/chart-harian';
 import {
   FileText,
   Users,
@@ -24,6 +25,7 @@ import {
   ShieldCheck,
   Eye,
   Wifi,
+  ScrollText,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +38,8 @@ const BULAN_PENDEK = [
 const fmt = (n: number) => n.toLocaleString('id-ID');
 const pct = (part: number, total: number) => (total > 0 ? Math.round((part / total) * 100) : 0);
 
+/** Kurva mulus (Catmull-Rom → kubik Bézier) untuk garis tren, agar tidak
+ *  patah-patah seperti polyline. `t` = ketegangan (semakin kecil semakin lurus). */
 // Warna status permohonan & pengaduan (kelas literal agar ter-scan Tailwind).
 const STATUS_PERMOHONAN = [
   { key: 'MENUNGGU', label: 'Menunggu', bar: 'bg-amber-400', text: 'text-amber-600' },
@@ -197,17 +201,8 @@ export default async function DashboardPage() {
     const idx = dailyIndex.get(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
     if (idx !== undefined) daily[idx].count += 1;
   }
-  const maxDaily = Math.max(1, ...daily.map((t) => t.count));
   const totalDaily = daily.reduce((a, t) => a + t.count, 0);
-  // Koordinat SVG (viewBox 600×150): garis + area di bawahnya.
-  const CW = 600;
-  const CH = 150;
-  const dailyPts = daily.map((t, i) => ({
-    x: (i / (HARI - 1)) * CW,
-    y: CH - 10 - (t.count / maxDaily) * (CH - 30),
-  }));
-  const dailyLine = dailyPts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const dailyArea = `M0,${CH} L${dailyLine.replace(/ /g, ' L')} L${CW},${CH} Z`;
+  // Geometri & tooltip grafik dipindah ke <ChartHarian/> (client component).
 
   // ── Layanan terpopuler (nama jenis) ──
   const jenisIds = topJenisGrouped.map((g) => g.jenisId);
@@ -245,6 +240,24 @@ export default async function DashboardPage() {
     { label: 'Bulan Ini', value: permohonanBulanIni, icon: CalendarDays, tint: 'bg-sky-50 text-sky-600' },
   ];
 
+  // ── Log aktivitas terbaru (admin/level 1 saja) ──
+  const recentLog =
+    session.level === 1
+      ? await prisma.logAktivitas.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 6,
+          include: { user: { select: { userFullname: true, userId: true } } },
+        })
+      : [];
+  const AKSI_TINT: Record<string, string> = {
+    BUAT: 'bg-emerald-50 text-emerald-700',
+    UBAH: 'bg-sky-50 text-sky-700',
+    HAPUS: 'bg-rose-50 text-rose-700',
+    UNGGAH: 'bg-violet-50 text-violet-700',
+    IMPOR: 'bg-indigo-50 text-indigo-700',
+    LAINNYA: 'bg-slate-100 text-slate-600',
+  };
+
   const konten = [
     { label: 'Berita Terbit', value: beritaPublish, icon: Newspaper, href: '/dashboard/berita' },
     { label: 'Draf Berita', value: beritaDraft, icon: FileText, href: '/dashboard/berita' },
@@ -253,7 +266,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-dashboard">
       <div className="px-4 py-6 md:px-6">
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -321,19 +334,33 @@ export default async function DashboardPage() {
 
           <SectionCard title="Tren Permohonan · 6 Bulan" icon={TrendingUp}>
             <div className="flex h-36 items-end justify-between gap-2 pt-2">
-              {trend.map((t) => (
-                <div key={t.key} className="flex flex-1 flex-col items-center gap-1.5">
-                  <span className="text-[0.68rem] font-bold tabular-nums text-slate-600">{t.count}</span>
-                  <div className="flex w-full flex-1 items-end justify-center">
-                    <div
-                      className="w-full max-w-[26px] rounded-md bg-gradient-to-t from-[#1b4b72] to-[#6cb2eb]"
-                      style={{ height: `${Math.max(4, (t.count / maxTrend) * 100)}%` }}
-                      title={`${t.label}: ${t.count}`}
-                    />
+              {trend.map((t, i) => {
+                const kini = i === trend.length - 1; // bulan berjalan ditonjolkan
+                return (
+                  <div key={t.key} className="flex flex-1 flex-col items-center gap-1.5">
+                    <span
+                      className={`text-[0.68rem] font-bold tabular-nums ${kini ? 'text-primary' : 'text-slate-600'}`}
+                    >
+                      {t.count}
+                    </span>
+                    {/* Track samar setinggi penuh → bar pendek tetap punya konteks */}
+                    <div className="flex w-full flex-1 items-end justify-center">
+                      <div className="relative flex h-full w-full max-w-[30px] items-end justify-center overflow-hidden rounded-md bg-slate-100/70">
+                        <div
+                          className={`w-full rounded-md bg-gradient-to-t ${kini ? 'from-[#143a5c] to-[#2176bd]' : 'from-[#1b4b72] to-[#7db8e8]'}`}
+                          style={{ height: `${Math.max(6, (t.count / maxTrend) * 100)}%` }}
+                          title={`${t.label}: ${t.count} permohonan`}
+                        />
+                      </div>
+                    </div>
+                    <span
+                      className={`text-[0.62rem] font-medium ${kini ? 'text-primary' : 'text-slate-400'}`}
+                    >
+                      {t.label}
+                    </span>
                   </div>
-                  <span className="text-[0.62rem] font-medium text-slate-400">{t.label}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </SectionCard>
 
@@ -350,7 +377,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#1b4b72] to-[#6cb2eb]"
+                        className="h-full rounded-full bg-gradient-to-r from-[#1b4b72] to-[#7db8e8]"
                         style={{ width: `${(t.count / maxJenis) * 100}%` }}
                       />
                     </div>
@@ -377,69 +404,58 @@ export default async function DashboardPage() {
                 Belum ada permohonan dalam 30 hari terakhir.
               </p>
             ) : (
-              <div>
-                <svg
-                  viewBox={`0 0 ${CW} ${CH}`}
-                  preserveAspectRatio="none"
-                  className="h-40 w-full"
-                  role="img"
-                  aria-label="Grafik jumlah permohonan per tanggal, 30 hari terakhir"
-                >
-                  <defs>
-                    <linearGradient id="areaPermohonan" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2176bd" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#2176bd" stopOpacity="0.03" />
-                    </linearGradient>
-                  </defs>
-                  {/* Garis bantu horizontal */}
-                  {[0.25, 0.5, 0.75].map((f) => (
-                    <line
-                      key={f}
-                      x1="0"
-                      x2={CW}
-                      y1={CH - 10 - f * (CH - 30)}
-                      y2={CH - 10 - f * (CH - 30)}
-                      stroke="#e2e8f0"
-                      strokeWidth="1"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  ))}
-                  <path d={dailyArea} fill="url(#areaPermohonan)" />
-                  <polyline
-                    points={dailyLine}
-                    fill="none"
-                    stroke="#2176bd"
-                    strokeWidth="2"
-                    vectorEffect="non-scaling-stroke"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  />
-                  {/* Kolom hover: tooltip jumlah per tanggal */}
-                  {daily.map((t, i) => (
-                    <rect
-                      key={t.key}
-                      x={(i - 0.5) * (CW / (HARI - 1))}
-                      y="0"
-                      width={CW / (HARI - 1)}
-                      height={CH}
-                      fill="transparent"
-                    >
-                      <title>{`${t.label}: ${t.count} permohonan`}</title>
-                    </rect>
-                  ))}
-                </svg>
-                {/* Label tanggal (tiap ±5 hari) */}
-                <div className="mt-1 flex justify-between text-[0.62rem] font-medium text-slate-400">
-                  {daily
-                    .filter((_, i) => i % 5 === 0 || i === HARI - 1)
-                    .map((t) => (
-                      <span key={t.key}>{t.label}</span>
-                    ))}
-                </div>
-              </div>
+              <ChartHarian daily={daily} />
             )}
           </SectionCard>
         </div>
+
+        {/* ── Log aktivitas terbaru (admin saja) ── */}
+        {session.level === 1 && (
+          <div className="mb-4">
+            <SectionCard
+              title="Aktivitas Terbaru"
+              icon={ScrollText}
+              action={
+                <Link
+                  href="/dashboard/log"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80"
+                >
+                  Lihat semua <ArrowRight className="h-3 w-3" />
+                </Link>
+              }
+            >
+              {recentLog.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-400">
+                  Belum ada aktivitas tercatat.
+                </p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {recentLog.map((l) => (
+                    <li key={l.id} className="flex items-start gap-2.5 py-2.5">
+                      <span
+                        className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${AKSI_TINT[l.aksi] ?? AKSI_TINT.LAINNYA}`}
+                      >
+                        {l.aksi}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-slate-700">{l.ringkasan}</p>
+                        <p className="text-[0.68rem] text-slate-400">
+                          {l.user?.userFullname ?? l.user?.userId ?? 'Petugas'} &middot;{' '}
+                          {new Date(l.createdAt).toLocaleString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+          </div>
+        )}
 
         {/* ── Aspirasi warga + akun + pengunjung + konten (2×2) ── */}
         <div className="grid gap-4 lg:grid-cols-2">

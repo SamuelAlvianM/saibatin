@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { PELAYANAN_VISIBILITY_KEY, PELAYANAN_LIST } from "@/lib/pelayanan-list";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,14 @@ export async function PUT(req: NextRequest) {
     },
     update: { konten: { hidden }, updatedBy: session.uid },
   });
+
+  await catatAktivitas(
+    session,
+    "UBAH",
+    "Pengaturan",
+    `Memperbarui visibilitas layanan (${hidden.length} disembunyikan)`,
+    { entitasId: PELAYANAN_VISIBILITY_KEY, req },
+  );
 
   return ok({ hidden }, ["Pengaturan pelayanan disimpan"]);
 }

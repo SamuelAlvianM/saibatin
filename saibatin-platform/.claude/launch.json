@@ -7,6 +7,12 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "sidako-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "C:/sam/SAM-AMANDA-GALANG/sidako-platform", "--", "-p", "3300"],
+      "port": 3300
     }
   ]
 }

@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth";
 import { createNotifikasi, notifyPetugas, safeNotify } from "@/lib/notifikasi";
 import { cekJamLayananSekarang } from "@/lib/jam-layanan-server";
 import { payloadBerkasEntries } from "@/lib/permohonan-display";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 /**
  * Catch-all kompatibilitas untuk modal permohonan (warisan struktur Laravel).
@@ -126,7 +127,10 @@ export async function POST(
       }
 
       const safeName = `${session.uid}_${Date.now()}${ext}`;
-      const uploadDir = join(process.cwd(), "public", "uploads", layanan);
+      // DI LUAR public/ — berkas permohonan memuat KTP/KK warga. Apa pun di
+      // public/ dilayani Next sebagai aset statis TANPA melewati kontrol akses
+      // di app/uploads/[...path]/route.ts. URL publiknya tetap /uploads/<layanan>/…
+      const uploadDir = join(process.cwd(), "storage", "permohonan", layanan);
       await mkdir(uploadDir, { recursive: true });
       await writeFile(join(uploadDir, safeName), Buffer.from(await file.arrayBuffer()));
 
@@ -210,6 +214,16 @@ export async function POST(
         }),
       );
     }
+
+    // Bila pembuatnya petugas (form "Pengajuan Baru" atas nama warga), catat ke
+    // log aktivitas. Warga/OPD (level > 2) diabaikan oleh helper.
+    await catatAktivitas(
+      session,
+      "BUAT",
+      "Permohonan",
+      `Membuat permohonan ${jenis.nama} (${noregister}) atas nama warga`,
+      { entitasId: permohonan.id, req },
+    );
 
     return ok({ noregister: permohonan.noregister, id: permohonan.id }, [
       `Permohonan berhasil diajukan — No. Registrasi ${permohonan.noregister}`,

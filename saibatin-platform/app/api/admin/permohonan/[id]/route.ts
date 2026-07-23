@@ -8,6 +8,7 @@ import {
   tplPermohonanDitolak,
 } from "@/lib/mail-templates";
 import { createNotifikasi, safeNotify } from "@/lib/notifikasi";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 const STATUS_VALID = ["MENUNGGU", "DIPROSES", "SELESAI", "DITOLAK"];
 
@@ -146,6 +147,16 @@ export async function PATCH(
         );
       }
     }
+
+    await catatAktivitas(
+      session,
+      "UBAH",
+      "Permohonan",
+      gantiStatus
+        ? `Mengubah status permohonan ${updated.noregister} menjadi ${status}`
+        : `Memperbarui catatan permohonan ${updated.noregister}`,
+      { entitasId: updated.id, req },
+    );
 
     return ok(null, ["Info: Permohonan berhasil diperbarui"]);
   } catch {

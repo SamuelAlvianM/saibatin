@@ -27,6 +27,9 @@ interface Notifikasi {
   judul: string;
   isi: string;
   link: string | null;
+  /** Data yang dirujuk notifikasi — dipakai untuk menyorot barisnya. */
+  refType: string | null;
+  refId: number | null;
   dibaca: boolean;
   createdAt: string;
 }
@@ -257,7 +260,15 @@ export function NotificationBell({
       setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, dibaca: true } : x)));
       fetch(`/api/notifikasi/${n.id}`, { method: "PATCH" }).catch(() => {});
     }
-    if (n.link) router.push(n.link);
+    if (!n.link) return;
+    // Bawa id data yang dirujuk agar halaman tujuan bisa langsung membuka
+    // halaman yang memuatnya lalu menyorot barisnya — tanpa ini petugas
+    // mendarat di halaman 1 dan harus mencari sendiri.
+    const tujuan =
+      n.refId && !n.link.includes("?")
+        ? `${n.link}?sorot=${n.refId}`
+        : n.link;
+    router.push(tujuan);
   };
 
   if (!isAuthenticated) return null;

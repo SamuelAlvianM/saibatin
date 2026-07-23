@@ -1,7 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Pagination } from '@/components/shared/pagination';
+import { FilterPeriode } from '@/components/shared/filter-periode';
+import { tulisAcuan, type KodePeriode } from '@/lib/periode';
+
+// Radix Select tidak menerima value kosong, jadi "semua" perlu nilai sendiri.
+const SEMUA_PETUGAS = '__semua__';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +28,9 @@ interface Item {
   status: string;
   catatan: string | null;
   createdAt: string;
+  /** Kapan status terakhir diubah & oleh siapa (null = belum pernah diproses). */
+  prosesAt: string | null;
+  prosesByName: string | null;
   jenisNama: string;
   kategori: string;
   pemohon: string;
@@ -86,6 +95,20 @@ export function AdminPermohonan() {
   const [statusFilter, setStatusFilter] = useState('');
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
+  // Paginasi bernomor. Pencarian & filter dijalankan di server, jadi hasilnya
+  // menjangkau SELURUH data — data di halaman 3 tetap ketemu walau kita sedang
+  // berada di halaman 1.
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalHalaman, setTotalHalaman] = useState(1);
+  // Filter tambahan: petugas pemroses & rentang waktu.
+  const [petugas, setPetugas] = useState('');
+  const [periode, setPeriode] = useState<KodePeriode>('');
+  // Titik acuan periode — digeser tombol ‹ › untuk melihat minggu/bulan lalu.
+  const [acuan, setAcuan] = useState(() => new Date());
+  const [daftarPetugas, setDaftarPetugas] = useState<{ id: number; nama: string }[]>([]);
+  // Token anti-race saat filter/pencarian berubah.
+  const reqId = useRef(0);
   // Panel detail inline (menggantikan tabel — bukan pindah halaman).
   const [detail, setDetail] = useState<Detail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -97,22 +120,124 @@ export function AdminPermohonan() {
   const [saving, setSaving] = useState(false);
   // Konfirmasi ekstra sebelum status dijadikan final (Selesai/Ditolak).
   const [confirmFinal, setConfirmFinal] = useState(false);
+  const [unduhPdf, setUnduhPdf] = useState(false);
+  // Baris yang disorot setelah datang dari notifikasi (?sorot=<id>).
+  const [sorotId, setSorotId] = useState<number | null>(null);
+  const sorotAwal = useRef<number | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (statusFilter) params.set('status', statusFilter);
-    if (q.trim()) params.set('q', q.trim());
-    const res = await fetch(`/api/admin/permohonan?${params.toString()}`);
-    const json = await res.json();
-    setItems(json.data?.items ?? []);
-    if (json.data?.counts) setCounts(json.data.counts);
-    setLoading(false);
-  }, [statusFilter, q]);
+  const load = useCallback(
+    async (halaman: number) => {
+      const my = ++reqId.current;
+      setLoading(true);
+      const params = new URLSearchParams({ limit: '20', page: String(halaman) });
+      if (statusFilter) params.set('status', statusFilter);
+      if (q.trim()) params.set('q', q.trim());
+      if (petugas) params.set('petugas', petugas);
+      if (periode) {
+        params.set('periode', periode);
+        params.set('acuan', tulisAcuan(acuan));
+      }
+      // Sekali pakai: server yang menentukan halaman mana yang memuat data ini.
+      if (sorotAwal.current) {
+        params.set('sorot', String(sorotAwal.current));
+        params.delete('page');
+      }
+      const res = await fetch(`/api/admin/permohonan?${params.toString()}`);
+      const json = await res.json();
+      if (my !== reqId.current) return; // filter/pencarian sudah berganti
+      if (sorotAwal.current) {
+        setPage(json.data?.page ?? 1);
+        sorotAwal.current = null;
+      }
+      setItems(json.data?.items ?? []);
+      setTotal(json.data?.total ?? 0);
+      setTotalHalaman(json.data?.totalHalaman ?? 1);
+      if (json.data?.counts) setCounts(json.data.counts);
+      if (json.data?.daftarPetugas) setDaftarPetugas(json.data.daftarPetugas);
+      setLoading(false);
+    },
+    [statusFilter, q, petugas, periode, acuan],
+  );
 
+  // Datang dari notifikasi: ?sorot=<id>. Dibaca sekali sebelum pemuatan
+  // pertama, lalu dibuang dari URL supaya refresh tidak menyorot ulang.
   useEffect(() => {
-    load();
-  }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+    const p = new URLSearchParams(window.location.search).get('sorot');
+    const id = p ? Number(p) : NaN;
+    if (Number.isFinite(id)) {
+      sorotAwal.current = id;
+      setSorotId(id);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  // Ganti filter → selalu balik ke halaman 1, kalau tidak bisa terdampar di
+  // halaman yang sudah tidak ada isinya.
+  useEffect(() => {
+    setPage(1);
+    load(1);
+  }, [statusFilter, petugas, periode, acuan]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sorotan cukup sebagai penunjuk arah — hilang sendiri setelah terlihat.
+  useEffect(() => {
+    if (sorotId == null || loading) return;
+    document
+      .getElementById(`permohonan-${sorotId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const t = setTimeout(() => setSorotId(null), 2600);
+    return () => clearTimeout(t);
+  }, [sorotId, loading, items]);
+
+  // Pencarian diketik: tunggu jeda mengetik supaya tidak membanjiri server.
+  // Sengaja DILEWATI pada render pertama — kalau ikut jalan, ia memuat ulang
+  // dengan page=1 dan membatalkan lompatan ke halaman hasil ?sorot=, sekaligus
+  // membuat dua permintaan yang sama saat halaman baru dibuka.
+  const lewatiDebounce = useRef(true);
+  useEffect(() => {
+    if (lewatiDebounce.current) {
+      lewatiDebounce.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      setPage(1);
+      load(1);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Unduh PDF lewat fetch, bukan <a href>, supaya bisa menampilkan status
+   * "menyiapkan". Server menyematkan seluruh gambar ke dalam dokumen, jadi
+   * pembuatannya bisa beberapa detik — tanpa indikator, tombol terasa mati.
+   */
+  const unduhDokumen = async (id: number, noregister: string) => {
+    setUnduhPdf(true);
+    try {
+      const res = await fetch(`/api/permohonan/${id}/pdf`);
+      if (!res.ok) {
+        toast.error(`Gagal menyiapkan dokumen (HTTP ${res.status})`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `permohonan-${noregister}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Dokumen siap diunduh');
+    } catch {
+      toast.error('Gagal menghubungi server');
+    } finally {
+      setUnduhPdf(false);
+    }
+  };
+
+  const gantiHalaman = (p: number) => {
+    setPage(p);
+    load(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const openDetail = async (it: Item) => {
     setDetailLoading(true);
@@ -302,11 +427,23 @@ export function AdminPermohonan() {
               {/* Aksi: proses (baca dulu detail di atas, baru proses di sini) */}
               <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-4">
                 {detail.status === 'SELESAI' && (
-                  <a href={`/api/permohonan/${detail.id}/pdf`}>
-                    <Button variant="outline" className="border-success/40 text-success hover:bg-success/10 hover:text-success">
-                      <Download className="h-4 w-4 mr-1.5" /> Unduh Dokumen (PDF)
-                    </Button>
-                  </a>
+                  <Button
+                    variant="outline"
+                    disabled={unduhPdf}
+                    onClick={() => unduhDokumen(detail.id, detail.noregister)}
+                    className="border-success/40 text-success hover:bg-success/10 hover:text-success"
+                  >
+                    {unduhPdf ? (
+                      <>
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                        Menyiapkan dokumen…
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-1.5 h-4 w-4" /> Unduh Dokumen (PDF)
+                      </>
+                    )}
+                  </Button>
                 )}
                 {detailFinal ? (
                   <span
@@ -344,7 +481,7 @@ export function AdminPermohonan() {
             <h2 className="font-semibold text-slate-900">Daftar Permohonan</h2>
             {!loading && (
               <span className="ml-auto rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-                {items.length} data
+                {total} data
               </span>
             )}
           </div>
@@ -378,15 +515,54 @@ export function AdminPermohonan() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                load();
+                setPage(1);
+                load(1);
               }}
               className="flex gap-2 flex-1"
             >
-              <Input placeholder="Cari no. register / nama / NIK..." value={q} onChange={(e) => setQ(e.target.value)} />
-              <Button type="submit" variant="outline">
-                <Search className="h-4 w-4" />
-              </Button>
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  className="pl-9"
+                  placeholder="Cari no. register / nama / NIK / HP / jenis…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
             </form>
+          </div>
+
+          {/* Baris filter kedua: periode (dropdown + geser rentang) & petugas */}
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start">
+            <FilterPeriode
+              periode={periode}
+              acuan={acuan}
+              onPeriodeChange={setPeriode}
+              onAcuanChange={setAcuan}
+              disabled={loading}
+            />
+
+            {daftarPetugas.length > 0 && (
+              <div className="flex items-center gap-2 lg:ml-auto">
+                <span className="text-xs font-medium text-slate-400">Petugas</span>
+                <Select
+                  value={petugas || SEMUA_PETUGAS}
+                  onValueChange={(v) => setPetugas(v === SEMUA_PETUGAS ? '' : v)}
+                >
+                  <SelectTrigger className="h-9 w-52">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SEMUA_PETUGAS}>Semua petugas</SelectItem>
+                    {daftarPetugas.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.nama}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -396,6 +572,7 @@ export function AdminPermohonan() {
           ) : items.length === 0 ? (
             <div className="text-center py-12 text-sm text-slate-500">Tidak ada permohonan.</div>
           ) : (
+            <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -403,14 +580,21 @@ export function AdminPermohonan() {
                     <th className="py-2 pr-4 font-medium">No. Register</th>
                     <th className="py-2 pr-4 font-medium">Pemohon</th>
                     <th className="py-2 pr-4 font-medium">Jenis</th>
-                    <th className="py-2 pr-4 font-medium">Tanggal</th>
+                    <th className="py-2 pr-4 font-medium">Dibuat</th>
+                    <th className="py-2 pr-4 font-medium">Perubahan Status</th>
                     <th className="py-2 pr-4 font-medium">Status</th>
                     <th className="py-2 pr-4 font-medium">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((it) => (
-                    <tr key={it.id} className="border-b border-slate-100 align-top">
+                    <tr
+                      key={it.id}
+                      id={`permohonan-${it.id}`}
+                      className={`border-b border-slate-100 align-top transition-colors ${
+                        sorotId === it.id ? 'baris-disorot' : ''
+                      }`}
+                    >
                       <td className="py-2.5 pr-4 font-mono text-xs">{it.noregister}</td>
                       <td className="py-2.5 pr-4">
                         <div>{it.pemohon}</div>
@@ -422,6 +606,22 @@ export function AdminPermohonan() {
                       </td>
                       <td className="py-2.5 pr-4 text-xs text-slate-500">
                         {new Date(it.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-2.5 pr-4 text-xs">
+                        {it.prosesAt ? (
+                          <>
+                            <div className="text-slate-600">
+                              {new Date(it.prosesAt).toLocaleDateString('id-ID', {
+                                day: 'numeric', month: 'short', year: 'numeric',
+                              })}
+                            </div>
+                            {it.prosesByName && (
+                              <div className="text-slate-400">oleh {it.prosesByName}</div>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
                       </td>
                       <td className="py-2.5 pr-4"><StatusBadge status={it.status} /></td>
                       <td className="py-2.5 pr-4">
@@ -442,6 +642,15 @@ export function AdminPermohonan() {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              page={page}
+              totalHalaman={totalHalaman}
+              total={total}
+              limit={20}
+              onChange={gantiHalaman}
+              disabled={loading}
+            />
+            </>
           )}
         </>
       )}

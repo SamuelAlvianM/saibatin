@@ -60,9 +60,9 @@ const OfficeMap = dynamic(() => import('./office-map'), {
 // saat transisi hover. Gradasi tipis memberi kesan kaca seperti navbar.
 const GLASS =
   'rounded-2xl bg-gradient-to-br from-primary/[0.09] to-primary/[0.03] ' +
-  'border border-primary/15 shadow-[0_4px_20px_rgba(33,118,189,0.06)]';
-const BAR = 'bg-gradient-to-t from-[#1b4b72] to-[#6cb2eb]';
-const BAR_H = 'bg-gradient-to-r from-[#1b4b72] to-[#6cb2eb]';
+  'border border-primary/15 shadow-[0_4px_20px_rgba(217,119,6,0.06)]';
+const BAR = 'bg-gradient-to-t from-[#1b4b72] to-[#7db8e8]';
+const BAR_H = 'bg-gradient-to-r from-[#1b4b72] to-[#7db8e8]';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -289,8 +289,8 @@ function ServiceCard({ pelayanan }: { pelayanan: PelayananStat }) {
 // ─── Map Card (full width, di bawah) ────────────────────────────────────────────
 
 const WILAYAH = [
-  { label: 'Kecamatan', value: '11', icon: <Building2 className="w-5 h-5" />, chip: 'bg-primary/10 text-primary' },
-  { label: 'Desa / Pekon', value: '118', icon: <Trees className="w-5 h-5" />, chip: 'bg-emerald-50 text-emerald-600' },
+  { label: 'Kecamatan', value: '5', icon: <Building2 className="w-5 h-5" />, chip: 'bg-primary/10 text-primary' },
+  { label: 'Desa / Kelurahan', value: '32', icon: <Trees className="w-5 h-5" />, chip: 'bg-emerald-50 text-emerald-600' },
 ];
 
 function MapCard() {
@@ -452,7 +452,7 @@ export default function StatsGrid() {
         ) : (
           <>
             <MousePointerClick className="h-3.5 w-3.5" />
-            Klik kartu untuk melihat rincian per kecamatan &amp; pekon.
+            Klik kartu untuk melihat rincian per kecamatan &amp; desa.
           </>
         )}
       </p>

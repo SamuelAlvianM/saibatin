@@ -28,11 +28,11 @@ import {
   MessagesSquare,
   Images,
   BarChart3,
+  ScrollText,
   Home,
   LogOut,
   Loader2,
   ChevronLeft,
-  ChevronRight,
   LayoutGrid,
   User as UserIcon,
   X,
@@ -54,7 +54,7 @@ interface MenuGroup {
 // Menu dashboard dikelompokkan menjadi beberapa kategori besar.
 const GROUPS: MenuGroup[] = [
   {
-    items: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true }],
+    items: [{ href: '/dashboard', label: 'Statistik Rekap', icon: LayoutDashboard, exact: true }],
   },
   {
     title: 'Layanan',
@@ -83,13 +83,16 @@ const GROUPS: MenuGroup[] = [
   },
   {
     title: 'Sistem',
-    items: [{ href: '/dashboard/users', label: 'Manajemen Akun', icon: Users }],
+    items: [
+      { href: '/dashboard/users', label: 'Manajemen Akun', icon: Users },
+      { href: '/dashboard/log', label: 'Log Aktivitas', icon: ScrollText },
+    ],
   },
 ];
 
 // Item utama di bottom-bar mobile (sisanya lewat tombol "Menu").
 const MOBILE_MAIN: MenuItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard', label: 'Statistik', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/permohonan', label: 'Permohonan', icon: ClipboardList },
   { href: '/dashboard/konten', label: 'Konten', icon: FileText },
   { href: '/dashboard/pengaduan', label: 'Pengaduan', icon: MessageSquare },
@@ -103,11 +106,16 @@ const ADMIN_ONLY_HREFS = new Set([
   '/dashboard/media',
   '/dashboard/produk',
   '/dashboard/demografi',
+  '/dashboard/log',
 ]);
 
 function groupsForLevel(level: number): MenuGroup[] {
   if (level === 1) return GROUPS;
-  return GROUPS.filter((g) => !ADMIN_ONLY_GROUPS.has(g.title ?? ''));
+  // Selain menyembunyikan grup khusus admin, saring juga item admin yang
+  // menyelinap di grup umum (mis. "Log Aktivitas" di grup Sistem).
+  return GROUPS.filter((g) => !ADMIN_ONLY_GROUPS.has(g.title ?? ''))
+    .map((g) => ({ ...g, items: g.items.filter((m) => !ADMIN_ONLY_HREFS.has(m.href)) }))
+    .filter((g) => g.items.length > 0);
 }
 
 function mobileMainForLevel(level: number): MenuItem[] {
@@ -116,6 +124,38 @@ function mobileMainForLevel(level: number): MenuItem[] {
 }
 
 const COLLAPSE_KEY = 'saibatin-dash-collapsed';
+
+/**
+ * Label sidebar yang memudar & meluncur saat diciutkan.
+ * Sebelumnya label di-unmount begitu saja (`{!collapsed && label}`) sehingga
+ * teks berkedip hilang sementara lebar sidebar masih beranimasi 300ms.
+ * Lebar dianimasikan lewat max-width karena `width: auto` tidak bisa ditransisi.
+ */
+function LabelSidebar({
+  collapsed,
+  children,
+  className,
+}: {
+  collapsed: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      aria-hidden={collapsed}
+      className={cn(
+        'min-w-0 overflow-hidden whitespace-nowrap',
+        'transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+        collapsed
+          ? 'max-w-0 -translate-x-1 opacity-0'
+          : 'max-w-52 translate-x-0 opacity-100',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 function useIsActive() {
   const pathname = usePathname();
@@ -161,9 +201,16 @@ function DesktopSidebar() {
   const { user } = useAppSelector((state) => state.auth);
   const { loggingOut, handleLogout } = useLogout();
   const [collapsed, setCollapsed] = React.useState(false);
+  // Keadaan tersimpan baru terbaca setelah hydrate. Tanpa penanda ini sidebar
+  // sempat terlihat melebar lalu menciut 300ms tiap kali halaman dimuat —
+  // transisi sengaja dimatikan untuk penyetelan awal itu saja.
+  const [siapAnimasi, setSiapAnimasi] = React.useState(false);
 
   React.useEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+    // Frame berikutnya, supaya penyetelan awal sudah ter-paint lebih dulu.
+    const t = requestAnimationFrame(() => setSiapAnimasi(true));
+    return () => cancelAnimationFrame(t);
   }, []);
 
   const toggleCollapsed = () => {
@@ -184,20 +231,27 @@ function DesktopSidebar() {
       }}
       // z-30: di atas konten halaman; TANPA overflow-hidden agar dropdown
       // lonceng notifikasi & tombol ciutkan (-right-3) tidak terpotong/ketimpa.
-      className="hidden lg:flex flex-col flex-shrink-0 sticky top-0 z-30 h-screen border-r border-slate-200/60 bg-white/60 backdrop-blur-sm transition-[width] duration-300"
+      className={cn(
+        'hidden lg:flex flex-col flex-shrink-0 sticky top-0 z-30 h-screen border-r border-slate-200/60 bg-white/60 backdrop-blur-sm',
+        siapAnimasi &&
+          'transition-[width,min-width,max-width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+      )}
     >
       {/* Tombol ciutkan mengambang bundar di tepi kanan sidebar */}
       <button
         onClick={toggleCollapsed}
         title={collapsed ? 'Perlebar sidebar' : 'Ciutkan sidebar'}
         aria-label={collapsed ? 'Perlebar sidebar' : 'Ciutkan sidebar'}
-        className="absolute -right-3 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-colors hover:bg-primary hover:text-white"
+        className="absolute -right-3 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-[background-color,color,transform] duration-200 hover:scale-110 hover:bg-primary hover:text-white active:scale-95"
       >
-        {collapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
+        {/* Satu ikon yang diputar — dulu dua ikon bertukar sehingga terlihat
+            berkedip alih-alih berputar mengikuti sidebar. */}
+        <ChevronLeft
+          className={cn(
+            'h-4 w-4 transition-transform duration-300',
+            collapsed && 'rotate-180',
+          )}
+        />
       </button>
 
       {/* Kepala sidebar: logo (kembali ke beranda) + lonceng notifikasi */}
@@ -210,19 +264,22 @@ function DesktopSidebar() {
         <Link
           href="/"
           title="Kembali ke Beranda"
-          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100"
+          className={cn(
+            'flex min-w-0 flex-1 items-center rounded-lg p-1 transition-colors hover:bg-slate-100',
+            // Label selebar 0 tetap dihitung sebagai flex item, sehingga `gap`
+            // menyisakan ruang kosong di kanan dan ikon tampak tidak di tengah.
+            collapsed ? 'justify-center gap-0' : 'gap-2.5',
+          )}
         >
           <div className="relative h-8 w-8 flex-shrink-0">
             <Image src="/logo-saibatin.png" alt="Logo SAIBATIN" fill className="object-contain" />
           </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold leading-tight text-slate-900">SAIBATIN</p>
-              <p className="truncate text-[0.68rem] leading-tight text-slate-500">
-                Dashboard Petugas
-              </p>
-            </div>
-          )}
+          <LabelSidebar collapsed={collapsed}>
+            <p className="truncate text-sm font-bold leading-tight text-slate-900">SAIBATIN</p>
+            <p className="truncate text-[0.68rem] leading-tight text-slate-500">
+              Dashboard Petugas
+            </p>
+          </LabelSidebar>
         </Link>
         <NotificationBell tone="onLight" align="left" />
       </div>
@@ -234,11 +291,11 @@ function DesktopSidebar() {
           title="Kembali ke Beranda"
           className={cn(
             'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary',
-            collapsed && 'justify-center px-0',
+            collapsed && 'justify-center gap-0 px-0',
           )}
         >
           <Home className="h-4 w-4 flex-shrink-0" />
-          {!collapsed && 'Kembali ke Beranda'}
+          <LabelSidebar collapsed={collapsed}>Kembali ke Beranda</LabelSidebar>
         </Link>
       </div>
 
@@ -264,12 +321,12 @@ function DesktopSidebar() {
                   className={cn(
                     'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                     active ? 'text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100',
-                    collapsed && 'justify-center px-0',
+                    collapsed && 'justify-center gap-0 px-0',
                   )}
                   style={active ? { background: '#2176bd' } : undefined}
                 >
                   <m.icon className="h-4 w-4 flex-shrink-0" />
-                  {!collapsed && m.label}
+                  <LabelSidebar collapsed={collapsed}>{m.label}</LabelSidebar>
                 </Link>
               );
             })}
@@ -281,18 +338,27 @@ function DesktopSidebar() {
       <div
         className={cn(
           'flex items-center gap-2 border-t border-slate-200/60 p-3',
-          collapsed && 'flex-col px-2',
+          collapsed && 'flex-col gap-2 px-2',
         )}
       >
+        {/* Avatar tetap terlihat saat diciutkan supaya baris ini tidak berubah
+            tinggi mendadak; hanya namanya yang memudar. */}
+        <span
+          title={collapsed ? displayName : undefined}
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+        >
+          <UserIcon className="h-4 w-4" />
+        </span>
+        {/* Di keadaan menciut footer jadi flex-col; `max-width: 0` tidak
+            meniadakan TINGGI, jadi label harus benar-benar dilepas agar tidak
+            menyisakan baris kosong di antara avatar dan tombol keluar. */}
         {!collapsed && (
-          <>
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <UserIcon className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
-              {displayName}
-            </span>
-          </>
+          <LabelSidebar
+            collapsed={false}
+            className="flex-1 text-sm font-medium text-slate-700"
+          >
+            {displayName}
+          </LabelSidebar>
         )}
         <button
           onClick={handleLogout}

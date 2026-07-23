@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+// Pakai singleton adapter (Rust-free) yang sama dengan app.
+import { prisma } from '../lib/prisma';
 
 function slugify(s: string) {
   return s

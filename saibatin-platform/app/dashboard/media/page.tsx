@@ -11,7 +11,7 @@ export default async function DashboardMediaPage() {
   if (session.level !== 1) redirect('/dashboard');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-dashboard">
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-10">
         <BackButton href="/dashboard" />
         <div className="mb-6">

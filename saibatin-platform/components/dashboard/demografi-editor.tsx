@@ -201,7 +201,7 @@ function EditGrid({
                   <td className="px-2.5 py-1.5 text-center">
                     <button
                       onClick={() => onDetail(r)}
-                      title="Kelola / import data pekon kecamatan ini"
+                      title="Kelola / import data desa kecamatan ini"
                       className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/20"
                     >
                       Detail{count > 0 ? ` (${count})` : ''}
@@ -470,7 +470,7 @@ export function DemografiEditor({
       setPekonRows(rows.filter((r) => r.level === 5).map(toEdit));
       const kec = rows.filter((r) => r.level !== 5).length;
       const pek = rows.filter((r) => r.level === 5).length;
-      toast.success(`${kec} kecamatan & ${pek} pekon dimuat — periksa lalu Simpan`);
+      toast.success(`${kec} kecamatan & ${pek} desa dimuat — periksa lalu Simpan`);
     } catch {
       toast.error('Gagal memproses file');
     } finally {
@@ -489,7 +489,7 @@ export function DemografiEditor({
         (r) => r.level === 5 && digits(r.kode).slice(0, 6) === parent,
       );
       if (pekonForKec.length === 0) {
-        toast.error(`File tidak memuat pekon untuk kecamatan ${detail.wilayah} (kode ${parent}).`);
+        toast.error(`File tidak memuat desa untuk kecamatan ${detail.wilayah} (kode ${parent}).`);
         return;
       }
       // Ganti pekon kecamatan ini; pertahankan pekon kecamatan lain.
@@ -497,7 +497,7 @@ export function DemografiEditor({
         ...rs.filter((p) => digits(p.kode).slice(0, 6) !== parent),
         ...pekonForKec.map(toEdit),
       ]);
-      toast.success(`${pekonForKec.length} pekon dimuat untuk ${detail.wilayah} — periksa lalu Simpan`);
+      toast.success(`${pekonForKec.length} desa dimuat untuk ${detail.wilayah} — periksa lalu Simpan`);
     } catch {
       toast.error('Gagal memproses file');
     } finally {
@@ -617,11 +617,11 @@ export function DemografiEditor({
               </button>
               <h1 className="flex items-center gap-2 text-lg font-bold text-slate-900">
                 <Layers className="h-5 w-5 text-primary" />
-                Detail Pekon — {detail.wilayah}
+                Detail Desa — {detail.wilayah}
               </h1>
               <p className="text-xs text-slate-500">
-                Import Excel <b>detail distrik</b> (berisi pekon kecamatan ini) atau isi manual.
-                Kode pekon = 10 digit (diawali {digits(detail.kode)}).
+                Import Excel <b>detail distrik</b> (berisi desa kecamatan ini) atau isi manual.
+                Kode desa = 10 digit (diawali {digits(detail.kode)}).
               </p>
             </>
           ) : (
@@ -629,9 +629,9 @@ export function DemografiEditor({
               <h1 className="text-lg font-bold text-slate-900">Edit Data — {label}</h1>
               <p className="text-xs text-slate-500">
                 <b>Import Excel</b> agregat (kecamatan). Klik <b>Detail</b> di kanan tiap kecamatan
-                untuk mengelola / import data pekonnya di halaman tersendiri.{' '}
+                untuk mengelola / import data desanya di halaman tersendiri.{' '}
                 {isJK && 'Kolom Jumlah dihitung otomatis. '}
-                Kode 6 digit = kecamatan, 10 digit = pekon. Klik{' '}
+                Kode 6 digit = kecamatan, 10 digit = desa. Klik{' '}
                 <Star className="inline h-3 w-3 fill-amber-400 text-amber-400" /> pada judul
                 kolom untuk menampilkannya sebagai <b>kartu statistik beranda</b>.
               </p>
@@ -697,7 +697,7 @@ export function DemografiEditor({
                   Import Excel Detail
                 </Button>
                 <Button variant="outline" size="sm" onClick={addPekon}>
-                  <Plus className="mr-1.5 h-4 w-4" /> Tambah Pekon
+                  <Plus className="mr-1.5 h-4 w-4" /> Tambah Desa
                 </Button>
                 <Button variant="outline" size="sm" onClick={addCol}>
                   <Plus className="mr-1.5 h-4 w-4" /> Kolom
@@ -714,7 +714,7 @@ export function DemografiEditor({
                   }}
                 />
               </div>
-              <span className="text-xs font-medium text-slate-500">{detailRows.length} pekon</span>
+              <span className="text-xs font-medium text-slate-500">{detailRows.length} desa</span>
             </div>
 
             <EditGrid
@@ -730,7 +730,7 @@ export function DemografiEditor({
               highlight={highlight}
               onToggleHighlight={toggleHighlight}
               kodePlaceholder="10 digit"
-              emptyText="Belum ada pekon. Import Excel detail atau klik “Tambah Pekon”."
+              emptyText="Belum ada desa. Import Excel detail atau klik “Tambah Desa”."
             />
           </>
         ) : (

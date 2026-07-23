@@ -46,6 +46,15 @@ import {
   Sun,
   Accessibility,
   Baby,
+  // Dipakai kartu indeks PPID (lib/ppid-informasi.ts).
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  Wallet,
+  UserPlus,
+  Printer,
+  ScrollText,
+  Book,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -55,6 +64,14 @@ import {
  * kembali ke komponen ikon lewat ICON_MAP.
  */
 export const ICON_MAP: Record<string, LucideIcon> = {
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  Wallet,
+  UserPlus,
+  Printer,
+  ScrollText,
+  Book,
   Clock,
   Shield,
   ShieldCheck,

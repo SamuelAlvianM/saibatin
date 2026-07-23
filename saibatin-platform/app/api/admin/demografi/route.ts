@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { DEMOGRAFI_SLUGS } from "@/lib/demografi-kategori";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ interface SaveRow {
 
 /** Simpan (ganti total) data satu kategori dari editor manual. */
 export async function PUT(req: NextRequest) {
-  const { error } = await cekPetugas();
+  const { session, error } = await cekPetugas();
   if (error) return error;
 
   const body = await req.json().catch(() => ({}));
@@ -85,6 +86,14 @@ export async function PUT(req: NextRequest) {
       : []),
   ]);
 
+  await catatAktivitas(
+    session,
+    "UBAH",
+    "Demografi",
+    `Menyimpan data demografi kategori ${kategori} (${rows.length} baris)`,
+    { entitasId: kategori, req },
+  );
+
   return ok({ tersimpan: rows.length }, ["Data demografi disimpan"]);
 }
 
@@ -93,7 +102,7 @@ export async function PUT(req: NextRequest) {
  * dengan `?kategori=slug` → hapus satu kategori saja.
  */
 export async function DELETE(req: NextRequest) {
-  const { error } = await cekPetugas();
+  const { session, error } = await cekPetugas();
   if (error) return error;
 
   const kategori = (new URL(req.url).searchParams.get("kategori") ?? "").trim();
@@ -104,6 +113,16 @@ export async function DELETE(req: NextRequest) {
   const res = await prisma.demografiWilayah.deleteMany({
     where: kategori ? { kategori } : {},
   });
+
+  await catatAktivitas(
+    session,
+    "HAPUS",
+    "Demografi",
+    kategori
+      ? `Menghapus data demografi kategori ${kategori} (${res.count} baris)`
+      : `Menghapus SEMUA data demografi (${res.count} baris)`,
+    { entitasId: kategori || "semua", req },
+  );
 
   return ok({ dihapus: res.count }, [
     kategori

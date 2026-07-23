@@ -62,16 +62,39 @@ export function AdminProduk() {
     const f = e.target.files?.[0];
     if (!f) return;
     setUploading(true);
-    const fd = new FormData();
-    fd.append('file', f);
-    fd.append('folder', 'produk');
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    const json = await res.json();
-    setUploading(false);
-    if (json.error?.length) toast.error(json.error[0]);
-    else {
-      setFile(json.data.url);
-      toast.success('File terunggah');
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      fd.append('folder', 'produk');
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+
+      // Proxy/web server bisa memutus unggahan besar dengan 413 berisi HTML,
+      // bukan JSON — res.json() melempar dan dulu membuat spinner menggantung
+      // tanpa pesan apa pun. Baca sebagai teks dulu supaya selalu ada pesan.
+      const raw = await res.text();
+      let json: { error?: string[]; data?: { url?: string } } | null = null;
+      try {
+        json = JSON.parse(raw);
+      } catch {
+        toast.error(
+          res.status === 413
+            ? 'File terlalu besar untuk diunggah ke server'
+            : `Gagal mengunggah (HTTP ${res.status})`,
+        );
+        return;
+      }
+
+      if (json?.error?.length) toast.error(json.error[0]);
+      else if (json?.data?.url) {
+        setFile(json.data.url);
+        toast.success('File terunggah');
+      } else toast.error('Respons server tidak dikenali');
+    } catch {
+      toast.error('Gagal menghubungi server saat mengunggah');
+    } finally {
+      setUploading(false);
+      // Supaya memilih berkas yang sama lagi tetap memicu onChange.
+      if (fileRef.current) fileRef.current.value = '';
     }
   };
 

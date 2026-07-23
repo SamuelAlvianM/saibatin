@@ -13,6 +13,7 @@ import {
 } from "@/lib/info-content";
 import type { InfoPageContent } from "@/components/shared/info-page";
 import { KARTU_STATISTIK_KUNCI, DEFAULT_KARTU } from "@/lib/beranda-statistik";
+import { PPID_INFORMASI_GRUP } from "@/lib/ppid-informasi";
 
 export type StaticFieldType =
   | "text"
@@ -33,8 +34,15 @@ export interface StaticField {
     name: string;
     label: string;
     type?: "text" | "image" | "icon" | "parent" | "richtext";
+    /** Kolom `image`: rasio crop tetap saat unggah (mis. 1200/1050) supaya
+     *  semua gambar seragam. */
+    aspect?: number;
+    /** Kolom `image`: keterangan ukuran singkat di bawah tile (mis. "1200×1050 px"). */
+    hint?: string;
   }[];
   placeholder?: string;
+  /** Catatan/petunjuk tambahan yang ditampilkan di bawah label field editor. */
+  catatan?: string;
 }
 
 export interface StaticBlock {
@@ -192,8 +200,16 @@ export const STATIC_BLOCKS: StaticBlock[] = [
         name: "slides",
         label: "Slide",
         type: "items",
+        catatan:
+          "Ukuran gambar disarankan 1200 × 1050 piksel (rasio ± 8:7) agar semua slide seragam dan pas mengisi bingkai carousel. Klik gambar yang sudah ada untuk menggantinya; saat mengunggah, gambar otomatis dipotong ke rasio ini.",
         itemFields: [
-          { name: "image", label: "Gambar", type: "image" },
+          {
+            name: "image",
+            label: "Gambar",
+            type: "image",
+            aspect: 1200 / 1050,
+            hint: "1200 × 1050 px",
+          },
           { name: "title", label: "Judul" },
           { name: "subtitle", label: "Sub-judul" },
         ],
@@ -399,6 +415,26 @@ for (const { seksi, label, content } of INFO_SECTIONS) {
       },
     });
   }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// PPID — kartu indeks tiap klasifikasi informasi. Ditambah/diubah admin lewat
+// tombol "Tambah menu baru" di halaman indeksnya (components/ppid/kelola-kartu).
+// Nilainya = SELURUH daftar kartu grup (bawaan + tambahan); bila belum pernah
+// disimpan, halaman memakai `defaults` di bawah.
+// ───────────────────────────────────────────────────────────────────────────
+export function ppidKartuKunci(grupSlug: string) {
+  return `ppid.kartu.${grupSlug}`;
+}
+
+for (const grup of PPID_INFORMASI_GRUP) {
+  STATIC_BLOCKS.push({
+    kunci: ppidKartuKunci(grup.slug),
+    judul: `PPID — Kartu ${grup.judulPendek}`,
+    deskripsi: `Judul, deskripsi, ikon, dan warna kartu pada halaman ${grup.judul}.`,
+    fields: [{ name: "kartu", label: "Kartu Menu", type: "items" }],
+    defaults: { kartu: grup.items },
+  });
 }
 
 /** Kunci blok untuk halaman info /<seksi>/<slug>. */

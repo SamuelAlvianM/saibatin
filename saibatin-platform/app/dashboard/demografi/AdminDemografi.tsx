@@ -141,7 +141,7 @@ export function AdminDemografi() {
         <div className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700">
           Unggah file Excel agregat Dukcapil (format SIAK: kolom <b>IDEM, KODE, WILAYAH, …</b>) per kategori.
           Setiap unggahan <b>mengganti</b> data lama kategori tersebut. Klik <b>Edit / Import</b> untuk
-          mengelola data kecamatan &amp; <b>detail pekon</b>-nya.
+          mengelola data kecamatan &amp; <b>detail desa</b>-nya.
         </div>
         <div className="flex flex-shrink-0 flex-wrap gap-2">
           <Button
@@ -266,8 +266,8 @@ export function AdminDemografi() {
       <div className="pt-2">
         <h2 className="mb-1 text-lg font-semibold text-slate-900">Data Tersimpan</h2>
         <p className="mb-4 text-sm text-slate-500">
-          Angka per kecamatan = <b>jumlah seluruh pekon</b> di bawahnya. Klik <b>Detail</b> untuk
-          rincian per pekon, atau <b>Edit data</b> untuk mengubah langsung.
+          Angka per kecamatan = <b>jumlah seluruh desa</b> di bawahnya. Klik <b>Detail</b> untuk
+          rincian per desa, atau <b>Edit data</b> untuk mengubah langsung.
         </p>
         <DemografiView editable onDataChanged={() => DEMOGRAFI_KATEGORI.forEach((k) => refresh(k.slug))} />
       </div>
@@ -280,7 +280,7 @@ export function AdminDemografi() {
               <AlertTriangle className="h-5 w-5" /> Hapus semua data demografi?
             </DialogTitle>
             <DialogDescription>
-              Seluruh data <b>semua kategori</b> (kecamatan &amp; pekon) akan dihapus permanen —
+              Seluruh data <b>semua kategori</b> (kecamatan &amp; desa) akan dihapus permanen —
               total <b>{totalTersimpan} kecamatan</b> tersimpan. Sebaiknya <b>Export Semua</b> dulu
               sebagai cadangan. Tindakan ini tidak dapat dibatalkan.
             </DialogDescription>

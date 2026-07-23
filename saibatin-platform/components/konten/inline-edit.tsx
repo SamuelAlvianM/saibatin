@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react';
@@ -163,7 +164,12 @@ function BlockEditorDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const block = getStaticBlock(kunci);
+  // getStaticBlock membentuk blok BARU tiap panggil untuk halaman runtime
+  // (`halaman.<slug>`), jadi identitasnya berubah tiap render. Bila dipakai
+  // langsung sebagai dependency useEffect di bawah, efek pemuatan konten
+  // berputar tanpa henti — setLoading(true) + fetch berulang — sehingga spinner
+  // menggantung. Dikunci ke `kunci` supaya referensinya stabil.
+  const block = useMemo(() => getStaticBlock(kunci), [kunci]);
   const [draft, setDraft] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import {
-  X, ZoomIn, Paperclip, Clock, CheckCircle2, XCircle, Send, Hourglass,
+  ZoomIn, Paperclip, Clock, CheckCircle2, XCircle, Send, Hourglass,
 } from 'lucide-react';
+import { ImageViewer } from '@/components/shared/image-viewer';
 
 export interface BerkasView {
   label: string;
@@ -16,7 +17,10 @@ function isImagePath(path: string) {
 
 /** Galeri berkas permohonan: thumbnail gambar (klik = perbesar) / tautan file. */
 export function BerkasGallery({ items }: { items: BerkasView[] }) {
-  const [lightbox, setLightbox] = useState<BerkasView | null>(null);
+  // Indeks berkas GAMBAR yang sedang dibuka (bukan indeks di `items`), supaya
+  // tombol maju/mundur di penampil hanya melompati berkas yang bisa dilihat.
+  const [bukaIdx, setBukaIdx] = useState<number | null>(null);
+  const gambar = items.filter((b) => isImagePath(b.path));
 
   if (items.length === 0) {
     return <p className="text-sm text-slate-400">Tidak ada berkas.</p>;
@@ -30,9 +34,9 @@ export function BerkasGallery({ items }: { items: BerkasView[] }) {
             <button
               key={`${b.path}-${i}`}
               type="button"
-              onClick={() => setLightbox(b)}
+              onClick={() => setBukaIdx(gambar.findIndex((g) => g.path === b.path))}
               className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-left hover:border-primary/50 transition-colors"
-              title="Klik untuk perbesar"
+              title="Klik untuk perbesar, zoom & putar"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -61,27 +65,12 @@ export function BerkasGallery({ items }: { items: BerkasView[] }) {
         )}
       </div>
 
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white"
-            onClick={() => setLightbox(null)}
-            aria-label="Tutup"
-          >
-            <X className="h-7 w-7" />
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox.path}
-            alt={lightbox.label}
-            className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <p className="mt-3 text-sm text-white/80">{lightbox.label}</p>
-        </div>
+      {bukaIdx !== null && bukaIdx >= 0 && (
+        <ImageViewer
+          items={gambar.map((g) => ({ src: g.path, judul: g.label }))}
+          indexAwal={bukaIdx}
+          onClose={() => setBukaIdx(null)}
+        />
       )}
     </>
   );

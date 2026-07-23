@@ -165,7 +165,7 @@ export default function ResetPasswordPage() {
     <div className="relative p-1">
       <Image
         src="/logo-saibatin.png"
-        alt="Logo Dinas KTT"
+        alt="Logo Dinas SAIBATIN"
         width={60}
         height={60}
         className="object-contain drop-shadow-lg"

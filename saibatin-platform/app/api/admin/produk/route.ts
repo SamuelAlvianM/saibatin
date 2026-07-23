@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { DOKUMEN_KEYS } from "@/lib/dokumen-registry";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 // Jenis valid = registry dokumen (lib/dokumen-registry.ts) + legacy DAFDUK.
 const JENIS_VALID = new Set([...DOKUMEN_KEYS, "DAFDUK"]);
@@ -51,5 +52,12 @@ export async function POST(req: NextRequest) {
       uploadedByName: session.nama ?? session.userId,
     },
   });
+  await catatAktivitas(
+    session,
+    "BUAT",
+    "Dokumen",
+    `Menambah dokumen "${item.judul}" (${item.jenis})`,
+    { entitasId: item.id, req },
+  );
   return ok({ item }, ["Info: Dokumen berhasil ditambahkan"]);
 }

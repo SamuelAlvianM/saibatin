@@ -6,6 +6,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-dashboard: var(--dashboard);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -69,6 +70,9 @@
   --glass-shadow:      0 8px 32px rgba(33, 118, 189, 0.12);
 
   --background: oklch(0.97 0.005 240);
+  /* Latar khusus dashboard — sengaja lebih gelap dari --background agar kartu,
+     tabel, dan field putih tetap menonjol saat layar terkena cahaya siang. */
+  --dashboard: oklch(0.935 0.008 240);
   --foreground: oklch(0.145 0.01 240);
   --card: oklch(1 0 0 / 0.8);
   --card-foreground: oklch(0.145 0.01 240);
@@ -524,4 +528,36 @@ html.a11y-no-motion *::after {
 }
 .skip-to-content:focus {
   top: 12px;
+}
+
+/* ==========================================================================
+   Transisi masuk antar-halaman (dipakai app/template.tsx)
+   Hanya opacity — transform akan merusak `sticky` sidebar dashboard.
+   Otomatis dinonaktifkan oleh blok prefers-reduced-motion & .a11y-no-motion
+   di atas.
+   ========================================================================== */
+@keyframes animasi-masuk-halaman {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animasi-masuk-halaman {
+  animation: animasi-masuk-halaman 0.22s ease-out both;
+}
+
+/* ==========================================================================
+   Sorotan baris tabel saat dibuka dari notifikasi — menunjukkan "ini datanya".
+   Berdenyut dua kali lalu memudar sendiri; dinonaktifkan otomatis oleh blok
+   prefers-reduced-motion & .a11y-no-motion di atas.
+   ========================================================================== */
+@keyframes sorot-baris {
+  0%   { background-color: rgba(217, 119, 6, 0.28); }
+  35%  { background-color: rgba(217, 119, 6, 0.10); }
+  60%  { background-color: rgba(217, 119, 6, 0.24); }
+  100% { background-color: transparent; }
+}
+
+.baris-disorot {
+  animation: sorot-baris 2.4s ease-out forwards;
+  box-shadow: inset 3px 0 0 0 #d97706;
 }

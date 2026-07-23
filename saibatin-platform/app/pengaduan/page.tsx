@@ -27,7 +27,7 @@ const JENIS = [
   'Lainnya',
 ];
 
-/** Google Form "Layanan Pandap" (pengaduan & konsultasi) — dari portal lama pesbar 002. */
+/** Google Form pengaduan & konsultasi Disdukcapil Kabupaten Pesisir Barat (SAIBATIN). */
 const GFORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSe7I03TvorCYJ-_nY7WtiBROSFT_Xwd8zEgI3OtReuBf7QqYg/viewform';
 
@@ -92,8 +92,8 @@ export default function PengaduanPage() {
 
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 max-w-3xl">
         {/* Penjelasan kanal — pengaduan layanan sekaligus WBS (whistle blowing) */}
-        <div className="mb-6 flex gap-3 rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+        <div className="mb-6 flex gap-3 rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
           <div className="text-sm text-slate-700">
             <p className="font-semibold text-slate-900">Kanal Pengaduan &amp; Whistle Blowing System (WBS)</p>
             <p className="mt-1">
@@ -169,7 +169,7 @@ export default function PengaduanPage() {
             </p>
             <Button
               onClick={() => setSuccess(false)}
-              style={{ background: 'linear-gradient(90deg, #2176bd, #3490dc)' }}
+              style={{ background: 'linear-gradient(90deg, #1b4b72, #2176bd)' }}
               className="text-white"
             >
               Kirim Pengaduan Lain
@@ -245,7 +245,7 @@ export default function PengaduanPage() {
                 type="submit"
                 disabled={isLoading}
                 className="w-full text-white font-semibold"
-                style={{ background: 'linear-gradient(90deg, #2176bd, #3490dc)' }}
+                style={{ background: 'linear-gradient(90deg, #1b4b72, #2176bd)' }}
               >
                 {isLoading ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengirim...</>
@@ -261,10 +261,10 @@ export default function PengaduanPage() {
         <div className="mt-6 glass-card-blue rounded-2xl p-6">
           <h3 className="font-semibold text-slate-800 mb-3">Saluran Pengaduan Lainnya</h3>
           <div className="space-y-2 text-sm text-slate-600">
-            <p>📍 Kantor Disdukcapil Kab. Pesisir Barat, Jl. Raya Krui, Pesisir Tengah</p>
-            <p>📞 Telp: (0728) 21xxx</p>
-            <p>✉️ Email: disdukcapil@pesisirbaratkab.go.id</p>
-            <p>⏰ Senin–Jumat, 08.00–16.00 WIB</p>
+            <p>📍 Kantor Disdukcapil Kab. Pesisir Barat, Tideng Pale, Kec. Sesayap</p>
+            <p>📞 Telp: (0553) 2022XXX</p>
+            <p>✉️ Email: disdukcapil@saibatinkab.go.id</p>
+            <p>⏰ Senin–Jumat, 08.00–16.00 WITA</p>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { sendMail } from "@/lib/mail";
 import { tplRegistrasiDiterima } from "@/lib/mail-templates";
 import { cekBukti, normalisasiEmail, normalisasiHp, otpChannel, otpWajib } from "@/lib/otp";
 import { notifyPetugas, safeNotify } from "@/lib/notifikasi";
+import { simpanFotoProfil } from "@/lib/foto-profil";
 
 /**
  * Registrasi warga — port dari RegisterController@postDatas (Laravel data-2).
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
     email,
     pass,
     pass2,
+    kecamatan,
+    foto,
     recaptchaToken,
     otpBukti,
   } = body as Record<string, string>;
@@ -38,6 +41,12 @@ export async function POST(req: NextRequest) {
   }
   if (String(nik).length !== 16) {
     return fail(["Info: NIK Harus 16 Digit (N-15)"]);
+  }
+  if (!kecamatan?.trim()) {
+    return fail(["Info: Kecamatan domisili wajib dipilih (N-17)"]);
+  }
+  if (!foto?.trim()) {
+    return fail(["Info: Foto wajah/selfie wajib dilampirkan (N-18)"]);
   }
   if (/^\d+$/.test(pass)) {
     return fail(["Info: Password Tidak Boleh Angka Semua (N-07)"]);
@@ -96,6 +105,7 @@ export async function POST(req: NextRequest) {
         userNokk: kk,
         userHp: hp,
         userEmail: email,
+        userKecamatan: kecamatan.trim(),
         activationCode,
         activationCodeUrl,
         ipAddress: req.headers.get("x-forwarded-for") ?? "",
@@ -103,6 +113,16 @@ export async function POST(req: NextRequest) {
         createdBy: 3,
       },
     });
+
+    // Foto baru bisa disimpan setelah akun ada — nama berkasnya diawali id
+    // pemilik, dan itulah dasar kontrol akses di app/uploads/[...path].
+    const urlFoto = await simpanFotoProfil(foto, userBaru.id);
+    if (urlFoto) {
+      await prisma.user.update({
+        where: { id: userBaru.id },
+        data: { userFoto: urlFoto },
+      });
+    }
 
     // Email konfirmasi — kegagalan kirim tidak menggagalkan pendaftaran.
     const konfirmasi = tplRegistrasiDiterima(nama);

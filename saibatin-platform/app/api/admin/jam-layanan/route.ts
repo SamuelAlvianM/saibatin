@@ -4,6 +4,7 @@ import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { JAM_LAYANAN_KEY, sanitizeJamLayanan } from "@/lib/jam-layanan";
 import { loadJamLayanan } from "@/lib/jam-layanan-server";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,14 @@ export async function PUT(req: NextRequest) {
     },
     update: { konten: cfg as unknown as object, updatedBy: session.uid },
   });
+
+  await catatAktivitas(
+    session,
+    "UBAH",
+    "Pengaturan",
+    "Memperbarui jam layanan permohonan online",
+    { entitasId: JAM_LAYANAN_KEY, req },
+  );
 
   return ok(cfg, ["Jam layanan disimpan"]);
 }

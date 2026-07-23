@@ -82,7 +82,13 @@ function TabsContent({
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
+      className={cn(
+        "flex-1 outline-none",
+        // Isi tab dulu bertukar mendadak sementara pemicunya beranimasi;
+        // beri masuk yang halus agar perpindahan tab terasa menyatu.
+        "data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-200",
+        className,
+      )}
       {...props}
     />
   )

@@ -19,7 +19,9 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, lengkapiFoto } = useAppSelector(
+    (state) => state.auth,
+  );
   const { executeRecaptcha } = useGoogleReCaptcha();
 
   const [formData, setFormData] = useState({
@@ -55,12 +57,14 @@ export default function LoginPage() {
     }
   }, [executeRecaptcha]);
 
-  // Redirect setelah Redux state terupdate (backup jika handleSubmit race)
+  // Redirect setelah Redux state terupdate (backup jika handleSubmit race).
+  // Warga yang baru pertama kali masuk & belum berfoto diantar ke Pengaturan
+  // Akun; sifatnya anjuran, halaman itu tetap bisa dilewati.
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace(redirectTo);
+      router.replace(lengkapiFoto ? '/profil?lengkapi=foto' : redirectTo);
     }
-  }, [isAuthenticated, router, redirectTo]);
+  }, [isAuthenticated, lengkapiFoto, router, redirectTo]);
 
   useEffect(() => {
     return () => {
@@ -132,13 +136,13 @@ export default function LoginPage() {
     >
       {/* Subtle background accents */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(33,118,189,0.12)' }} />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(33,118,189,0.08)' }} />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(217,119,6,0.12)' }} />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'rgba(217,119,6,0.08)' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'rgba(255,237,74,0.05)' }} />
       </div>
 
       <Card
-        className={`w-full max-w-[420px] relative z-10 transition-all duration-700 border-0 shadow-[0_8px_40px_rgba(33,118,189,0.18)] overflow-hidden ${
+        className={`w-full max-w-[420px] relative z-10 transition-all duration-700 border-0 shadow-[0_8px_40px_rgba(217,119,6,0.18)] overflow-hidden ${
           mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)' }}
@@ -318,8 +322,8 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-4 px-8 pb-8 pt-2">
             <Button
               type="submit"
-              className="w-full text-slate-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              style={{ background: 'linear-gradient(90deg, #ffed4a, #e77817)' }}
+              className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{ background: 'linear-gradient(90deg, #2e6da4, #1b4b72)' }}
               disabled={isLoading || !recaptchaReady}
             >
               {isLoading ? (
@@ -342,13 +346,12 @@ export default function LoginPage() {
 
             {/* Daftar and Lupa Password Links */}
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a
-                href="/register"
+              <a 
+                href="/register" 
                 className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors duration-200 inline-flex items-center gap-1 group"
-                title={process.env.NEXT_PUBLIC_REGISTER_OPEN === 'true' ? undefined : 'Segera hadir'}
               >
                 <UserPlus className="h-4 w-4" />
-                {process.env.NEXT_PUBLIC_REGISTER_OPEN === 'true' ? 'DAFTAR' : 'DAFTAR (SEGERA HADIR)'}
+                DAFTAR
               </a>
               <span className="text-slate-300 dark:text-slate-700">|</span>
               <a
@@ -361,7 +364,7 @@ export default function LoginPage() {
             </div>
 
             {/* Notes Section */}
-            <div className="rounded-xl p-4 space-y-2.5 border" style={{ background: 'rgba(33,118,189,0.04)', borderColor: 'rgba(33,118,189,0.15)' }}>
+            <div className="rounded-xl p-4 space-y-2.5 border" style={{ background: 'rgba(217,119,6,0.04)', borderColor: 'rgba(217,119,6,0.15)' }}>
               <h3 className="font-semibold text-primary text-xs uppercase tracking-wide">
                 Catatan
               </h3>

@@ -5,7 +5,7 @@ import { Users } from 'lucide-react';
 
 export const metadata = {
   title: 'Data Demografi — Disdukcapil',
-  description: 'Data kependudukan agregat per kecamatan dan pekon.',
+  description: 'Data kependudukan agregat per kecamatan dan desa.',
 };
 
 export default function DemografiPage() {
@@ -24,7 +24,7 @@ export default function DemografiPage() {
                 Data Demografi
               </h1>
               <p className="text-sm text-slate-500">
-                Data kependudukan agregat per kecamatan — klik <b>Pekon</b> untuk rincian tiap desa/kelurahan.
+                Data kependudukan agregat per kecamatan — klik <b>Detail</b> untuk rincian tiap desa/kelurahan.
               </p>
             </div>
           </div>

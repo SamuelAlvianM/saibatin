@@ -200,7 +200,7 @@ export function DemografiView({
                     <td className="px-4 py-2.5 text-center">
                       <button
                         onClick={() => openDetail(r)}
-                        title={`Lihat rincian ${r.jumlahPekon ?? ''} pekon/kelurahan`.replace('  ', ' ')}
+                        title={`Lihat rincian ${r.jumlahPekon ?? ''} desa/kelurahan`.replace('  ', ' ')}
                         className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20"
                       >
                         Detail{typeof r.jumlahPekon === 'number' && r.jumlahPekon > 0 ? ` (${r.jumlahPekon})` : ''}
@@ -230,10 +230,10 @@ export function DemografiView({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
-              Detail per Pekon — {detail?.wilayah}
+              Detail per Desa — {detail?.wilayah}
             </DialogTitle>
             <DialogDescription>
-              Rincian data {DEMOGRAFI_KATEGORI.find((k) => k.slug === kategori)?.label} per pekon/kelurahan.
+              Rincian data {DEMOGRAFI_KATEGORI.find((k) => k.slug === kategori)?.label} per desa/kelurahan.
             </DialogDescription>
           </DialogHeader>
 
@@ -243,13 +243,13 @@ export function DemografiView({
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : detailRows.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">Tidak ada data pekon.</p>
+              <p className="py-10 text-center text-sm text-slate-400">Tidak ada data desa.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead className="sticky top-0">
                   <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                     <th className="px-4 py-3 font-semibold">Kode</th>
-                    <th className="px-4 py-3 font-semibold">Pekon / Kelurahan</th>
+                    <th className="px-4 py-3 font-semibold">Desa / Kelurahan</th>
                     {detailKolom.map((k) => (
                       <th key={k} className="px-4 py-3 text-right font-semibold">{labelKolom(k)}</th>
                     ))}

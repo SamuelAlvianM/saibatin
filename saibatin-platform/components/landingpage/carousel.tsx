@@ -221,8 +221,17 @@ export default function ElegantCarousel({
             <div key={slide.id} className={slideClass}>
               {/* Background image */}
               <div className="absolute inset-0 overflow-hidden">
+                {/* Latar buram: mengisi sisa bingkai kalau rasio foto tidak sama
+                    dengan rasio kontainer, jadi tidak muncul bilah kosong. */}
                 <div
-                  className={`w-full h-full bg-cover bg-center ${isActive ? "carousel-image-scale" : ""}`}
+                  className={`absolute inset-0 bg-cover bg-center scale-110 blur-xl opacity-70 ${isActive ? "carousel-image-scale" : ""}`}
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                  aria-hidden
+                />
+                {/* Foto utama: `contain` supaya SELURUH isi foto terlihat —
+                    dulu `cover` sehingga sisi gambar terpotong. */}
+                <div
+                  className="absolute inset-0 bg-contain bg-center bg-no-repeat"
                   style={{ backgroundImage: `url(${slide.image})` }}
                 />
                 {/* Gradient overlay — ringan agar foto terlihat; gelap hanya di

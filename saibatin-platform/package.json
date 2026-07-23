@@ -17,6 +17,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^6.19.3",
     "@prisma/client": "^6.2.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-navigation-menu": "^1.2.14",
@@ -42,6 +43,7 @@
     "jose": "^5.9.6",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.563.0",
+    "mariadb": "^3.4.5",
     "next": "16.1.6",
     "nodemailer": "^9.0.3",
     "pdfkit": "^0.19.1",

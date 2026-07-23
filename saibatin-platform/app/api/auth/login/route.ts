@@ -39,6 +39,12 @@ export async function POST(req: NextRequest) {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return fail(["Info: Password salah (L-04)"]);
 
+    // Dibaca SEBELUM loginLast ditimpa di bawah: warga yang baru pertama kali
+    // masuk dan belum punya foto diarahkan melengkapinya di Pengaturan Akun.
+    // Sifatnya anjuran — halaman tujuan tetap bisa ditinggalkan.
+    const lengkapiFoto =
+      user.userlevelId === 3 && !user.userFoto && user.loginLast === null;
+
     await prisma.user.update({
       where: { id: user.id },
       data: { loginLast: new Date(), ipAddress: req.headers.get("x-forwarded-for") ?? "" },
@@ -60,6 +66,7 @@ export async function POST(req: NextRequest) {
           email: user.userEmail,
           level: user.userlevelId,
         },
+        lengkapiFoto,
       },
       ["Info: Login berhasil"]
     );

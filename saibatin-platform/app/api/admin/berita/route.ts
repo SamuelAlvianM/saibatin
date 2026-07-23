@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -58,6 +59,14 @@ export async function POST(req: NextRequest) {
       publish: Boolean(publish),
     },
   });
+
+  await catatAktivitas(
+    session,
+    "BUAT",
+    "Berita",
+    `Membuat berita "${item.judul}"${item.publish ? " (terbit)" : " (draf)"}`,
+    { entitasId: item.id, req },
+  );
 
   return ok({ item }, ["Info: Berita berhasil dibuat"]);
 }

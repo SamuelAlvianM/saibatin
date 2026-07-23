@@ -17,6 +17,11 @@ export interface KartuIndeksItem {
   gradasi: string;
   /** Keterangan kecil di kaki kartu (mis. "170.207 jiwa", "3 dokumen"). */
   stat?: string;
+  /**
+   * Kontrol admin (ubah/hapus) yang ditumpuk di pojok kartu. Dirender sebagai
+   * SAUDARA dari <Link>, bukan anaknya, agar tidak ada tombol di dalam tautan.
+   */
+  aksi?: React.ReactNode;
 }
 
 export function HalamanIndeksKartu({
@@ -24,12 +29,15 @@ export function HalamanIndeksKartu({
   judul,
   deskripsi,
   items,
+  aksiTambah,
 }: {
   /** Label kecil di atas judul (mis. "PPID · Keterbukaan Informasi Publik"). */
   eyebrow?: string;
   judul: string;
   deskripsi: string;
   items: KartuIndeksItem[];
+  /** Area "Tambah menu baru" (hanya dirender untuk admin). */
+  aksiTambah?: React.ReactNode;
 }) {
   return (
     <div className="relative min-h-screen bg-slate-50/30">
@@ -56,10 +64,11 @@ export function HalamanIndeksKartu({
           {items.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
+              <div key={item.href} className="relative">
+                {item.aksi}
+                <Link
                 href={item.href}
-                className="group flex flex-col rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
+                className="group flex h-full flex-col rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
               >
                 <div
                   className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:scale-110 ${item.gradasi}`}
@@ -84,10 +93,12 @@ export function HalamanIndeksKartu({
                     Lihat Detail <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
-              </Link>
+                </Link>
+              </div>
             );
           })}
         </div>
+        {aksiTambah}
       </div>
       <Footer />
     </div>

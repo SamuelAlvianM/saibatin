@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -36,6 +37,10 @@ export async function POST(req: NextRequest) {
     if (!judul || !gambar) return fail(["Judul dan gambar wajib diisi"]);
 
     const item = await prisma.gallery.create({ data: { judul, gambar, kategori: kategori ?? null } });
+    await catatAktivitas(session, "BUAT", "Galeri", `Menambah foto galeri "${item.judul}"`, {
+      entitasId: item.id,
+      req,
+    });
     return ok({ item }, ["Foto berhasil ditambahkan"]);
   } catch {
     return fail(["Gagal menyimpan foto"], 500);

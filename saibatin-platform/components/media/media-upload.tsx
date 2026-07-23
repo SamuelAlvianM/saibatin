@@ -55,15 +55,35 @@ export function MediaUpload({
           method: "POST",
           body: form,
         });
-        const json = await res.json();
-        if (!res.ok || json.error?.length) {
-          toast.error(json.error?.[0] ?? "Gagal mengunggah file");
+        // Web server bisa membalas HTML (413 terlalu besar, 502 proses mati)
+        // alih-alih JSON. Dulu res.json() melempar dan tertangkap catch di
+        // bawah, sehingga penyebab aslinya tertutup pesan generik dan unggahan
+        // terlihat "gagal terus" tanpa alasan. Baca sebagai teks dulu.
+        const mentah = await res.text();
+        let json: { error?: string[]; data?: { media?: MediaItem } } | null = null;
+        try {
+          json = JSON.parse(mentah);
+        } catch {
+          toast.error(
+            res.status === 413
+              ? "File terlalu besar untuk diterima server"
+              : `Server menolak unggahan (HTTP ${res.status})`,
+          );
+          return;
+        }
+
+        if (!res.ok || json?.error?.length) {
+          toast.error(json?.error?.[0] ?? `Gagal mengunggah file (${res.status})`);
+          return;
+        }
+        if (!json?.data?.media) {
+          toast.error("Respons server tidak dikenali");
           return;
         }
         toast.success("File berhasil diunggah");
-        onUploaded(json.data.media as MediaItem);
+        onUploaded(json.data.media);
       } catch {
-        toast.error("Gagal mengunggah file");
+        toast.error("Gagal menghubungi server saat mengunggah");
       } finally {
         setUploading(false);
       }

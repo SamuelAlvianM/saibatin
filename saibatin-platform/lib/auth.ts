@@ -50,6 +50,14 @@ export async function getSession(): Promise<SessionPayload | null> {
   }
 }
 
+/**
+ * Staff = superadmin (level 1) atau operator (2). Warga = level 3.
+ * Dipakai untuk membatasi akses berkas permohonan & aksi dashboard.
+ */
+export function isStaff(session: SessionPayload | null): boolean {
+  return session !== null && (session.level === 1 || session.level === 2);
+}
+
 /** Hapus sesi (logout). */
 export async function destroySession() {
   const store = await cookies();

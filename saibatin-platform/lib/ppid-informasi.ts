@@ -1,35 +1,20 @@
-import {
-  BadgeCheck,
-  BookOpen,
-  CalendarDays,
-  ClipboardCheck,
-  ClipboardList,
-  Coins,
-  FileCheck,
-  FileText,
-  Flag,
-  Gauge,
-  Gift,
-  Handshake,
-  ShieldCheck,
-  Smile,
-  Target,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react';
-
 /**
  * Dua klasifikasi Informasi Publik PPID (UU No. 14 Tahun 2008) yang tampil
  * sebagai halaman indeks kartu (bukan submenu navbar): satu sumber untuk
  * halaman /ppid/informasi-setiap-saat, /ppid/informasi-berkala, navbar,
  * dan editor Konten Halaman.
+ *
+ * `icon` disimpan sebagai NAMA (string) — bukan komponen — agar kartu bisa
+ * ditambah/diubah admin lewat database (StaticContent). Pemetaan nama →
+ * komponen dilakukan `getIcon()` di lib/icon-map.ts saat render.
  */
 
 export interface PpidInformasiItem {
   title: string;
   href: string;
   description: string;
-  icon: LucideIcon;
+  /** Nama ikon Lucide, harus ada di ICON_MAP (lib/icon-map.ts). */
+  icon: string;
   /** Kelas gradien Tailwind untuk kotak ikon kartu (mis. "from-sky-400 to-sky-600"). */
   gradasi: string;
 }
@@ -57,63 +42,63 @@ export const PPID_SETIAP_SAAT: PpidInformasiGrup = {
       title: 'Laporan PPID Pelaksana',
       href: '/ppid/laporan-ppid-pelaksana',
       description: 'Laporan pelaksanaan tugas layanan informasi publik PPID Pelaksana.',
-      icon: FileText,
+      icon: 'FileText',
       gradasi: 'from-sky-400 to-sky-600',
     },
     {
       title: 'LKJIP (Laporan Kinerja Instansi Pemerintah)',
       href: '/ppid/lkjip',
       description: 'Laporan kinerja tahunan Disdukcapil Kabupaten Pesisir Barat.',
-      icon: ClipboardCheck,
+      icon: 'ClipboardCheck',
       gradasi: 'from-amber-400 to-amber-600',
     },
     {
       title: 'Survey Kepuasan Masyarakat',
       href: '/ppid/survey-kepuasan-masyarakat',
       description: 'Hasil pengukuran kepuasan masyarakat terhadap pelayanan publik.',
-      icon: Smile,
+      icon: 'Smile',
       gradasi: 'from-emerald-400 to-emerald-600',
     },
     {
       title: 'Buku Profil Kependudukan',
       href: '/ppid/buku-profil-kependudukan',
       description: 'Buku profil data kependudukan Kabupaten Pesisir Barat.',
-      icon: BookOpen,
+      icon: 'BookOpen',
       gradasi: 'from-violet-400 to-violet-600',
     },
     {
       title: 'Dokumen Pelaksana Anggaran (DPA)',
       href: '/ppid/dpa',
       description: 'Dokumen pelaksanaan anggaran tahunan perangkat daerah.',
-      icon: Coins,
+      icon: 'Coins',
       gradasi: 'from-teal-400 to-teal-600',
     },
     {
       title: 'Indikator Kinerja Individu (IKI)',
       href: '/ppid/iki',
       description: 'Indikator kinerja individu pegawai di lingkungan Disdukcapil.',
-      icon: Target,
+      icon: 'Target',
       gradasi: 'from-rose-400 to-rose-600',
     },
     {
       title: 'Rencana Kinerja Tahunan (RKT)',
       href: '/ppid/rkt',
       description: 'Rencana kinerja tahunan Disdukcapil Kabupaten Pesisir Barat.',
-      icon: CalendarDays,
-      gradasi: 'from-blue-500 to-indigo-600',
+      icon: 'CalendarDays',
+      gradasi: 'from-[#2e6da4] to-[#1b4b72]',
     },
     {
       title: 'Rencana Kerja (Renka)',
       href: '/ppid/renka',
       description: 'Rencana kerja tahunan instansi.',
-      icon: ClipboardList,
+      icon: 'ClipboardList',
       gradasi: 'from-slate-500 to-slate-700',
     },
     {
       title: 'Perjanjian Kerjasama',
       href: '/ppid/perjanjian-kerjasama',
       description: 'Daftar perjanjian kerjasama Disdukcapil dengan pihak lain.',
-      icon: Handshake,
+      icon: 'Handshake',
       gradasi: 'from-cyan-400 to-cyan-600',
     },
   ],
@@ -131,59 +116,72 @@ export const PPID_BERKALA: PpidInformasiGrup = {
       title: 'Renstra OPD',
       href: '/ppid/renstra-opd',
       description: 'Rencana Strategis Organisasi Perangkat Daerah.',
-      icon: Flag,
+      icon: 'Flag',
       gradasi: 'from-sky-400 to-sky-600',
     },
     {
       title: 'Standar Pelayanan',
       href: '/ppid/standar-pelayanan',
       description: 'Standar pelayanan publik Disdukcapil Kabupaten Pesisir Barat.',
-      icon: BadgeCheck,
+      icon: 'BadgeCheck',
       gradasi: 'from-emerald-400 to-emerald-600',
     },
     {
       title: 'Indikator Kinerja Utama (IKU)',
       href: '/ppid/iku',
       description: 'Indikator kinerja utama instansi.',
-      icon: Gauge,
+      icon: 'Gauge',
       gradasi: 'from-amber-400 to-amber-600',
     },
     {
       title: 'Perjanjian Kinerja',
       href: '/ppid/perjanjian-kinerja',
       description: 'Perjanjian kinerja pejabat Disdukcapil Kabupaten Pesisir Barat.',
-      icon: FileCheck,
+      icon: 'FileCheck',
       gradasi: 'from-violet-400 to-violet-600',
     },
     {
       title: 'Standar Operasional Prosedur (SOP)',
       href: '/ppid/sop',
       description: 'Standar operasional prosedur pelayanan.',
-      icon: ClipboardCheck,
+      icon: 'ClipboardCheck',
       gradasi: 'from-teal-400 to-teal-600',
     },
     {
       title: 'LHKPN',
       href: '/ppid/lhkpn',
       description: 'Laporan Harta Kekayaan Penyelenggara Negara pejabat Disdukcapil.',
-      icon: Wallet,
+      icon: 'Wallet',
       gradasi: 'from-rose-400 to-rose-600',
     },
     {
       title: 'Zona Integritas',
       href: '/ppid/zona-integritas',
       description: 'Pembangunan zona integritas menuju WBK/WBBM.',
-      icon: ShieldCheck,
-      gradasi: 'from-blue-500 to-indigo-600',
+      icon: 'ShieldCheck',
+      gradasi: 'from-[#2e6da4] to-[#1b4b72]',
     },
     {
       title: 'Pengendalian Gratifikasi',
       href: '/ppid/pengendalian-gratifikasi',
       description: 'Kebijakan dan pelaporan pengendalian gratifikasi.',
-      icon: Gift,
+      icon: 'Gift',
       gradasi: 'from-cyan-400 to-cyan-600',
     },
   ],
 };
 
 export const PPID_INFORMASI_GRUP = [PPID_SETIAP_SAAT, PPID_BERKALA];
+
+/** Pilihan gradasi warna kotak ikon — dipakai modal "Tambah menu baru". */
+export const PPID_GRADASI_PILIHAN = [
+  { label: 'Biru', value: 'from-sky-400 to-sky-600' },
+  { label: 'Hijau', value: 'from-emerald-400 to-emerald-600' },
+  { label: 'Kuning', value: 'from-amber-400 to-amber-600' },
+  { label: 'Ungu', value: 'from-violet-400 to-violet-600' },
+  { label: 'Toska', value: 'from-teal-400 to-teal-600' },
+  { label: 'Merah', value: 'from-rose-400 to-rose-600' },
+  { label: 'Biru Tua', value: 'from-[#2e6da4] to-[#1b4b72]' },
+  { label: 'Abu', value: 'from-slate-500 to-slate-700' },
+  { label: 'Sian', value: 'from-cyan-400 to-cyan-600' },
+];

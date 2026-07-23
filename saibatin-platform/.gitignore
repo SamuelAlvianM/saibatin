@@ -27,8 +27,23 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Media terupload runtime (backup terpisah, jangan ikut git)
-/storage/uploads/
+# Media terupload runtime (backup terpisah, jangan ikut git).
+# SELURUH storage/ berisi data PRIBADI warga (berkas permohonan KTP/KK di
+# storage/permohonan, foto selfie di storage/profil) — jangan pernah masuk git.
+/storage/
+
+# Berkas permohonan warga yang (secara legacy) sempat ditulis ke public/uploads.
+# Folder konten publik (berita, produk, galeri) tetap dilacak seperti biasa.
+/public/uploads/konsolidasi-update-data/
+/public/uploads/akta-kelahiran-nik-tidak-ada/
+
+# Artefak build & deploy (dibangun ulang, jangan di-commit)
+*.tar.gz
+*.zip
+/.deploy-cache/
+/deploy-cache/
+*.stackdump
+DOKUMENTASI-SISTEM-SAIBATIN.pdf
 
 # Deploy secrets
 deploy/.env

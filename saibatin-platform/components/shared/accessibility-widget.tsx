@@ -304,7 +304,22 @@ export function AccessibilityWidget() {
         aria-label="Buka menu aksesibilitas"
         aria-expanded={open}
         title="Aksesibilitas"
-        className="fixed right-3 top-[62%] z-[70] flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-primary/40"
+        className={[
+          'fixed right-3 top-[62%] z-[70] flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full',
+          // Glassy: biru brand yang cukup tembus + blur kuat, supaya efek
+          // kacanya benar-benar terlihat (latar di belakangnya ikut terbias).
+          'bg-gradient-to-br from-[#7db8e8]/65 via-[#2176bd]/70 to-[#1b4b72]/75 text-white',
+          'backdrop-blur-xl backdrop-saturate-150',
+          // Tepi terang → memisahkan tombol dari latar apa pun (termasuk hero
+          // gelap di beranda saat tampilan ponsel, yang tadinya menyatu).
+          'border border-white/60 ring-1 ring-black/10',
+          // Timbul (3D): bayangan luar berlapis + sorotan dalam di sisi atas
+          // dan bayangan dalam di sisi bawah.
+          'shadow-[0_10px_24px_-6px_rgba(0,0,0,0.45),0_3px_8px_rgba(0,0,0,0.22),inset_0_1.5px_0_rgba(255,255,255,0.5),inset_0_-3px_8px_rgba(0,0,0,0.18)]',
+          'transition-all duration-200 hover:-translate-y-[calc(50%+2px)] hover:scale-105',
+          'hover:shadow-[0_16px_32px_-6px_rgba(0,0,0,0.5),0_4px_10px_rgba(0,0,0,0.25),inset_0_1.5px_0_rgba(255,255,255,0.6),inset_0_-3px_8px_rgba(0,0,0,0.18)]',
+          'active:scale-95 focus-visible:ring-4 focus-visible:ring-primary/40',
+        ].join(' ')}
       >
         <Accessibility className="h-6 w-6" aria-hidden />
       </button>

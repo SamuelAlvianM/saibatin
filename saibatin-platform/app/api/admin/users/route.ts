@@ -6,6 +6,10 @@ import { getSession } from "@/lib/auth";
 import { sendMail } from "@/lib/mail";
 import { tplAkunDisetujui, tplAkunDitolak } from "@/lib/mail-templates";
 import { createNotifikasi, safeNotify } from "@/lib/notifikasi";
+import { catatAktivitas } from "@/lib/log-aktivitas";
+import { simpanFotoProfil } from "@/lib/foto-profil";
+
+const NAMA_LEVEL: Record<number, string> = { 2: "Staff", 3: "Warga", 4: "Operator OPD" };
 
 /** Pastikan pemanggil adalah operator/admin (level 1 atau 2). */
 async function requireAdmin() {
@@ -55,6 +59,8 @@ export async function GET(req: NextRequest) {
       userNokk: true,
       userHp: true,
       userEmail: true,
+      userKecamatan: true,
+      userFoto: true,
       status: true,
       createdAt: true,
       level: { select: { nama: true } },
@@ -78,16 +84,19 @@ export async function POST(req: NextRequest) {
   if (!session) return fail(["Tidak diizinkan"], 403);
 
   const body = await req.json().catch(() => ({}));
-  const { nama, userId, nik, kk, hp, email, level, password } = body as {
-    nama?: string;
-    userId?: string; // NIK (warga) atau username (OPD/staff)
-    nik?: string; // NIK perwakilan instansi (khusus OPD)
-    kk?: string;
-    hp?: string;
-    email?: string;
-    level?: number;
-    password?: string;
-  };
+  const { nama, userId, nik, kk, hp, email, level, password, kecamatan, foto } =
+    body as {
+      nama?: string;
+      userId?: string; // NIK (warga) atau username (OPD/staff)
+      nik?: string; // NIK perwakilan instansi (khusus OPD)
+      kk?: string;
+      hp?: string;
+      email?: string;
+      level?: number;
+      password?: string;
+      kecamatan?: string; // kecamatan domisili (khusus warga)
+      foto?: string; // data URL selfie (opsional, khusus warga)
+    };
 
   if (!nama?.trim() || !userId?.trim() || !password) {
     return fail(["Info: Nama, NIK/Username, dan password wajib diisi"]);
@@ -98,8 +107,17 @@ export async function POST(req: NextRequest) {
   if (level === 2 && session.level !== 1) {
     return fail(["Info: Hanya Super Admin yang dapat membuat akun Staff"], 403);
   }
-  if (level === 3 && !/^\d{16}$/.test(userId)) {
-    return fail(["Info: NIK warga harus 16 digit angka"]);
+  if (level === 3) {
+    if (!/^\d{16}$/.test(userId)) {
+      return fail(["Info: NIK warga harus 16 digit angka"]);
+    }
+    if (kk && !/^\d{16}$/.test(kk)) {
+      return fail(["Info: Nomor Kartu Keluarga harus 16 digit angka"]);
+    }
+    // Sama seperti pendaftaran mandiri: kecamatan menentukan wilayah layanan.
+    if (!kecamatan?.trim()) {
+      return fail(["Info: Kecamatan domisili wajib dipilih untuk akun warga"]);
+    }
   }
   // OPD login memakai USERNAME instansi (mis. rs.saibatin); NIK perwakilan
   // disimpan terpisah untuk fitur lupa password.
@@ -153,16 +171,38 @@ export async function POST(req: NextRequest) {
         userNokk: kk?.trim() || null,
         userHp: hp?.trim() || null,
         userEmail: email?.trim() || null,
+        userKecamatan: level === 3 ? (kecamatan ?? "").trim() || null : null,
         status: 1, // dibuat petugas = langsung aktif
         activationTime: new Date(),
         createdBy: session.uid,
       },
     });
 
+    // Foto wajah bersifat opsional di sini: warga belum tentu hadir saat
+    // petugas membuatkan akunnya. Nama berkasnya diawali id pemilik — dasar
+    // kontrol akses di app/uploads/[...path].
+    if (foto) {
+      const urlFoto = await simpanFotoProfil(foto, user.id);
+      if (urlFoto) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { userFoto: urlFoto },
+        });
+      }
+    }
+
     if (user.userEmail) {
       const mail = tplAkunDisetujui(user.userFullname ?? user.userId);
       await sendMail({ to: user.userEmail, ...mail });
     }
+
+    await catatAktivitas(
+      session,
+      "BUAT",
+      "Akun",
+      `Membuat akun ${user.userFullname ?? user.userId} (${NAMA_LEVEL[level] ?? `level ${level}`})`,
+      { entitasId: user.id, req },
+    );
 
     return ok({ id: user.id }, ["Info: Akun berhasil dibuat dan langsung aktif"]);
   } catch {
@@ -224,6 +264,14 @@ export async function PATCH(req: NextRequest) {
         }),
       );
     }
+
+    await catatAktivitas(
+      session,
+      "UBAH",
+      "Akun",
+      `${status === 1 ? "Mengaktifkan" : "Menonaktifkan"} akun ${user.userFullname ?? user.userId}`,
+      { entitasId: user.id, req },
+    );
 
     return ok(null, [
       status === 1 ? "Info: Akun berhasil diaktifkan" : "Info: Akun dinonaktifkan/ditolak",

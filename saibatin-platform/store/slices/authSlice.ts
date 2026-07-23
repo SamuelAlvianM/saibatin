@@ -14,6 +14,14 @@ interface AuthState {
   isLoading: boolean;
   error: string[] | null;
   success: string[] | null;
+  /**
+   * Server menandai warga yang baru pertama kali masuk dan belum punya foto
+   * profil, agar halaman login mengarahkannya ke Pengaturan Akun. Disimpan di
+   * state (bukan variabel lokal) supaya nilainya berubah pada render yang SAMA
+   * dengan `isAuthenticated` — kalau tidak, efek pengalihan bisa jalan duluan
+   * memakai tujuan lama.
+   */
+  lengkapiFoto: boolean;
 }
 
 const initialState: AuthState = {
@@ -22,6 +30,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   success: null,
+  lengkapiFoto: false,
 };
 
 // API base URL — kosong = panggil Route Handler Next.js sendiri (relatif).
@@ -73,6 +82,10 @@ export const registerUser = createAsyncThunk(
       email: string;
       pass: string;
       pass2: string;
+      /** Nama kecamatan domisili sesuai Kartu Keluarga. */
+      kecamatan: string;
+      /** Foto wajah/selfie sebagai data URL JPEG. */
+      foto: string;
       recaptchaToken?: string;
       /** Bukti verifikasi OTP WhatsApp dari /api/otp/verify. */
       otpBukti?: string;
@@ -307,6 +320,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.data?.user || null;
+        state.lengkapiFoto = !!action.payload.data?.lengkapiFoto;
         state.success = action.payload.success;
         state.error = null;
       })

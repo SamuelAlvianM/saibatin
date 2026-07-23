@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
+// Pakai singleton adapter (Rust-free) yang sama dengan app — `new PrismaClient()`
+// polos tak lagi bisa konek karena engineType "client" mewajibkan driver adapter.
+import { prisma } from "../lib/prisma";
 
 const JENIS = [
   ["AKTA_KELAHIRAN_NIK_ADA", "Akta Kelahiran (NIK Sudah Ada)", "CAPIL"],

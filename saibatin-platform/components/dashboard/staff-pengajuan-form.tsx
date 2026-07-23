@@ -14,7 +14,9 @@ import {
   X,
   Send,
   FileText,
+  ZoomIn,
 } from 'lucide-react';
+import { ImageViewer, type GambarItem } from '@/components/shared/image-viewer';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -35,6 +37,14 @@ interface Props {
   layanan: LayananForm;
   onBack: () => void;
   onSuccess?: (noregister: string) => void;
+  /** Warga/OPD mengisi untuk dirinya sendiri (bukan petugas atas nama warga).
+   *  Mengubah teks pengantar & banner. Renderer segmen-nya sama persis. */
+  mandiri?: boolean;
+  /** Nilai awal (mis. NIK/nama/email milik pengaju yang sedang login). */
+  prefill?: Record<string, string>;
+  /** Sembunyikan tombol "Kembali" di header — dipakai saat halaman pembungkus
+   *  sudah punya tombol kembali sendiri. */
+  hideHeaderBack?: boolean;
 }
 
 type Values = Record<string, string>;
@@ -59,14 +69,23 @@ function validateField(fd: FieldDef, value: string): string | null {
   return null;
 }
 
-export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
-  const [values, setValues] = useState<Values>({});
+export function StaffPengajuanForm({
+  layanan,
+  onBack,
+  onSuccess,
+  mandiri = false,
+  prefill,
+  hideHeaderBack = false,
+}: Props) {
+  const [values, setValues] = useState<Values>(() => ({ ...(prefill ?? {}) }));
   const [fileNames, setFileNames] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   // Field yang sedang di-hover saat seret berkas (untuk sorot drop zone).
   const [dragField, setDragField] = useState<string | null>(null);
+  // Berkas yang sedang dilihat di penampil layar penuh.
+  const [lihatGambar, setLihatGambar] = useState<GambarItem | null>(null);
 
   const allFields = useMemo(
     () => layanan.sections.flatMap((s) => s.fields),
@@ -182,8 +201,20 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
             // Pratinjau gambar + tombol batal.
             <div className="overflow-hidden rounded-lg border-2 border-success/40 bg-success/5">
               <div className="group relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={val} alt={fd.label} className="h-28 w-full bg-slate-100 object-cover" />
+                {/* Klik pratinjau → penampil layar penuh (zoom & putar), supaya
+                    pengunggah bisa memastikan hasil fotonya benar-benar terbaca. */}
+                <button
+                  type="button"
+                  onClick={() => setLihatGambar({ src: val, judul: fd.label })}
+                  className="block w-full cursor-zoom-in"
+                  title="Klik untuk perbesar, zoom & putar"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={val} alt={fd.label} className="h-28 w-full bg-slate-100 object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/25">
+                    <ZoomIn className="h-5 w-5 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                  </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => removeFile(fd.name)}
@@ -300,9 +331,11 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Header + back */}
       <div className="mb-6 flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={onBack} className="gap-1.5">
-          <ArrowLeft className="h-4 w-4" /> Kembali
-        </Button>
+        {!hideHeaderBack && (
+          <Button variant="outline" size="sm" onClick={onBack} className="gap-1.5">
+            <ArrowLeft className="h-4 w-4" /> Kembali
+          </Button>
+        )}
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <FileText className="h-5 w-5 text-primary" /> {layanan.title}
@@ -312,7 +345,17 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
       </div>
 
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary mb-6">
-        Anda mengisi permohonan <b>atas nama warga</b>. Pastikan data sesuai dokumen asli sebelum dikirim.
+        {mandiri ? (
+          <>
+            Lengkapi seluruh data di bawah lalu kirim. Isi <b>satu halaman ini</b>{' '}
+            sesuai dokumen asli — data Anda akan diverifikasi petugas.
+          </>
+        ) : (
+          <>
+            Anda mengisi permohonan <b>atas nama warga</b>. Pastikan data sesuai
+            dokumen asli sebelum dikirim.
+          </>
+        )}
       </div>
 
       <div className="space-y-5">
@@ -346,6 +389,10 @@ export function StaffPengajuanForm({ layanan, onBack, onSuccess }: Props) {
           {submitting ? 'Mengirim...' : 'Kirim Permohonan'}
         </Button>
       </div>
+
+      {lihatGambar && (
+        <ImageViewer items={[lihatGambar]} onClose={() => setLihatGambar(null)} />
+      )}
     </div>
   );
 }

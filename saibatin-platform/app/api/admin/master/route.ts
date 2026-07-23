@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,14 @@ export async function POST(req: NextRequest) {
           `[Master] Kunci dibuka oleh ${session.nama ?? session.userId} — status dikembalikan ke Diproses.`,
       },
     });
+
+    await catatAktivitas(
+      session,
+      "UBAH",
+      "Permohonan",
+      `Membuka kunci permohonan ${noregister} (master) — status kembali ke Diproses`,
+      { entitasId: permohonan.id, req },
+    );
 
     return ok(null, [
       `Info: Kunci permohonan ${noregister} dibuka — status kembali ke Diproses`,

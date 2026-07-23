@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { RichEditor } from '@/components/shared/rich-editor';
 import { ImagePickerField } from '@/components/media/image-picker-field';
-import { Plus, Trash2, Search, Shapes } from 'lucide-react';
+import { Plus, Trash2, Search, Shapes, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ICON_MAP, ICON_NAMES } from '@/lib/icon-map';
 import type { StaticField } from '@/lib/static-content-registry';
@@ -126,6 +126,7 @@ export function FieldEditor({
   const rows = Array.isArray(value) ? (value as Record<string, string>[]) : [];
   const cols = field.itemFields ?? [];
   const imageCol = cols.find((c) => c.type === 'image');
+  const catatan = field.catatan;
   const textCols = cols.filter((c) => c.type !== 'image');
   // Kolom bernuansa deskripsi → textarea yang bisa memanjang.
   const isLongText = (name: string) => /desc|ket|penjelasan|subtitle|isi/i.test(name);
@@ -136,6 +137,12 @@ export function FieldEditor({
   return (
     <div className="space-y-2">
       <Label>{field.label}</Label>
+      {catatan && (
+        <p className="flex items-start gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-relaxed text-blue-800 ring-1 ring-blue-100">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{catatan}</span>
+        </p>
+      )}
       <div className="space-y-3">
         {rows.map((row, idx) => (
           <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3">
@@ -162,6 +169,8 @@ export function FieldEditor({
                     label={imageCol.label}
                     value={row[imageCol.name] ?? ''}
                     onChange={(v) => setRow(idx, imageCol.name, v)}
+                    aspect={imageCol.aspect}
+                    hint={imageCol.hint}
                   />
                 </div>
               )}
@@ -200,12 +209,6 @@ export function FieldEditor({
                           )}
                         </SelectContent>
                       </Select>
-                    ) : col.type === 'richtext' ? (
-                      <RichEditor
-                        value={row[col.name] ?? ''}
-                        onChange={(v) => setRow(idx, col.name, v)}
-                        placeholder={col.label}
-                      />
                     ) : isLongText(col.name) ? (
                       <Textarea
                         rows={3}
@@ -244,23 +247,40 @@ export function FieldEditor({
   );
 }
 
-/** Kolom gambar dalam editor "items": satu tile preview-sekaligus-tombol. */
+/** Kolom gambar dalam editor "items": satu tile preview-sekaligus-tombol.
+ *  `aspect` mengunci rasio crop saat unggah (agar seragam); `hint` = keterangan
+ *  ukuran singkat di bawah tile. */
 function ImageColumnInput({
   label,
   value,
   onChange,
+  aspect,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  aspect?: number;
+  hint?: string;
 }) {
   return (
-    <ImagePickerField
-      label={label}
-      value={value}
-      onChange={onChange}
-      className="aspect-[4/3] w-full"
-    />
+    <div className="space-y-1">
+      <ImagePickerField
+        label={label}
+        value={value}
+        onChange={onChange}
+        aspect={aspect}
+        // Bila rasio disarankan diketahui, tile ikut memakainya supaya pratinjau
+        // di editor mencerminkan bentuk akhir di carousel.
+        className={cn('w-full', aspect ? '' : 'aspect-[4/3]')}
+        style={aspect ? { aspectRatio: String(aspect) } : undefined}
+      />
+      {hint && (
+        <p className="text-center text-[0.65rem] font-medium text-slate-400">
+          {hint}
+        </p>
+      )}
+    </div>
   );
 }
 

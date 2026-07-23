@@ -11,7 +11,7 @@ export default async function DashboardKontenPage() {
   if (session.level !== 1) redirect('/dashboard');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-dashboard">
       <div className="px-4 py-6 md:px-6">
         <BackButton href="/dashboard" />
         <div className="mb-4 mt-1">

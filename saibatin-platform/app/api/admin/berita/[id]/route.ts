@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api-response";
 import { getSession } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -60,12 +61,17 @@ export async function PUT(
     },
   });
 
+  await catatAktivitas(session, "UBAH", "Berita", `Memperbarui berita "${item.judul}"`, {
+    entitasId: item.id,
+    req,
+  });
+
   return ok({ item }, ["Info: Berita berhasil diperbarui"]);
 }
 
 /** Hapus berita. */
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requireAdmin();
@@ -73,7 +79,18 @@ export async function DELETE(
 
   const { id } = await params;
   try {
+    const existing = await prisma.news.findUnique({
+      where: { id: Number(id) },
+      select: { judul: true },
+    });
     await prisma.news.delete({ where: { id: Number(id) } });
+    await catatAktivitas(
+      session,
+      "HAPUS",
+      "Berita",
+      `Menghapus berita "${existing?.judul ?? id}"`,
+      { entitasId: id, req },
+    );
     return ok(null, ["Info: Berita berhasil dihapus"]);
   } catch {
     return fail(["Info: Gagal menghapus berita"], 500);

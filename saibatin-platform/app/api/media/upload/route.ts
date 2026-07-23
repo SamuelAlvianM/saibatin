@@ -14,6 +14,7 @@ import {
   mediaPublicUrl,
   mediaSubdir,
 } from "@/lib/media";
+import { catatAktivitas } from "@/lib/log-aktivitas";
 
 /**
  * Upload media ke pustaka terpusat (khusus admin/operator).
@@ -88,6 +89,14 @@ export async function POST(req: NextRequest) {
         uploadedBy: session.uid,
       },
     });
+
+    await catatAktivitas(
+      session,
+      "UNGGAH",
+      "Media",
+      `Mengunggah media "${media.namaAsli}"`,
+      { entitasId: media.id, req },
+    );
 
     return ok({ media }, ["File berhasil diunggah"]);
   } catch (err) {

@@ -24,11 +24,8 @@ export interface NavMenu {
 }
 
 export const navigationItems: NavMenu[] = [
-  {
-    // Tanpa dropdown — langsung ke halaman permohonan online.
-    title: "Pelayanan Online",
-    href: "/permohonan-online",
-  },
+  // "Pelayanan Online" dihapus dari navbar publik — pembuatan permohonan
+  // dipindah ke dashboard (warga & OPD) sebagai halaman penuh, bukan modal.
   {
     title: "Produk",
     items: [
@@ -86,23 +83,6 @@ export const navigationItems: NavMenu[] = [
     ],
   },
   {
-    title: "Pengaduan",
-    items: [
-      {
-        title: "Pengaduan Masyarakat",
-        href: "/pengaduan",
-        description:
-          "Sampaikan pengaduan layanan maupun laporan dugaan pelanggaran (WBS) — identitas pelapor dijaga kerahasiaannya",
-      },
-      {
-        title: "Kritik & Saran",
-        href: "/hubungi-kami/kritik-saran",
-        description: "Kritik dan saran untuk peningkatan layanan",
-      },
-      // "Hubungi Kami" dihapus dari menu Pengaduan — sudah ada menu utama Hubungi Kami.
-    ],
-  },
-  {
     title: "PPID",
     items: [
       {
@@ -127,9 +107,22 @@ export const navigationItems: NavMenu[] = [
       },
     ],
   },
-  // Menu "WBS" dilebur ke menu Pengaduan — satu kanal untuk pengaduan layanan
-  // sekaligus Whistle Blowing System. Halaman /wbs/tentang-wbs dan
-  // /wbs/form-pengaduan tetap dapat diakses (tercantum di peta situs).
+  {
+    title: "Pengaduan",
+    items: [
+      {
+        title: "Pengaduan Masyarakat",
+        href: "/pengaduan",
+        description:
+          "Sampaikan pengaduan layanan maupun laporan dugaan pelanggaran (WBS) — identitas pelapor dijaga kerahasiaannya",
+      },
+      {
+        title: "Kritik & Saran",
+        href: "/hubungi-kami/kritik-saran",
+        description: "Kritik dan saran untuk peningkatan layanan",
+      },
+    ],
+  },
   {
     // Tanpa dropdown — langsung ke halaman info kontak (alamat, jam kerja,
     // peta, tombol pengaduan).

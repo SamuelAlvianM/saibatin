@@ -4,6 +4,8 @@
  * membaca istilah yang sama dengan formulir aslinya.
  */
 
+import { labelKode } from "./kode-options";
+
 /** Label field data (non-berkas). */
 export const FIELD_LABELS: Record<string, string> = {
   pemohonnik: "NIK Pemohon",
@@ -151,7 +153,11 @@ export const BERKAS_LABELS: Record<string, string> = {
   filesuratpindah: "Surat Pindah",
 };
 
-/** Nilai kode → label untuk select tertentu (mengikuti OptionModel lama). */
+/**
+ * Sisa peta manual dari iterasi awal. Sebagian besar kini tertutup oleh
+ * lib/kode-options.ts (dibangkitkan dari m_options), tapi dipertahankan sebagai
+ * jaring pengaman untuk nilai yang tidak ada di dump.
+ */
 const CODE_VALUES: Record<string, Record<string, string>> = {
   jeniskelamin: { "1": "Laki-laki", "2": "Perempuan" },
   tempatdilahirkan: {
@@ -194,6 +200,12 @@ export function labelBerkas(key: string): string {
 /** Format nilai payload (terjemahkan kode select yang dikenal). */
 export function formatPayloadValue(key: string, value: unknown): string {
   const s = String(value ?? "");
+  // Kamus lengkap dari m_options portal lama — menutup data migrasi yang
+  // menyimpan KODE (agama "1", pekerjaan "88", dst). Dicoba lebih dulu karena
+  // cakupannya jauh lebih luas daripada CODE_VALUES di bawah.
+  const dariOptions = labelKode(key, s);
+  if (dariOptions) return dariOptions;
+
   const map = CODE_VALUES[key.replace(/x$/, "")];
   return map?.[s] ?? s;
 }

@@ -5,15 +5,25 @@
 // untuk data yang dikelola aplikasi; tabel master dapduk (kependudukan) bersifat
 // legacy/eksternal dan didekati lewat tabel ringkas di sini.
 
+// generator client {
+//   provider = "prisma-client-js"
+//   // "native"               = mesin tempat `prisma generate` dijalankan
+//   // "debian-openssl-1.1.x" = server cPanel "damar" (Debian, OpenSSL 1.1) — WAJIB,
+//   //   tanpa ini query engine tak ditemukan di cPanel → DB gagal.
+//   // "debian-openssl-3.0.x" = VPS Ubuntu 22.04 (deploy PM2, SIDAKO/dukcapil).
+//   // Catatan: paling andal tetap jalankan `prisma generate` DI server target,
+//   //   karena "native" otomatis menghasilkan engine yang cocok.
+//   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+// }
 generator client {
-  provider = "prisma-client-js"
-  // "native"               = mesin tempat `prisma generate` dijalankan
-  // "debian-openssl-1.1.x" = server cPanel "damar" (Debian, OpenSSL 1.1) — WAJIB,
-  //   tanpa ini query engine tak ditemukan di cPanel → DB gagal.
-  // "debian-openssl-3.0.x" = VPS Ubuntu 22.04 (deploy PM2, SIDAKO/dukcapil).
-  // Catatan: paling andal tetap jalankan `prisma generate` DI server target,
-  //   karena "native" otomatis menghasilkan engine yang cocok.
-  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+  provider   = "prisma-client-js"
+  // engineType "client" = client Rust-FREE (WASM query compiler + driver
+  // adapter mariadb). WAJIB untuk cPanel "damar": engineType default
+  // "library" memuat query-engine Rust (tokio) yang men-spawn thread →
+  // tembus LVE ulimit -u=35 → panic "timer has gone away" → semua query 500.
+  // Dengan "client": 0 thread Rust, 0 binary engine, koneksi lewat paket
+  // `mariadb` (JS). binaryTargets jadi tidak relevan.
+  engineType = "client"
 }
 
 datasource db {
@@ -32,6 +42,12 @@ model User {
   userNokk          String?   @map("user_nokk")
   userHp            String?   @map("user_hp")
   userEmail         String?   @map("user_email")
+  /// Kecamatan domisili sesuai KK — disimpan sebagai NAMA (bukan relasi) agar
+  /// data tetap utuh bila master wilayah di-seed ulang.
+  userKecamatan     String?   @map("user_kecamatan")
+  /// Foto wajah/selfie saat pendaftaran; dipakai petugas untuk mencocokkan
+  /// dengan foto KTP sekaligus menjadi foto profil. Berisi URL /uploads/selfie/…
+  userFoto          String?   @map("user_foto")
   activationCode    String?   @map("activation_code")
   activationCodeUrl String?   @db.Text @map("activation_code_url")
   activationTime    DateTime? @map("activation_time")
@@ -48,11 +64,12 @@ model User {
   updatedBy         Int?      @map("updated_by")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  level        UserLevel?    @relation(fields: [userlevelId], references: [id])
-  permohonans  Permohonan[]
-  tikets       Tiket[]       @relation("TiketPembuat")
-  tiketPesan   TiketPesan[]  @relation("TiketPengirim")
-  notifikasi   Notifikasi[]
+  level         UserLevel?     @relation(fields: [userlevelId], references: [id])
+  permohonans   Permohonan[]
+  tikets        Tiket[]        @relation("TiketPembuat")
+  tiketPesan    TiketPesan[]   @relation("TiketPengirim")
+  notifikasi    Notifikasi[]
+  logAktivitas  LogAktivitas[]
 
   @@index([userId])
   @@index([userNik])
@@ -360,4 +377,23 @@ model Kunjungan {
   @@index([tanggal])
   @@index([lastSeen])
   @@map("t_kunjungan")
+}
+
+/// Jejak aktivitas petugas/admin (audit ringan): siapa, aksi apa, objek apa,
+/// kapan. Hanya diisi untuk pelaku level 1/2 (petugas). Dilihat admin saja.
+model LogAktivitas {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id") // pelaku (petugas/admin)
+  aksi      String   // BUAT | UBAH | HAPUS | UNGGAH | IMPOR | LAINNYA
+  entitas   String   // Permohonan | Berita | Konten | Akun | Media | ...
+  entitasId String?  @map("entitas_id") // id/kunci objek (opsional)
+  ringkasan String   @db.Text // kalimat siap tampil, mis. "Mengubah status REG… → SELESAI"
+  ip        String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("t_log_aktivitas")
 }

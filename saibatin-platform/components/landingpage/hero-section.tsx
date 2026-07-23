@@ -71,8 +71,8 @@ export default function HeroSection() {
     e.preventDefault();
     router.push(
       q.trim()
-        ? `/permohonan-online?q=${encodeURIComponent(q.trim())}`
-        : "/permohonan-online",
+        ? `/user/pengajuan/baru?q=${encodeURIComponent(q.trim())}`
+        : "/user/pengajuan/baru",
     );
   };
 
@@ -170,8 +170,8 @@ export default function HeroSection() {
                   key={a.label}
                   href={
                     a.label === "Semua Layanan"
-                      ? "/permohonan-online"
-                      : `/permohonan-online?q=${encodeURIComponent(a.label)}`
+                      ? "/user/pengajuan/baru"
+                      : `/user/pengajuan/baru?q=${encodeURIComponent(a.label)}`
                   }
                   className="group inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm hover:bg-white hover:text-[#1b4b72] transition-all"
                   style={{ transitionDelay: `${i * 20}ms` }}
@@ -203,14 +203,14 @@ export default function HeroSection() {
           </EditableBlock>
 
           {/* Kanan: carousel foto */}
-          <EditableBlock kunci="beranda.carousel" label="Carousel" className="w-full lg:w-[46%] shrink-0">
+          <EditableBlock kunci="beranda.carousel" label="Carousel" className="w-full lg:w-[52%] shrink-0">
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease }}
             className="w-full"
           >
-            <div className="rounded-3xl overflow-hidden h-[240px] sm:h-[320px] md:h-[380px] shadow-2xl shadow-blue-950/40 ring-1 ring-white/20">
+            <div className="rounded-3xl overflow-hidden h-[280px] sm:h-[380px] md:h-[460px] lg:h-[520px] shadow-2xl shadow-blue-950/40 ring-1 ring-white/20">
               <ElegantCarousel slides={slides} height="h-full" />
             </div>
           </motion.div>

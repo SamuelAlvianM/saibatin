@@ -6,8 +6,13 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // tesseract.js & sharp memuat worker/binary native sendiri — jangan di-bundle
   // oleh Turbopack (kalau di-bundle, resolusi path worker rusak → OCR menggantung).
-  serverExternalPackages: ["tesseract.js", "sharp"],
-  // pdfkit butuh file font .afm-nya ikut ter-trace pada build produksi.
+  // pdfkit membaca font .afm-nya via `fs.readFileSync(__dirname + '/data/…afm')`;
+  // kalau di-bundle, __dirname menunjuk ke chunk .next dan file tak ketemu →
+  // route PDF melempar 500 → unduhan "gelap"/kosong. Jadikan eksternal supaya
+  // di-require dari node_modules dengan __dirname yang benar.
+  serverExternalPackages: ["tesseract.js", "sharp", "pdfkit"],
+  // Selain eksternal, pastikan file font .afm ikut ter-trace ke output standalone
+  // (dirujuk lewat string dinamis sehingga tidak terdeteksi tracer otomatis).
   outputFileTracingIncludes: {
     "/api/permohonan/[id]/pdf": ["./node_modules/pdfkit/js/data/*.afm"],
   },

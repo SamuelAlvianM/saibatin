@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { MediaPicker } from "./media-picker";
 import { ImagePlus, Pencil, X } from "lucide-react";
@@ -18,6 +18,8 @@ interface ImagePickerFieldProps {
   aspect?: number;
   /** Kelas ukuran/bentuk tile (default: kotak lebar penuh). */
   className?: string;
+  /** Gaya inline tambahan pada tile (mis. `aspectRatio` non-standar). */
+  style?: CSSProperties;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ImagePickerField({
   title,
   aspect,
   className,
+  style,
 }: ImagePickerFieldProps) {
   const [open, setOpen] = useState(false);
 
@@ -43,6 +46,7 @@ export function ImagePickerField({
         type="button"
         onClick={() => setOpen(true)}
         title={value ? "Ganti gambar" : `Pilih ${label}`}
+        style={style}
         className={cn(
           "group relative flex items-center justify-center overflow-hidden rounded-lg border bg-slate-50 transition-colors",
           value

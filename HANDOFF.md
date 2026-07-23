@@ -2,6 +2,82 @@
 
 > Dokumen ini untuk Claude atau developer berikutnya yang melanjutkan migrasi.
 > Baca **ringkasan di bawah** sebelum menyentuh kode.
+>
+> ⚠️ Bagian "YANG SUDAH / BELUM SELESAI" di bawah sudah **usang** — dipertahankan
+> sebagai arsip. Kondisi sebenarnya ada di **STATUS TERKINI** tepat di bawah ini.
+
+---
+
+## STATUS TERKINI (per 2026-07-23)
+
+Aplikasi **sudah live di cPanel** (bukan lagi rencana). Migrasi Laravel→Next.js
+tuntas; yang berjalan sekarang fase penyempurnaan fitur. Semua item PRIORITAS 1–5
+di arsip bawah **sudah selesai** (profil warga, seluruh CRUD admin, modal
+permohonan tersambung API, email & notifikasi, konten asli, dsb).
+
+### Akar masalah produksi yang sudah dipecahkan (jangan diselidiki ulang)
+- **500 berulang di cPanel** = Phusion Passenger *smart spawning* mem-fork
+  proses **setelah** pool Prisma dibuat → koneksi diwarisi anak yang bukan
+  pemiliknya → query menggantung → Apache balas 500 tanpa body. **FIX**:
+  `PassengerSpawnMethod direct` di `public_html/.htaccess`. Restart HANYA lewat
+  toggle **Application Manager** (Enabled→Disabled→Enabled); tidak ada tombol
+  Restart, `restart.txt` tidak berfungsi.
+- **Prisma di CloudLinux (LVE ulimit-u kecil)** → pakai `engineType="client"`
+  (WASM, tanpa engine Rust) + `@prisma/adapter-mariadb`. Build WAJIB
+  `next build --webpack` (Turbopack merusak tracing pdfkit/sharp).
+- **PDF gambar hilang** = pdfkit menolak WebP (umum dari HP Android) →
+  dinormalkan `sharp` ke JPEG. **Nilai tampil sebagai ID** = data migrasi
+  menyimpan kode angka → `lib/kode-options.ts` (kamus dari tabel `m_options`).
+
+### Sesi 2026-07-22 — penyempurnaan permohonan & dashboard
+- PDF permohonan didesain ulang (logo, tipografi, gambar tersemat, label
+  manusiawi): `lib/permohonan-pdf.ts`.
+- Paginasi bernomor + pencarian lintas halaman (server-side), filter
+  periode & petugas: `components/shared/{pagination,filter-periode}.tsx`,
+  `lib/periode.ts`, `app/api/admin/permohonan/route.ts`.
+- Penampil gambar layar-penuh (zoom/putar/geser): `components/shared/image-viewer.tsx`.
+- Notifikasi diklik → menyorot baris data terkait (`?sorot=<id>`).
+- Latar dashboard sedikit digelapkan (token `--dashboard`).
+
+### Sesi 2026-07-23 — pendaftaran, foto profil, manajemen akun
+- **Pendaftaran akun** mengikuti template Dukcapil Bantul, disatukan jadi
+  **satu formulir** (langkah "Cek NIK & KK" dihapus): Informasi Personal
+  (NIK, No. KK, Nama, Kecamatan) — Informasi Akun (WhatsApp, Email, Sandi ×2,
+  verifikasi OTP) — Foto Wajah/Selfie. `app/register/RegisterContent.tsx`.
+- **Foto wajah/selfie**: `components/shared/camera-capture.tsx`.
+  - Di pendaftaran mandiri **WAJIB dipotret saat itu** (tanpa unggah berkas).
+  - Di form dashboard **opsional** & boleh unggah.
+  - Disimpan di `storage/profil/selfie/` (di luar `public/`), disajikan lewat
+    `/uploads/selfie/…` yang berkontrol akses. Logika: `lib/foto-profil.ts`.
+- **Warga login pertama** diarahkan ke Pengaturan Akun untuk berfoto — anjuran,
+  bukan paksaan: `app/profil/FotoProfilCard.tsx`, `app/api/profil/foto/route.ts`.
+- **Manajemen akun** (`app/dashboard/AdminUsers.tsx`): baris tabel bisa diklik →
+  panel detail (2/4 di desktop, modal di mobile); **hapus akun permanen** (hanya
+  Super Admin, ditolak bila akun punya permohonan/tiket); konfirmasi
+  nonaktif/hapus kini **modal** (bukan `window.prompt`/`confirm`) dengan jeda 3
+  detik pada tombol hapus.
+- **Dropdown kecamatan bisa dicari**: `components/shared/search-select.tsx`.
+- Ejaan kecamatan diselaraskan ke nama resmi (**NGARAS**, **PULAU PISANG**).
+
+### ⚠️ WAJIB dijalankan di DB PRODUKSI saat deploy berikutnya
+Skema & data master berubah; tanpa ini `/dashboard/users` akan 500:
+```sql
+ALTER TABLE users
+  ADD COLUMN user_kecamatan VARCHAR(191) NULL,
+  ADD COLUMN user_foto      VARCHAR(191) NULL;
+UPDATE m_wilayah SET nama='NGARAS'       WHERE jenis='KECAMATAN' AND nama='BENGKUNAT BELIMBING';
+UPDATE m_wilayah SET nama='PULAU PISANG' WHERE jenis='KECAMATAN' AND nama='PULAUPISANG';
+```
+Pastikan folder `storage/` writable (foto profil & berkas permohonan ditulis
+ke sana). Tarball deploy lama **basi** — build ulang via `deploy.sh`.
+
+### Adik proyek: SIDAKO (tanatidung) — ATURAN KERAS
+`sidako-platform` = fork SAIBATIN untuk klien berbeda (Kab. Tana Tidung).
+- Perubahan **fitur** di SAIBATIN direplikasi ke SIDAKO secara berkala.
+- **Sistem & konfigurasi deploy SIDAKO JANGAN disentuh** (beda dari SAIBATIN).
+- **Branding SAIBATIN tidak boleh bocor** ke SIDAKO: tidak ada logo Pesisir
+  Barat, tulisan/istilah "saibatin", warna khas, atau bahasa lokal Lampung.
+  Saat port fitur, salin **logika**-nya, bukan teks/aset bermereknya.
 
 ---
 
